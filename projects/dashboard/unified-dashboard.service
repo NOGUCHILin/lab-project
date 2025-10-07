@@ -1,0 +1,25 @@
+[Unit]
+Description=Unified Dashboard for NixOS Services
+After=network.target
+
+[Service]
+Type=simple
+User=noguchilin
+Group=users
+WorkingDirectory=/home/noguchilin/projects/unified-dashboard
+Environment="NODE_ENV=production"
+Environment="PORT=3000"
+ExecStart=/run/current-system/sw/bin/npm start
+Restart=always
+RestartSec=10
+
+# Security settings
+PrivateTmp=true
+NoNewPrivileges=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

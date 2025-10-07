@@ -1,0 +1,49 @@
+{
+  "name": "unified-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "build:nix": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "deploy": "./scripts/deploy.sh",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "npm run test"
+    ]
+  },
+  "dependencies": {
+    "ai": "^5.0.33",
+    "envalid": "^8.1.0",
+    "lucide-react": "^0.544.0",
+    "next": "15.5.2",
+    "node-fetch": "^3.3.2",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.55.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "dotenv": "^17.2.2",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.6",
+    "playwright": "^1.55.0",
+    "tailwindcss": "^4",
+    "typescript": "5.9.3"
+  }
+}
