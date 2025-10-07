@@ -121,6 +121,12 @@
     port = 13005;
   };
 
+  # AppleBuyers Article Editor設定
+  services.applebuyers-code-server = {
+    enable = true;
+    port = 8890;
+  };
+
 
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.noguchilin = {

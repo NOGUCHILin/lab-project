@@ -40,6 +40,9 @@
 
         # AppleBuyers Public Site Preview
         ${pkgs.tailscale}/bin/tailscale serve --bg --https=13005 13005  # Preview Server
+
+        # AppleBuyers Article Editor (Code Server)
+        ${pkgs.tailscale}/bin/tailscale serve --bg --https=8890 8890  # Article Editor
       '';
 
       # Reset設定（サービス停止時に実行）
