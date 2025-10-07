@@ -67,6 +67,7 @@
           ../projects/filebrowser/service.nix
           ../projects/nats/service.nix
           ./projects/applebuyers-public-site/service.nix
+          ./projects/applebuyers-code-server/service.nix
 
           # sops-nix module for secrets management
           sops-nix.nixosModules.sops

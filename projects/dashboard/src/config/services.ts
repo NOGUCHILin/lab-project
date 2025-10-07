@@ -41,7 +41,7 @@ export const SERVICES: Service[] = [
   {
     id: 'applebuyers-article-editor',
     name: '記事編集 (Code Server)',
-    url: buildServiceUrl(env.CODE_SERVER_PORT, '/?folder=/home/noguchilin/projects/applebuyers_application/public-site/content/articles'),
+    url: 'https://home-lab-01.tail4ed625.ts.net:8890/',
     icon: '📝',
     description: 'AppleBuyers記事をMarkdownで編集 (~/projects/applebuyers_application/public-site/content/articles/)',
     category: 'development',
