@@ -26,6 +26,7 @@ jobs:
           key: ${{ secrets.NIXOS_SSH_KEY }}
           script: |
             cd ~/nixos-config
+            git stash
             git pull origin main
             sudo nixos-rebuild switch --flake ~/nixos-config/nixos-config#home-lab-01
 
