@@ -1,10 +1,10 @@
 # Dashboard Service - Unified Service Monitoring
-# ベストプラクティス: プロジェクトflake依存を排除
+# lab-project統合アーキテクチャ
 { config, lib, pkgs, ... }:
 
 let
   cfg = config.services.dashboard;
-  projectDir = "/home/noguchilin/projects/dashboard";
+  projectDir = "/home/noguchilin/projects/dashboard/projects/dashboard";
 in {
   options.services.dashboard = {
     enable = lib.mkEnableOption "Unified Dashboard service";
