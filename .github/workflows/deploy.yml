@@ -40,8 +40,7 @@ jobs:
           script: |
             cd ~/projects/dashboard
             git stash
-            git pull origin main
-            cd projects/dashboard
+            git pull https://github.com/NOGUCHILin/lab-project.git main
             npm install
             npm run build
             sudo systemctl restart dashboard.service
