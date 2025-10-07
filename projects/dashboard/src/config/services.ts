@@ -27,18 +27,6 @@ const buildServiceUrl = buildDynamicServiceUrl;
 export const SERVICES: Service[] = [
   // Development Tools
   {
-    id: 'code-server',
-    name: 'Code Server',
-    url: buildServiceUrl(env.CODE_SERVER_PORT, '/'),
-    icon: '💻',
-    description: 'Browser-based VSCode',
-    category: 'development',
-    healthCheck: buildServiceUrl(env.CODE_SERVER_PORT, '/healthz'),
-    tags: ['editor', 'development'],
-    features: ['ブラウザでVSCodeを使用', 'リモート開発環境', '拡張機能サポート'],
-    docsUrl: 'https://github.com/coder/code-server/blob/main/docs/guide.md'
-  },
-  {
     id: 'applebuyers-article-editor',
     name: '記事編集 (Code Server)',
     url: 'https://home-lab-01.tail4ed625.ts.net:8890/',
@@ -48,6 +36,18 @@ export const SERVICES: Service[] = [
     tags: ['editor', 'writing', 'markdown', 'applebuyers'],
     features: ['Markdown記事編集', '画像アップロード', 'リアルタイムプレビュー'],
     status: 'active'
+  },
+  {
+    id: 'code-server',
+    name: 'Code Server',
+    url: 'https://home-lab-01.tail4ed625.ts.net:8889/',
+    icon: '💻',
+    description: 'Browser-based VSCode',
+    category: 'development',
+    healthCheck: 'https://home-lab-01.tail4ed625.ts.net:8889/healthz',
+    tags: ['editor', 'development'],
+    features: ['ブラウザでVSCodeを使用', 'リモート開発環境', '拡張機能サポート'],
+    docsUrl: 'https://github.com/coder/code-server/blob/main/docs/guide.md'
   },
   {
     id: 'applebuyers-preview',
