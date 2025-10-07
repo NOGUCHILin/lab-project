@@ -32,7 +32,7 @@ in {
         Group = "users";
         WorkingDirectory = articlesDir;
 
-        ExecStart = "${pkgs.code-server}/bin/code-server --bind-addr 127.0.0.1:${toString cfg.port} --auth none --disable-telemetry --disable-update-check --disable-workspace-trust ${articlesDir}";
+        ExecStart = "${pkgs.code-server}/bin/code-server --bind-addr 127.0.0.1:${toString cfg.port} --user-data-dir /home/noguchilin/.local/share/applebuyers-code-server --auth none --disable-telemetry --disable-update-check --disable-workspace-trust ${articlesDir}";
 
         Restart = "always";
         RestartSec = 10;
