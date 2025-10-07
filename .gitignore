@@ -1,0 +1,45 @@
+# Nix
+result
+result-*
+.direnv/
+.envrc
+
+# Node.js
+node_modules/
+.next/
+.next-dev/
+dist/
+build/
+*.log
+npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.coverage
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+secrets/*.key
+secrets/*.age
+!secrets/.gitkeep
