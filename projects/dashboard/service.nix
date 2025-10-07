@@ -4,7 +4,7 @@
 
 let
   cfg = config.services.dashboard;
-  projectDir = "/home/noguchilin/projects/dashboard/projects/dashboard";
+  projectDir = "/home/noguchilin/projects/dashboard";
 in {
   options.services.dashboard = {
     enable = lib.mkEnableOption "Unified Dashboard service";
