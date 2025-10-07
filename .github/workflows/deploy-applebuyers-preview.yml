@@ -1,0 +1,68 @@
+name: Deploy AppleBuyers Preview to NixOS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'nixos-config/projects/applebuyers-public-site/**'
+  workflow_dispatch:
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      # Tailscaleに接続
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      # AppleBuyers Preview デプロイ
+      - name: Deploy AppleBuyers Preview
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.NIXOS_HOST }}
+          username: ${{ secrets.NIXOS_USER }}
+          key: ${{ secrets.NIXOS_SSH_KEY }}
+          script: |
+            # NixOS設定更新（service.nix等）
+            cd ~/nixos-config
+            git stash
+            git pull origin main
+
+            # AppleBuyers Public Siteコード取得（GitHubからSparse Checkout）
+            cd /tmp
+            rm -rf applebuyers-temp
+            git clone --filter=blob:none --no-checkout --depth 1 https://github.com/NOGUCHILin/applebuyers_application.git applebuyers-temp
+            cd applebuyers-temp
+            git sparse-checkout init --cone
+            git sparse-checkout set public-site
+            git checkout main
+
+            # ~/projects/applebuyers_application/public-site/ に同期
+            mkdir -p /home/noguchilin/projects/applebuyers_application
+            rsync -av --delete \
+              --exclude='node_modules' \
+              --exclude='.next' \
+              public-site/ /home/noguchilin/projects/applebuyers_application/public-site/
+
+            # 一時ディレクトリ削除
+            cd ~
+            rm -rf /tmp/applebuyers-temp
+
+            # NixOS再構築（自動的にビルド＆サービス起動）
+            cd ~/nixos-config
+            sudo nixos-rebuild switch --flake ~/nixos-config/nixos-config#home-lab-01
+
+      # デプロイ完了通知
+      - name: Verify deployment
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.NIXOS_HOST }}
+          username: ${{ secrets.NIXOS_USER }}
+          key: ${{ secrets.NIXOS_SSH_KEY }}
+          script: |
+            systemctl is-active applebuyers-public-site-dev.service
+            echo "✅ AppleBuyers Preview service running on port 13005"
