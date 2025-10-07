@@ -37,6 +37,9 @@
         ${pkgs.tailscale}/bin/tailscale serve --bg --https=3002 3002  # Admin UI
         ${pkgs.tailscale}/bin/tailscale serve --bg --https=8010 8010  # API Backend
         ${pkgs.tailscale}/bin/tailscale funnel --bg --https=10000 10000  # Slack Webhook (public)
+
+        # AppleBuyers Public Site Preview
+        ${pkgs.tailscale}/bin/tailscale serve --bg --https=13005 13005  # Preview Server
       '';
 
       # Reset設定（サービス停止時に実行）
