@@ -24,11 +24,6 @@
       ../../modules/networking/tailscale-serve.nix # Tailscale Serve configuration
 
       # Service modules (アプリケーションサービス)
-      ../../modules/services/dashboard.nix           # Dashboard
-      ../../modules/services/filebrowser.nix         # FileBrowser web file manager
-      ../../modules/services/code-server.nix         # Code Server (browser IDE)
-      ../../modules/services/nats.nix                # NATS messaging system
-      ../../modules/services/nakamura-misaki.nix     # Nakamura-Misaki (API + Admin UI)
       ../../modules/security/cli-guards.nix          # CLI guards (soft blacklist)
     ];
 

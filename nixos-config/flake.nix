@@ -27,7 +27,7 @@
       # Default lightweight shell. Extend per-project via direnv
       default = pkgs.mkShell { packages = [ ]; };
 
-      # Node.js development shell (per-project usage via `nix develop .#node`)
+      # Node.js development shell (per-project usage via \`nix develop .#node\`)
       node = pkgs.mkShell {
         packages = with pkgs; [
           nodejs_22
@@ -35,7 +35,7 @@
         ];
       };
 
-      # Python development shell (per-project usage via `nix develop .#py`)
+      # Python development shell (per-project usage via \`nix develop .#py\`)
       py = pkgs.mkShell {
         packages = with pkgs; [
           python3
@@ -58,7 +58,8 @@
           # 全サービス定義をprojects/からimport
           ../projects/dashboard/service.nix
           ../projects/nakamura-misaki/service.nix
-          ../projects/nakamura-misaki/admin-ui.nix
+          # TODO: admin-ui.nixは既存プロジェクトコード統合後に有効化
+          # ../projects/nakamura-misaki/admin-ui.nix
           ../projects/code-server/service.nix
           ../projects/filebrowser/service.nix
           ../projects/nats/service.nix
