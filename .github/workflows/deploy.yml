@@ -30,7 +30,7 @@ jobs:
             git pull origin main
             sudo nixos-rebuild switch --flake ~/nixos-config/nixos-config#home-lab-01
 
-      # Dashboard デプロイ (lab-project更新 + NixOS再構築)
+      # Dashboard デプロイ (GitHubから直接取得 + NixOS再構築)
       - name: Deploy Dashboard
         uses: appleboy/ssh-action@master
         with:
@@ -38,15 +38,32 @@ jobs:
           username: ${{ secrets.NIXOS_USER }}
           key: ${{ secrets.NIXOS_SSH_KEY }}
           script: |
-            # lab-projectコード更新
-            cd ~/projects/dashboard
-            git stash
-            git pull origin main
-
-            # NixOS設定更新＆再構築（自動的にビルド＆サービス再起動）
+            # NixOS設定更新（service.nix等）
             cd ~/nixos-config
             git stash
             git pull origin main
+
+            # Dashboardコード取得（GitHubから）
+            cd /tmp
+            rm -rf lab-project-temp
+            git clone --filter=blob:none --no-checkout --depth 1 https://github.com/NOGUCHILin/lab-project.git lab-project-temp
+            cd lab-project-temp
+            git sparse-checkout init --cone
+            git sparse-checkout set projects/dashboard
+            git checkout main
+
+            # ~/projects/dashboard/ に同期
+            rsync -av --delete \
+              --exclude='node_modules' \
+              --exclude='.next' \
+              projects/dashboard/ /home/noguchilin/projects/dashboard/
+
+            # 一時ディレクトリ削除
+            cd ~
+            rm -rf /tmp/lab-project-temp
+
+            # NixOS再構築（自動的にビルド＆サービス再起動）
+            cd ~/nixos-config
             sudo nixos-rebuild switch --flake ~/nixos-config/nixos-config#home-lab-01
 
       # デプロイ完了通知
