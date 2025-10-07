@@ -42,7 +42,7 @@ in {
         NEXT_PUBLIC_BASE_URL = cfg.baseUrl;
       };
 
-      path = [ pkgs.nodejs_22 ];
+      path = [ pkgs.nodejs_22 pkgs.bash ];
 
       serviceConfig = {
         Type = "simple";
@@ -51,7 +51,7 @@ in {
         WorkingDirectory = projectDir;
 
         ExecStartPre = pkgs.writeShellScript "dashboard-build" ''
-          export PATH=${pkgs.nodejs_22}/bin:$PATH
+          export PATH=${pkgs.nodejs_22}/bin:${pkgs.bash}/bin:$PATH
           export NODE_ENV=production
           export HUSKY=0
 
@@ -64,8 +64,9 @@ in {
         '';
 
         ExecStart = pkgs.writeShellScript "dashboard-start" ''
-          export PATH=${pkgs.nodejs_22}/bin:$PATH
-          exec npm start
+          export PATH=${pkgs.nodejs_22}/bin:${pkgs.bash}/bin:$PATH
+          cd ${projectDir}
+          exec node node_modules/.bin/next start -p ${toString cfg.port}
         '';
 
         Restart = "always";
