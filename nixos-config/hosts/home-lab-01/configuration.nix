@@ -115,6 +115,12 @@
     enforceDeclarative = false;  # 開発中はfalse
   };
 
+  # AppleBuyers Public Site Preview設定
+  services.applebuyers-public-site-dev = {
+    enable = true;
+    port = 13005;
+  };
+
 
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.noguchilin = {
