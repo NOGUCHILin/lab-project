@@ -30,7 +30,7 @@ jobs:
             git pull origin main
             sudo nixos-rebuild switch --flake ~/nixos-config/nixos-config#home-lab-01
 
-      # Dashboard デプロイ
+      # Dashboard デプロイ (lab-project更新 + NixOS再構築)
       - name: Deploy Dashboard
         uses: appleboy/ssh-action@master
         with:
@@ -38,13 +38,16 @@ jobs:
           username: ${{ secrets.NIXOS_USER }}
           key: ${{ secrets.NIXOS_SSH_KEY }}
           script: |
+            # lab-projectコード更新
             cd ~/projects/dashboard
             git stash
             git pull origin main
-            cd projects/dashboard
-            npm install
-            npm run build
-            sudo systemctl restart dashboard.service
+
+            # NixOS設定更新＆再構築（自動的にビルド＆サービス再起動）
+            cd ~/nixos-config
+            git stash
+            git pull origin main
+            sudo nixos-rebuild switch --flake ~/nixos-config/nixos-config#home-lab-01
 
       # デプロイ完了通知
       - name: Verify deployment
