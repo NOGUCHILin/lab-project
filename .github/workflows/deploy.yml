@@ -1,0 +1,35 @@
+name: Deploy to NixOS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # 手動実行も可能
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # NixOSにデプロイ
+      - name: Deploy to NixOS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.NIXOS_HOST }}
+          username: ${{ secrets.NIXOS_USER }}
+          key: ${{ secrets.NIXOS_SSH_KEY }}
+          script: |
+            cd ~/nixos-config
+            git pull origin main
+            sudo nixos-rebuild switch --flake ~/nixos-config/nixos-config#home-lab-01
+
+      # デプロイ完了通知
+      - name: Verify deployment
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.NIXOS_HOST }}
+          username: ${{ secrets.NIXOS_USER }}
+          key: ${{ secrets.NIXOS_SSH_KEY }}
+          script: |
+            systemctl is-active dashboard.service
+            systemctl is-active nakamura-misaki-api.service
+            systemctl is-active code-server.service
+            echo "✅ All services running"
