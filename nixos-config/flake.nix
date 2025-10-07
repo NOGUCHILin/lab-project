@@ -55,6 +55,9 @@
         modules = [
           ./hosts/home-lab-01/configuration.nix
 
+          # Nginxリバースプロキシ設定
+          ./modules/nginx.nix
+
           # 全サービス定義をprojects/からimport
           ../projects/dashboard/service.nix
           ../projects/nakamura-misaki/service.nix
