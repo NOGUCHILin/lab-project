@@ -66,13 +66,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: NOGUCHILin/nixos-config
-          path: /tmp/nixos-config
+          path: nixos-config
           token: ${{ secrets.GITHUB_TOKEN }}
 
       # deploy-rsでデプロイ
       - name: Deploy with deploy-rs
         run: |
-          cd /tmp/nixos-config/nixos-config
+          cd nixos-config/nixos-config
           nix run github:serokell/deploy-rs -- \
             --ssh-user ${{ secrets.NIXOS_USER }} \
             --ssh-opts="-i $HOME/.ssh/deploy_key" \
