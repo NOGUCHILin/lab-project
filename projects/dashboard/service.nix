@@ -48,7 +48,7 @@ in {
         Type = "simple";
         User = "noguchilin";
         Group = "users";
-        WorkingDirectory = standaloneDir;
+        WorkingDirectory = projectDir;
 
         # Standalone modeビルド + 静的ファイルコピー
         ExecStartPre = pkgs.writeShellScript "dashboard-build" ''
