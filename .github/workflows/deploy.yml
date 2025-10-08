@@ -64,7 +64,7 @@ jobs:
       # nixos-configをクローン
       - name: Clone nixos-config
         run: |
-          git clone https://github.com/NOGUCHILin/nixos-config.git /tmp/nixos-config
+          git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/NOGUCHILin/nixos-config.git /tmp/nixos-config
 
       # deploy-rsでデプロイ
       - name: Deploy with deploy-rs
