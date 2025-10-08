@@ -25,18 +25,19 @@ export interface Service {
 const buildServiceUrl = buildDynamicServiceUrl;
 
 export const SERVICES: Service[] = [
-  // Development Tools
+  // Dashboard itself (ホーム)
   {
-    id: 'applebuyers-article-editor',
-    name: '記事編集 (Code Server)',
-    url: 'https://home-lab-01.tail4ed625.ts.net:8890/',
-    icon: '📝',
-    description: 'AppleBuyers記事をMarkdownで編集 (~/projects/applebuyers_application/public-site/content/articles/)',
-    category: 'development',
-    tags: ['editor', 'writing', 'markdown', 'applebuyers'],
-    features: ['Markdown記事編集', '画像アップロード', 'リアルタイムプレビュー'],
-    status: 'active'
+    id: 'dashboard',
+    name: 'Dashboard',
+    url: '/',
+    icon: '🏠',
+    description: 'Service monitoring and management',
+    category: 'infrastructure',
+    status: 'active',
+    tags: ['dashboard', 'home']
   },
+
+  // Development Tools - 汎用
   {
     id: 'code-server',
     name: 'Code Server',
@@ -49,6 +50,48 @@ export const SERVICES: Service[] = [
     features: ['ブラウザでVSCodeを使用', 'リモート開発環境', '拡張機能サポート'],
     docsUrl: 'https://github.com/coder/code-server/blob/main/docs/guide.md'
   },
+
+  // AI Services
+  {
+    id: 'nakamura-misaki',
+    name: 'Nakamura-Misaki',
+    url: buildServiceUrl(3002, '/'),
+    icon: '🤖',
+    description: 'Multi-user Claude Code Agent - Admin UI',
+    category: 'ai',
+    healthCheck: buildServiceUrl(8010, '/health'),
+    tags: ['ai', 'claude', 'agent', 'slack', 'admin'],
+    features: ['Slack統合', 'マルチユーザー対応', 'プロンプト管理', 'タスク管理', 'エラーログ監視'],
+    docsUrl: '/projects/nakamura-misaki/README.md',
+    status: 'active'
+  },
+
+  // Storage & File Management
+  {
+    id: 'file-manager',
+    name: 'File Manager',
+    url: buildServiceUrl(env.FILE_MANAGER_PORT, '/'),
+    icon: '📁',
+    description: 'Web-based file management',
+    category: 'storage',
+    healthCheck: buildServiceUrl(env.FILE_MANAGER_PORT, '/api/public/dl/nopass'),
+    tags: ['files', 'manager'],
+    features: ['Webファイルブラウザ', 'アップロード/ダウンロード', 'ファイル編集'],
+    docsUrl: 'https://github.com/filebrowser/filebrowser'
+  },
+
+  // Development Tools - AppleBuyers専用
+  {
+    id: 'applebuyers-article-editor',
+    name: '記事編集 (Code Server)',
+    url: 'https://home-lab-01.tail4ed625.ts.net:8890/',
+    icon: '📝',
+    description: 'AppleBuyers記事をMarkdownで編集 (~/projects/applebuyers_application/public-site/content/articles/)',
+    category: 'development',
+    tags: ['editor', 'writing', 'markdown', 'applebuyers'],
+    features: ['Markdown記事編集', '画像アップロード', 'リアルタイムプレビュー'],
+    status: 'active'
+  },
   {
     id: 'applebuyers-preview',
     name: '記事プレビュー',
@@ -60,8 +103,6 @@ export const SERVICES: Service[] = [
     features: ['編集中記事のプレビュー', 'Next.js開発サーバー'],
     status: 'active'
   },
-
-  // AI Services
 
   // Storage & File Management
   {
@@ -76,18 +117,6 @@ export const SERVICES: Service[] = [
     features: ['P2Pファイル同期', '暗号化通信', 'マルチデバイス対応'],
     docsUrl: 'https://docs.syncthing.net/'
   },
-  {
-    id: 'file-manager',
-    name: 'File Manager',
-    url: buildServiceUrl(env.FILE_MANAGER_PORT, '/'),
-    icon: '📁',
-    description: 'Web-based file management',
-    category: 'storage',
-    healthCheck: buildServiceUrl(env.FILE_MANAGER_PORT, '/api/public/dl/nopass'),
-    tags: ['files', 'manager'],
-    features: ['Webファイルブラウザ', 'アップロード/ダウンロード', 'ファイル編集'],
-    docsUrl: 'https://github.com/filebrowser/filebrowser'
-  },
 
   // Infrastructure
   {
@@ -101,33 +130,6 @@ export const SERVICES: Service[] = [
     tags: ['messaging', 'events'],
     features: ['高速メッセージング', 'Pub/Sub', 'マイクロサービス通信'],
     docsUrl: 'https://docs.nats.io/'
-  },
-
-  // Dashboard itself (for completeness)
-  {
-    id: 'dashboard',
-    name: 'Dashboard',
-    url: '/',
-    icon: '🏠',
-    description: 'Service monitoring and management',
-    category: 'infrastructure',
-    status: 'active',
-    tags: ['dashboard', 'home']
-  },
-
-  // Nakamura-Misaki (Claude Agent)
-  {
-    id: 'nakamura-misaki',
-    name: 'Nakamura-Misaki',
-    url: buildServiceUrl(3002, '/'),
-    icon: '🤖',
-    description: 'Multi-user Claude Code Agent - Admin UI',
-    category: 'ai',
-    healthCheck: buildServiceUrl(8010, '/health'),
-    tags: ['ai', 'claude', 'agent', 'slack', 'admin'],
-    features: ['Slack統合', 'マルチユーザー対応', 'プロンプト管理', 'タスク管理', 'エラーログ監視'],
-    docsUrl: '/projects/nakamura-misaki/README.md',
-    status: 'active'
   }
 ];
 
