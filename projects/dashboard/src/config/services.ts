@@ -70,11 +70,11 @@ export const SERVICES: Service[] = [
   {
     id: 'file-manager',
     name: 'File Manager',
-    url: buildServiceUrl(env.FILE_MANAGER_PORT, '/'),
+    url: 'https://home-lab-01.tail4ed625.ts.net:9000/',
     icon: '📁',
     description: 'Web-based file management',
     category: 'storage',
-    healthCheck: buildServiceUrl(env.FILE_MANAGER_PORT, '/api/public/dl/nopass'),
+    healthCheck: 'https://home-lab-01.tail4ed625.ts.net:9000/api/public/dl/nopass',
     tags: ['files', 'manager'],
     features: ['Webファイルブラウザ', 'アップロード/ダウンロード', 'ファイル編集'],
     docsUrl: 'https://github.com/filebrowser/filebrowser'
@@ -86,7 +86,7 @@ export const SERVICES: Service[] = [
     name: '記事編集 (Code Server)',
     url: 'https://home-lab-01.tail4ed625.ts.net:8890/',
     icon: '📝',
-    description: 'AppleBuyers記事をMarkdownで編集 (~/projects/applebuyers_application/public-site/content/articles/)',
+    description: 'AppleBuyers Public Site記事をMarkdownで編集 (~/projects/applebuyers_application/public-site/content/articles/)',
     category: 'development',
     tags: ['editor', 'writing', 'markdown', 'applebuyers'],
     features: ['Markdown記事編集', '画像アップロード', 'リアルタイムプレビュー'],
@@ -108,11 +108,11 @@ export const SERVICES: Service[] = [
   {
     id: 'syncthing',
     name: 'Syncthing',
-    url: buildServiceUrl(env.SYNCTHING_PORT, '/'),
+    url: 'https://home-lab-01.tail4ed625.ts.net:8384/',
     icon: '🔄',
     description: 'File synchronization',
     category: 'storage',
-    healthCheck: buildServiceUrl(env.SYNCTHING_PORT, '/rest/noauth/health'),
+    healthCheck: 'https://home-lab-01.tail4ed625.ts.net:8384/rest/noauth/health',
     tags: ['sync', 'files'],
     features: ['P2Pファイル同期', '暗号化通信', 'マルチデバイス対応'],
     docsUrl: 'https://docs.syncthing.net/'
@@ -122,11 +122,11 @@ export const SERVICES: Service[] = [
   {
     id: 'nats',
     name: 'NATS',
-    url: buildServiceUrl(env.NATS_PORT, '/'),
+    url: 'https://home-lab-01.tail4ed625.ts.net:8222/',
     icon: '📡',
     description: 'Event-driven messaging',
     category: 'infrastructure',
-    healthCheck: buildServiceUrl(env.NATS_PORT, '/varz'),
+    healthCheck: 'https://home-lab-01.tail4ed625.ts.net:8222/varz',
     tags: ['messaging', 'events'],
     features: ['高速メッセージング', 'Pub/Sub', 'マイクロサービス通信'],
     docsUrl: 'https://docs.nats.io/'
