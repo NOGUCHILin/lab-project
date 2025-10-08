@@ -70,6 +70,9 @@ jobs:
       # nixos-configをクローンしてデプロイ
       - name: Deploy NixOS configuration
         run: |
+          # 既存のディレクトリを削除（前回の実行の残骸対策）
+          rm -rf nixos-config
+
           # nixos-configをクローン
           git clone https://${{ secrets.NIXOS_CONFIG_PAT }}@github.com/NOGUCHILin/nixos-config.git
           cd nixos-config
