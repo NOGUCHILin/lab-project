@@ -67,7 +67,7 @@ jobs:
         with:
           repository: NOGUCHILin/nixos-config
           path: nixos-config
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.NIXOS_CONFIG_PAT }}
 
       # deploy-rsでデプロイ
       - name: Deploy with deploy-rs
