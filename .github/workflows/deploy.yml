@@ -72,6 +72,7 @@ jobs:
       # deploy-rsでデプロイ
       - name: Deploy with deploy-rs
         run: |
+          ls -la nixos-config/
           cd nixos-config/nixos-config
           nix run github:serokell/deploy-rs -- \
             --ssh-user ${{ secrets.NIXOS_USER }} \
