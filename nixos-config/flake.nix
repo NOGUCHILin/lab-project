@@ -13,9 +13,15 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # deploy-rs を追加
+    deploy-rs = {
+      url = "github:serokell/deploy-rs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, sops-nix, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, sops-nix, deploy-rs, ... }@inputs:
   let
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
@@ -27,7 +33,7 @@
       # Default lightweight shell. Extend per-project via direnv
       default = pkgs.mkShell { packages = [ ]; };
 
-      # Node.js development shell (per-project usage via \`nix develop .#node\`)
+      # Node.js development shell (per-project usage via `nix develop .#node`)
       node = pkgs.mkShell {
         packages = with pkgs; [
           nodejs_22
@@ -35,7 +41,7 @@
         ];
       };
 
-      # Python development shell (per-project usage via \`nix develop .#py\`)
+      # Python development shell (per-project usage via `nix develop .#py`)
       py = pkgs.mkShell {
         packages = with pkgs; [
           python3
@@ -47,7 +53,7 @@
     checks.${system} = {
       # Ensure the NixOS system evaluates and builds toplevel
       nixosSystem = self.nixosConfigurations.home-lab-01.config.system.build.toplevel;
-    };
+    } // (deploy-rs.lib.${system}.deployChecks self.deploy);
 
     nixosConfigurations = {
       home-lab-01 = nixpkgs.lib.nixosSystem {
@@ -93,6 +99,22 @@
         modules = [
           ./users/noguchilin.nix
         ];
+      };
+    };
+
+    # deploy-rs configuration
+    deploy = {
+      nodes = {
+        home-lab-01 = {
+          hostname = "192.168.11.27";  # または Tailscale hostname
+          sshUser = "noguchilin";
+          sshOpts = [ "-p" "22" ];
+          
+          profiles.system = {
+            user = "root";
+            path = deploy-rs.lib.${system}.activate.nixos self.nixosConfigurations.home-lab-01;
+          };
+        };
       };
     };
   };
