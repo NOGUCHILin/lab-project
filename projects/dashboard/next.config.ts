@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Enable standalone output for optimized production deployment
+  output: 'standalone',
+
   // Build output directory can be separated per environment
   distDir: process.env.NEXT_DIST_DIR || '.next',
   eslint: {
