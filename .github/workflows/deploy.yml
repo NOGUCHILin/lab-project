@@ -1,9 +1,9 @@
-name: Deploy to NixOS with deploy-rs
+name: Deploy to NixOS
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:  # 手動実行も可能
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -27,11 +27,24 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
 
+      # SSHキー設定
+      - name: Setup SSH key
+        run: |
+          mkdir -p $HOME/.ssh
+          echo "${{ secrets.NIXOS_SSH_KEY }}" > $HOME/.ssh/id_rsa
+          chmod 600 $HOME/.ssh/id_rsa
+          # Tailscale経由のSSH接続用にhost key checkingを無効化
+          cat >> $HOME/.ssh/config <<EOF
+          Host home-lab-01
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+          EOF
+
       # Dashboardコードを同期（service.nixが参照するため）
       - name: Sync Dashboard code
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.NIXOS_HOST }}
+          host: home-lab-01
           username: ${{ secrets.NIXOS_USER }}
           key: ${{ secrets.NIXOS_SSH_KEY }}
           script: |
@@ -54,45 +67,24 @@ jobs:
             cd ~
             rm -rf /tmp/lab-project-temp
 
-      # SSHキーをセットアップ
-      - name: Setup SSH key
+      # nixos-configをクローンしてデプロイ
+      - name: Deploy NixOS configuration
         run: |
-          mkdir -p $HOME/.ssh
-          echo "${{ secrets.NIXOS_SSH_KEY }}" > $HOME/.ssh/deploy_key
-          chmod 600 $HOME/.ssh/deploy_key
-          # Tailscale経由のSSH接続用にhost key checkingを無効化
-          cat >> $HOME/.ssh/config <<EOF
-          Host home-lab-01
-            StrictHostKeyChecking no
-            UserKnownHostsFile /dev/null
-          EOF
-
-      # nixos-configをクローン
-      - name: Clone nixos-config
-        uses: actions/checkout@v4
-        with:
-          repository: NOGUCHILin/nixos-config
-          path: nixos-config
-          token: ${{ secrets.NIXOS_CONFIG_PAT }}
-
-      # deploy-rsでデプロイ
-      - name: Deploy with deploy-rs
-        run: |
+          # nixos-configをクローン
+          git clone https://${{ secrets.NIXOS_CONFIG_PAT }}@github.com/NOGUCHILin/nixos-config.git
           cd nixos-config
-          # Check if we need to go into subdirectory
-          if [ -d nixos-config ]; then
-            cd nixos-config
-          fi
-          nix run github:serokell/deploy-rs -- \
-            --ssh-user ${{ secrets.NIXOS_USER }} \
-            --ssh-opts="-i $HOME/.ssh/deploy_key" \
-            .#home-lab-01
 
-      # デプロイ完了通知
+          # サーバー側でビルド・デプロイ
+          nixos-rebuild switch \
+            --flake .#home-lab-01 \
+            --target-host ${{ secrets.NIXOS_USER }}@home-lab-01 \
+            --use-remote-sudo
+
+      # デプロイ完了確認
       - name: Verify deployment
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.NIXOS_HOST }}
+          host: home-lab-01
           username: ${{ secrets.NIXOS_USER }}
           key: ${{ secrets.NIXOS_SSH_KEY }}
           script: |
