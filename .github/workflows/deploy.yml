@@ -20,26 +20,6 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
 
-      # Nixをインストール
-      - name: Install Nix
-        uses: cachix/install-nix-action@v27
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
-
-      # SSHキー設定
-      - name: Setup SSH key
-        run: |
-          mkdir -p $HOME/.ssh
-          echo "${{ secrets.NIXOS_SSH_KEY }}" > $HOME/.ssh/id_rsa
-          chmod 600 $HOME/.ssh/id_rsa
-          # Tailscale経由のSSH接続用にhost key checkingを無効化
-          cat >> $HOME/.ssh/config <<EOF
-          Host home-lab-01
-            StrictHostKeyChecking no
-            UserKnownHostsFile /dev/null
-          EOF
-
       # Dashboardコードを同期（service.nixが参照するため）
       - name: Sync Dashboard code
         uses: appleboy/ssh-action@master
@@ -67,22 +47,23 @@ jobs:
             cd ~
             rm -rf /tmp/lab-project-temp
 
-      # nixos-configをクローンしてデプロイ
+      # NixOS設定をデプロイ
       - name: Deploy NixOS configuration
-        run: |
-          # 既存のディレクトリを削除（前回の実行の残骸対策）
-          rm -rf nixos-config
+        uses: appleboy/ssh-action@master
+        with:
+          host: home-lab-01
+          username: ${{ secrets.NIXOS_USER }}
+          key: ${{ secrets.NIXOS_SSH_KEY }}
+          command_timeout: 30m
+          script: |
+            # nixos-configをクローン（既存があれば削除）
+            cd ~
+            rm -rf nixos-config
+            git clone https://${{ secrets.NIXOS_CONFIG_PAT }}@github.com/NOGUCHILin/nixos-config.git
+            cd nixos-config
 
-          # nixos-configをクローン
-          git clone https://${{ secrets.NIXOS_CONFIG_PAT }}@github.com/NOGUCHILin/nixos-config.git
-          cd nixos-config
-
-          # サーバー側でビルド・デプロイ（build-hostでリモートビルド）
-          nix run nixpkgs#nixos-rebuild -- switch \
-            --flake .#home-lab-01 \
-            --target-host ${{ secrets.NIXOS_USER }}@home-lab-01 \
-            --build-host ${{ secrets.NIXOS_USER }}@home-lab-01 \
-            --use-remote-sudo
+            # サーバー上でビルド・デプロイ
+            sudo nixos-rebuild switch --flake .#home-lab-01
 
       # デプロイ完了確認
       - name: Verify deployment
