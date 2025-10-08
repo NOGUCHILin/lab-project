@@ -1,4 +1,4 @@
-name: Deploy to NixOS
+name: Deploy to NixOS with deploy-rs
 
 on:
   push:
@@ -9,6 +9,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout lab-project repository
+        uses: actions/checkout@v4
+
       # Tailscaleに接続
       - name: Connect to Tailscale
         uses: tailscale/github-action@v2
@@ -17,32 +20,21 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
 
-      # NixOSにデプロイ
-      - name: Deploy to NixOS
+      # Nixをインストール
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      # Dashboardコードを同期（service.nixが参照するため）
+      - name: Sync Dashboard code
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.NIXOS_HOST }}
           username: ${{ secrets.NIXOS_USER }}
           key: ${{ secrets.NIXOS_SSH_KEY }}
           script: |
-            cd ~/nixos-config
-            git stash
-            git pull origin main
-            sudo nixos-rebuild switch --flake ~/nixos-config/nixos-config#home-lab-01
-
-      # Dashboard デプロイ (GitHubから直接取得 + NixOS再構築)
-      - name: Deploy Dashboard
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.NIXOS_HOST }}
-          username: ${{ secrets.NIXOS_USER }}
-          key: ${{ secrets.NIXOS_SSH_KEY }}
-          script: |
-            # NixOS設定更新（service.nix等）
-            cd ~/nixos-config
-            git stash
-            git pull origin main
-
             # Dashboardコード取得（GitHubから）
             cd /tmp
             rm -rf lab-project-temp
@@ -62,9 +54,26 @@ jobs:
             cd ~
             rm -rf /tmp/lab-project-temp
 
-            # NixOS再構築（自動的にビルド＆サービス再起動）
-            cd ~/nixos-config
-            sudo nixos-rebuild switch --flake ~/nixos-config/nixos-config#home-lab-01
+      # SSHキーをセットアップ
+      - name: Setup SSH key
+        run: |
+          mkdir -p $HOME/.ssh
+          echo "${{ secrets.NIXOS_SSH_KEY }}" > $HOME/.ssh/deploy_key
+          chmod 600 $HOME/.ssh/deploy_key
+
+      # nixos-configをクローン
+      - name: Clone nixos-config
+        run: |
+          git clone https://github.com/NOGUCHILin/nixos-config.git /tmp/nixos-config
+
+      # deploy-rsでデプロイ
+      - name: Deploy with deploy-rs
+        run: |
+          cd /tmp/nixos-config/nixos-config
+          nix run github:serokell/deploy-rs -- \
+            --ssh-user ${{ secrets.NIXOS_USER }} \
+            --ssh-opts="-i $HOME/.ssh/deploy_key" \
+            .#home-lab-01
 
       # デプロイ完了通知
       - name: Verify deployment
