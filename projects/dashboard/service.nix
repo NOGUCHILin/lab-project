@@ -1,11 +1,10 @@
-# Dashboard Service - Unified Service Monitoring (Standalone Mode)
+# Dashboard Service - Unified Service Monitoring
 # lab-project統合アーキテクチャ
 { config, lib, pkgs, ... }:
 
 let
   cfg = config.services.dashboard;
   projectDir = "/home/noguchilin/projects/dashboard";
-  standaloneDir = "${projectDir}/.next/standalone";
 in {
   options.services.dashboard = {
     enable = lib.mkEnableOption "Unified Dashboard service";
@@ -31,18 +30,19 @@ in {
 
   config = lib.mkIf cfg.enable {
     systemd.services.dashboard = {
-      description = "Unified Dashboard (production - standalone mode)";
+      description = "Unified Dashboard (production)";
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
 
       environment = {
         PORT = toString cfg.port;
         NODE_ENV = "production";
+        NEXT_DIST_DIR = ".next";
       } // lib.optionalAttrs (cfg.baseUrl != "") {
         NEXT_PUBLIC_BASE_URL = cfg.baseUrl;
       };
 
-      path = [ pkgs.nodejs_22 pkgs.bash pkgs.rsync ];
+      path = [ pkgs.nodejs_22 pkgs.bash ];
 
       serviceConfig = {
         Type = "simple";
@@ -50,46 +50,22 @@ in {
         Group = "users";
         WorkingDirectory = projectDir;
 
-        # Standalone modeビルド + 静的ファイルコピー
+        # 常にクリーンビルド（最新コードを確実に反映）
         ExecStartPre = pkgs.writeShellScript "dashboard-build" ''
-          export PATH=${pkgs.nodejs_22}/bin:${pkgs.bash}/bin:${pkgs.rsync}/bin:$PATH
+          export PATH=${pkgs.nodejs_22}/bin:${pkgs.bash}/bin:$PATH
           export NODE_ENV=production
           export HUSKY=0
 
-          cd ${projectDir}
-
-          # Standaloneビルドが存在しない、またはソースが更新されている場合ビルド
-          if [ ! -f ${standaloneDir}/server.js ]; then
-            echo "📦 Building Dashboard (standalone mode)..."
-            npm ci --ignore-scripts
-            npm run build
-
-            # 静的ファイルをstandaloneディレクトリにコピー
-            echo "📁 Copying static files..."
-            cp -r public ${standaloneDir}/ || true
-            cp -r .next/static ${standaloneDir}/.next/ || true
-          else
-            echo "✅ Standalone build exists"
-
-            # 静的ファイルが存在しない場合のみコピー
-            if [ ! -d ${standaloneDir}/public ]; then
-              echo "📁 Copying public files..."
-              cp -r public ${standaloneDir}/ || true
-            fi
-            if [ ! -d ${standaloneDir}/.next/static ]; then
-              echo "📁 Copying static files..."
-              cp -r .next/static ${standaloneDir}/.next/ || true
-            fi
-          fi
+          echo "📦 Building Dashboard..."
+          rm -rf .next
+          npm ci --ignore-scripts
+          npm run build
         '';
 
-        # Standalone server.jsを直接起動（next startより高速）
         ExecStart = pkgs.writeShellScript "dashboard-start" ''
           export PATH=${pkgs.nodejs_22}/bin:${pkgs.bash}/bin:$PATH
-          cd ${standaloneDir}
-
-          echo "🚀 Starting Dashboard (standalone mode)..."
-          exec node server.js
+          cd ${projectDir}
+          exec node node_modules/.bin/next start -p ${toString cfg.port}
         '';
 
         Restart = "always";
