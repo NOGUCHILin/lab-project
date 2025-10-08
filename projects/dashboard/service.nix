@@ -23,7 +23,7 @@ in {
 
     enforceDeclarative = lib.mkOption {
       type = lib.types.bool;
-      default = true;
+      default = false;  # Changed from true to allow manual restart
       description = "Refuse manual systemctl operations";
     };
   };
@@ -55,12 +55,11 @@ in {
           export NODE_ENV=production
           export HUSKY=0
 
-          # ビルド済み.nextディレクトリがなければビルド
-          if [ ! -d .next ]; then
-            echo "📦 Building Dashboard..."
-            npm ci --ignore-scripts
-            npm run build
-          fi
+          # Always rebuild to pick up source changes
+          echo "📦 Building Dashboard..."
+          rm -rf .next
+          npm ci --ignore-scripts
+          npm run build
         '';
 
         ExecStart = pkgs.writeShellScript "dashboard-start" ''
