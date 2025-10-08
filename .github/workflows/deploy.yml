@@ -77,8 +77,8 @@ jobs:
           git clone https://${{ secrets.NIXOS_CONFIG_PAT }}@github.com/NOGUCHILin/nixos-config.git
           cd nixos-config
 
-          # サーバー側でビルド・デプロイ
-          nixos-rebuild switch \
+          # サーバー側でビルド・デプロイ（nixコマンドを使ってnixos-rebuildを実行）
+          nix run nixpkgs#nixos-rebuild -- switch \
             --flake .#home-lab-01 \
             --target-host ${{ secrets.NIXOS_USER }}@home-lab-01 \
             --use-remote-sudo
