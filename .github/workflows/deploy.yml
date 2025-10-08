@@ -60,6 +60,12 @@ jobs:
           mkdir -p $HOME/.ssh
           echo "${{ secrets.NIXOS_SSH_KEY }}" > $HOME/.ssh/deploy_key
           chmod 600 $HOME/.ssh/deploy_key
+          # Tailscale経由のSSH接続用にhost key checkingを無効化
+          cat >> $HOME/.ssh/config <<EOF
+          Host home-lab-01
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+          EOF
 
       # nixos-configをクローン
       - name: Clone nixos-config
@@ -73,6 +79,10 @@ jobs:
       - name: Deploy with deploy-rs
         run: |
           cd nixos-config
+          # Check if we need to go into subdirectory
+          if [ -d nixos-config ]; then
+            cd nixos-config
+          fi
           nix run github:serokell/deploy-rs -- \
             --ssh-user ${{ secrets.NIXOS_USER }} \
             --ssh-opts="-i $HOME/.ssh/deploy_key" \
