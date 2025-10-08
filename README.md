@@ -56,3 +56,7 @@ lab-project/
 ## 📚 ドキュメント
 
 詳細は `/Users/noguchilin/dev/nixos-deploy-plan.md` を参照
+
+## 🔄 デプロイ方法
+
+mainブランチへのpushで自動的にdeploy-rsが実行され、NixOS本番環境に反映されます。
