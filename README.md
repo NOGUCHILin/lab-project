@@ -39,14 +39,15 @@ lab-project/
 ## 🚀 デプロイフロー
 
 ```
-ローカル開発 → git push → GitHub Actions → SSH → NixOS本番
-     ↓             ↓            ↓              ↓        ↓
-  コード編集       main      ワークフロー      認証   自動更新
+ローカル開発 → git push → GitHub Actions → deploy-rs → NixOS本番
+     ↓             ↓            ↓              ↓           ↓
+  コード編集       main      ワークフロー   自動デプロイ  宣言的更新
 ```
 
 ## 🛠️ 技術スタック
 
 - **NixOS**: Flakes有効、宣言的設定管理
+- **deploy-rs**: 自動ロールバック対応の宣言的デプロイ
 - **systemd**: サービス管理
 - **Tailscale**: VPN・アクセス管理
 - **GitHub Actions**: CI/CD
