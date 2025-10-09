@@ -8,23 +8,33 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      # Common settings for all hosts
-      ../../modules/common.nix
-
+      
       # Core modules (基盤設定)
       ../../modules/core/port-management.nix      # Centralized port configuration (MUST BE FIRST)
-      ../../modules/core/hostname-config.nix      # Hostname and URL configuration
       ../../modules/core/secrets.nix              # Secrets management with sops-nix
       ../../modules/core/ssh-secure.nix           # SSH secure configuration
       ../../modules/core/firewall-secure.nix      # Firewall security rules
       ../../modules/core/project-structure.nix   # Project directory management
-
+      
       # Networking modules (ネットワーク設定)
       ../../modules/networking/tailscale.nix      # Tailscale VPN service
-      ../../modules/networking/tailscale-serve.nix # Tailscale Serve configuration
-
+      
       # Service modules (アプリケーションサービス)
-      ../../modules/security/cli-guards.nix          # CLI guards (soft blacklist)
+      # Services (registry + exposure)
+      ../../modules/services/registry                     # Centralized service configuration (default.nix)
+      ../../modules/services/tailscale-direct.nix         # Tailscale exposure (Serve)
+      
+      # Services
+      ../../modules/services/registry/code-server.nix     # Code Server (VS Code in Browser)
+      ../../modules/services/registry/openai-realtime.nix        # OpenAI Realtime Voice Chat (Clean Architecture)
+      ../../modules/services/registry/ai-gateway.nix             # AI Gateway - Multi-provider AI API (Clean Architecture)
+      ../../modules/services/registry/ai-agents.nix              # AI Agents - CrewAI orchestration (Clean Architecture)
+      ../../modules/services/registry/ai-knowledge.nix           # AI Knowledge - RAG with LlamaIndex (Clean Architecture)
+      ../../modules/services/registry/n8n.nix                # N8N Workflow Automation Platform
+      ../../modules/services/registry/file-manager.nix       # Simple File Manager (registry-based)
+      ../../modules/services/registry/mumuko.nix              # Mumuko Service (registry-based)
+      ../../modules/services/registry/nats.nix               # NATS Event-Driven Messaging (monitoring via registry)
+      ../../modules/services/registry/unified-dashboard.nix       # 統合ダッシュボード
     ];
 
   # Bootloader.
@@ -39,10 +49,10 @@
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Enable networking
-  #   networking.networkmanager.enable = true;
+  networking.networkmanager.enable = true;
 
   # Set your time zone.
-  #   time.timeZone = "Asia/Tokyo";
+  time.timeZone = "Asia/Tokyo";
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
@@ -94,45 +104,17 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
-  # サービス設定 - ベストプラクティス: sops-nix & 分離アーキテクチャ
-
-  # Dashboard設定
-  services.dashboard = {
-    enable = true;
-    port = 3000;
-    baseUrl = config.services.tailscale.urls.baseUrl;
-    enforceDeclarative = false;  # 開発中はfalse
+  # Unified Dashboard Configuration
+  services.unified-dashboard = {
+    # Development mode switch - change this to toggle between dev and production
+    developmentMode = false;  # Set to true for development, false for production
   };
-
-  # Nakamura-Misaki設定
-  services.nakamura-misaki = {
-    enable = true;
-    ports = {
-      api = 8010;
-      adminUI = 3002;
-      webhook = 10000;
-    };
-    enforceDeclarative = false;  # 開発中はfalse
-  };
-
-  # AppleBuyers Public Site Preview設定
-  services.applebuyers-public-site-dev = {
-    enable = true;
-    port = 13005;
-  };
-
-  # AppleBuyers Article Editor設定
-  services.applebuyers-code-server = {
-    enable = true;
-    port = 8890;
-  };
-
 
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.noguchilin = {
     isNormalUser = true;
     description = "noguchilin";
-    extraGroups = [ "networkmanager" "wheel" "systemd-journal" ];
+    extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
     #  thunderbird
     ];
@@ -168,7 +150,7 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  # sudo設定: 必要最小限のコマンドのみパスワードなし
+  # sudo設定: nixos-rebuildとサービス制御をパスワードなし
   security.sudo.extraRules = [{
     users = [ "noguchilin" ];
     commands = [
@@ -177,27 +159,47 @@
         options = [ "NOPASSWD" ];
       }
       {
-        command = "/run/current-system/sw/bin/journalctl";
+        command = "/run/current-system/sw/bin/systemctl restart unified-dashboard.service";
         options = [ "NOPASSWD" ];
       }
       {
-        command = "/run/current-system/sw/bin/sops";
+        command = "/run/current-system/sw/bin/systemctl status unified-dashboard.service";
+        options = [ "NOPASSWD" ];
+      }
+      {
+        command = "/run/current-system/sw/bin/systemctl stop unified-dashboard.service";
+        options = [ "NOPASSWD" ];
+      }
+      {
+        command = "/run/current-system/sw/bin/systemctl start unified-dashboard.service";
+        options = [ "NOPASSWD" ];
+      }
+      {
+        command = "/run/current-system/sw/bin/systemctl * unified-dashboard.service";
+        options = [ "NOPASSWD" ];
+      }
+      {
+        command = "/run/current-system/sw/bin/systemctl restart openai-realtime.service";
+        options = [ "NOPASSWD" ];
+      }
+      {
+        command = "/run/current-system/sw/bin/systemctl status openai-realtime.service";
+        options = [ "NOPASSWD" ];
+      }
+      {
+        command = "/run/current-system/sw/bin/systemctl stop openai-realtime.service";
+        options = [ "NOPASSWD" ];
+      }
+      {
+        command = "/run/current-system/sw/bin/systemctl start openai-realtime.service";
+        options = [ "NOPASSWD" ];
+      }
+      {
+        command = "/run/current-system/sw/bin/systemctl * openai-realtime.service";
         options = [ "NOPASSWD" ];
       }
     ];
   }];
-
-  # 追加システム設定
-  systemd.tmpfiles.rules = [
-    # ログディレクトリ（必要時のみ）
-  ];
-
-  # journald設定でログアクセスを改善
-  services.journald.extraConfig = ''
-    SystemMaxUse=1G
-    RuntimeMaxUse=512M
-    Storage=persistent
-  '';
 
   # Enable Flakes
   nix = {
@@ -212,22 +214,25 @@
     };
   };
 
-  # ポート管理 - シンプル化
+  # Enable centralized port management
   services.portManagement = {
     enable = true;
-    autoFirewall = false;
-    useInterfaceRules = false;
+    autoFirewall = false;  # FWはregistry/tailscale側で一元管理（YAGNI）
+    useInterfaceRules = false;  # Use global rules for simplicity
+    # Ports are defined in the module, but can be overridden here if needed
+    # ports = {
+    #   codeServer = 8889;
+    #   unifiedDashboard = 3005;
+    #   openaiRealtime = 8891;
+    # };
   };
   
-  # プロジェクト構造管理 - 簡素化
+  # Enable declarative project structure management
   services.projectStructure = {
     enable = true;
+    basePath = "/home/noguchilin/projects";
+    autoCleanup = true;  # 古いプロジェクトを自動削除
   };
-
-  # Note: Nakamura-Misaki configuration moved to line 115-125
-  # Old configuration removed to avoid duplication
-
-  # Admin UI is now part of nakamura-misaki service
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -237,14 +242,6 @@
     git
     wget
     curl
-
-    # ブラウザとテスト自動化
-    chromium
-    playwright-driver
-
-    # Node.js環境 - Claude Code用
-    nodejs_22
-    nodePackages.npm
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -259,19 +256,6 @@
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
-  };
-
-  # 環境変数設定 - Claude Code対応とPlaywright設定
-  environment.localBinInPath = true;
-  environment.variables = {
-    # UTF-8環境設定
-    LANG = "en_US.UTF-8";
-    LC_ALL = "en_US.UTF-8";
-    # Node.js環境設定
-    NODE_PATH = "/run/current-system/sw/lib/node_modules";
-    # Playwright設定 - Chromiumパスを宣言的に管理
-    PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver}/bin";
-    PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH = "${pkgs.chromium}/bin/chromium";
   };
 
   # List services that you want to enable:
@@ -307,7 +291,7 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  # system.stateVersion = "25.05"; # Managed by common.nix # Did you read the comment?
+  system.stateVersion = "25.05"; # Did you read the comment?
   
   # SSH設定はtailscale-secure.nixで管理
 
@@ -333,6 +317,4 @@
       suspend.enable = false;
       hibernate.enable = false;
     };
-
-
 }

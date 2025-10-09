@@ -38,7 +38,7 @@ run_test() {
 
 # Test 1: Check if service registry file exists
 run_test "Service registry module exists" \
-    "test -f ./lib/service-registry.nix"
+    "test -f ../modules/core/service-registry.nix"
 
 # Test 2: Check if registry can be evaluated
 run_test "Service registry can be evaluated" \
@@ -48,19 +48,19 @@ run_test "Service registry can be evaluated" \
 run_test "registerService adds defaults" \
     "nix-instantiate --eval --expr '
         let 
-          registry = import ./lib/service-registry.nix { 
+          registry = import ../modules/core/service-registry.nix { 
             pkgs = import <nixpkgs> {}; 
             lib = (import <nixpkgs> {}).lib; 
           };
           result = registry.registerService { name = \"test\"; port = 8000; type = \"python\"; };
-        in result.user == \"test\" 
+        in result.user == \"test\"
     ' | grep true"
 
 # Test 4: Test Python service generation
 run_test "Python service generation" \
     "nix-instantiate --eval --expr '
         let 
-          registry = import ./lib/service-registry.nix { 
+          registry = import ../modules/core/service-registry.nix { 
             pkgs = import <nixpkgs> {}; 
             lib = (import <nixpkgs> {}).lib; 
           };
@@ -73,7 +73,7 @@ run_test "Python service generation" \
 run_test "Security profile application" \
     "nix-instantiate --eval --expr '
         let 
-          registry = import ./lib/service-registry.nix { 
+          registry = import ../modules/core/service-registry.nix { 
             pkgs = import <nixpkgs> {}; 
             lib = (import <nixpkgs> {}).lib; 
           };
@@ -86,7 +86,7 @@ run_test "Security profile application" \
 run_test "Port management - no conflicts" \
     "nix-instantiate --eval --expr '
         let 
-          registry = import ./lib/service-registry.nix { 
+          registry = import ../modules/core/service-registry.nix { 
             pkgs = import <nixpkgs> {}; 
             lib = (import <nixpkgs> {}).lib; 
           };
@@ -102,7 +102,7 @@ run_test "Port management - no conflicts" \
 run_test "Dependency resolution" \
     "nix-instantiate --eval --expr '
         let 
-          registry = import ./lib/service-registry.nix { 
+          registry = import ../modules/core/service-registry.nix { 
             pkgs = import <nixpkgs> {}; 
             lib = (import <nixpkgs> {}).lib; 
           };
@@ -115,7 +115,7 @@ run_test "Dependency resolution" \
 run_test "Environment and secrets handling" \
     "nix-instantiate --eval --expr '
         let 
-          registry = import ./lib/service-registry.nix { 
+          registry = import ../modules/core/service-registry.nix { 
             pkgs = import <nixpkgs> {}; 
             lib = (import <nixpkgs> {}).lib; 
           };

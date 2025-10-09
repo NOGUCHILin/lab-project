@@ -1,5 +1,5 @@
 {
-  description = "NixOS統合設定 - lab-project";
+  description = "NixOS configuration with Home Manager";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -14,7 +14,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # deploy-rs を追加
     deploy-rs = {
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -60,24 +59,10 @@
         system = system;
         modules = [
           ./hosts/home-lab-01/configuration.nix
-
-          # Nginxリバースプロキシ設定
-          ./modules/nginx.nix
-
-          # 全サービス定義をprojects/からimport
-          ../projects/dashboard/service.nix
-          ../projects/nakamura-misaki/service.nix
-          # TODO: admin-ui.nixは既存プロジェクトコード統合後に有効化
-          # ../projects/nakamura-misaki/admin-ui.nix
-          ../projects/code-server/service.nix
-          ../projects/filebrowser/service.nix
-          ../projects/nats/service.nix
-          ./projects/applebuyers-public-site/service.nix
-          ./projects/applebuyers-code-server/service.nix
-
+          
           # sops-nix module for secrets management
           sops-nix.nixosModules.sops
-
+          
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;
@@ -92,21 +77,10 @@
       };
     };
 
-    # Allow directly switching the Home Manager config without a full NixOS rebuild
-    homeConfigurations = {
-      noguchilin = home-manager.lib.homeManagerConfiguration {
-        inherit pkgs;
-        modules = [
-          ./users/noguchilin.nix
-        ];
-      };
-    };
-
-    # deploy-rs configuration
     deploy = {
       nodes = {
         home-lab-01 = {
-          hostname = "192.168.11.27";  # または Tailscale hostname
+          hostname = "home-lab-01";  # Tailscale hostname
           sshUser = "noguchilin";
           sshOpts = [ "-p" "22" ];
           

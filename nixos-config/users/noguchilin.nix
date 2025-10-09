@@ -39,26 +39,7 @@
     # ユーザー系CLI（必要に応じて）
     codex
     gemini-cli
-
-    # Node.js環境（Claude Code用）
-    # 注: @anthropic-ai/claude-codeは手動インストール必要
   ];
-
-  # npmパッケージのグローバルインストール（宣言的）
-  home.file.".npmrc".text = ''
-    prefix = ''${HOME}/.npm-global
-  '';
-
-  # PATHに.npm-global/binを追加
-  home.sessionPath = [ "$HOME/.npm-global/bin" ];
-
-  # Claude Codeインストール用スクリプト
-  home.activation.installClaudeCode = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    if ! command -v claude &> /dev/null; then
-      echo "Installing @anthropic-ai/claude-code..."
-      PATH="${pkgs.nodejs_22}/bin:$PATH" ${pkgs.nodejs_22}/bin/npm install -g @anthropic-ai/claude-code
-    fi
-  '';
 
   # Git設定
   programs.git = {
@@ -198,15 +179,6 @@
     };
   };
 
-  # Claude Code SDK インストール（宣言的）
-  home.activation.claude-sdk = lib.hm.dag.entryAfter ["linkGeneration"] ''
-    echo "🤖 Installing Claude Code Python SDK..."
-    # 正しいClaude Code SDK パッケージ名
-    ${pkgs.python312}/bin/python3 -m pip install --user claude-agent-sdk || echo "Claude Agent SDK installation failed"
-    # バックアップ：Anthropic公式SDK
-    ${pkgs.python312}/bin/python3 -m pip install --user anthropic || echo "Anthropic SDK installation failed"
-  '';
-
   # Code Server情報表示コマンド（宣言的定義）
   home.file.".local/bin/code-server-info" = {
     executable = true;
@@ -290,38 +262,5 @@
         "selectedAuthType": "oauth-personal"
       }
     '';
-  };
-
-  # UV cache cleanup - 異常終了した一時ディレクトリのみを削除
-  # 正常なキャッシュ（archive/wheels/sdists）は保持してパフォーマンス維持
-  systemd.user.services.uv-cache-cleanup = {
-    Unit = {
-      Description = "Clean up UV cache temporary directories (.tmp*)";
-    };
-    Service = {
-      Type = "oneshot";
-      ExecStart = pkgs.writeShellScript "uv-cache-cleanup" ''
-        # .tmp*のみ削除（異常終了の残骸）
-        # 正常なキャッシュディレクトリ（archive-v0, wheels-v5等）は保持
-        if [ -d "$HOME/.cache/uv" ]; then
-          echo "🧹 Cleaning UV temp directories..."
-          ${pkgs.findutils}/bin/find "$HOME/.cache/uv" -maxdepth 1 -type d -name ".tmp*" -mtime +1 -exec rm -rf {} + 2>/dev/null || true
-          echo "✅ UV cache cleanup completed"
-        fi
-      '';
-    };
-  };
-
-  systemd.user.timers.uv-cache-cleanup = {
-    Unit = {
-      Description = "Run UV cache cleanup daily";
-    };
-    Timer = {
-      OnCalendar = "daily";
-      Persistent = true;
-    };
-    Install = {
-      WantedBy = [ "timers.target" ];
-    };
   };
 }

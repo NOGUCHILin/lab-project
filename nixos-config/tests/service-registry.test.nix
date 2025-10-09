@@ -41,10 +41,10 @@ rec {
     description = "Python service should generate correct systemd config";
     
     input = {
-      name = "test-python-service";
+      name = "ai-gateway";
       port = 8892;
       type = "python";
-      workDir = "/home/noguchilin/projects/test-service";
+      workDir = "/home/noguchilin/projects/ai-gateway";
       useVenv = true;
     };
     
@@ -52,13 +52,13 @@ rec {
     
     assertions = [
       # サービスが有効化されていること
-      (result.systemd.services."test-python-service".wantedBy == [ "multi-user.target" ])
+      (result.systemd.services."ai-gateway".wantedBy == [ "multi-user.target" ])
       # ポートが設定されていること
-      (result.systemd.services."test-python-service".environment.PORT == "8892")
+      (result.systemd.services."ai-gateway".environment.PORT == "8892")
       # Pythonが使用されること
-      (lib.hasInfix "python" result.systemd.services."test-python-service".script)
+      (lib.hasInfix "python" result.systemd.services."ai-gateway".script)
       # venvが使用されること
-      (lib.hasInfix "venv" result.systemd.services."test-python-service".script)
+      (lib.hasInfix "venv" result.systemd.services."ai-gateway".script)
     ];
   };
   
