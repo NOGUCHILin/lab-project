@@ -30,16 +30,17 @@ in {
   environment.systemPackages = with pkgs; [
     (writeScriptBin "setup-tailscale-direct" ''
       #!${pkgs.bash}/bin/bash
+      export PATH=${pkgs.tailscale}/bin:$PATH
       echo "Setting up Tailscale direct service access..."
-      
+
       # ダッシュボード (メインサービス)
-      tailscale serve --bg --https 443 http://localhost:3005
+      tailscale serve --bg --https 443 http://localhost:3000
       echo "✓ Dashboard on https://${tailscaleDomain}/"
-      
+
       # 各サービスを個別ポートで公開
       ${lib.concatStringsSep "\n" (
         lib.mapAttrsToList (name: service:
-          if service.port != 3005 then
+          if service.port != 3000 then
             ''
               tailscale serve --bg --https ${toString service.port} http://localhost:${toString service.port}
               echo "✓ ${service.name} on https://${tailscaleDomain}:${toString service.port}/"
@@ -47,12 +48,13 @@ in {
           else ""
         ) services
       )}
-      
+
       echo "Setup complete! Services are available at their respective ports."
     '')
     
     (writeScriptBin "check-services" ''
       #!${pkgs.bash}/bin/bash
+      export PATH=${pkgs.curl}/bin:$PATH
       echo "=== Service Status Check ==="
       ${lib.concatStringsSep "\n" (
         lib.mapAttrsToList (name: service: 
