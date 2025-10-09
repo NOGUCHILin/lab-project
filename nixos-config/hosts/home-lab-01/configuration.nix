@@ -114,15 +114,15 @@
     baseUrl = "https://home-lab-01.tail4ed625.ts.net";
   };
 
-  # Nakamura-Misaki Configuration (disabled until secrets are configured)
-  # services.nakamura-misaki = {
-  #   enable = true;
-  #   ports = {
-  #     api = 8010;
-  #     adminUI = 3002;
-  #     webhook = 10000;
-  #   };
-  # };
+  # Nakamura-Misaki Configuration
+  services.nakamura-misaki = {
+    enable = true;
+    ports = {
+      api = 8010;
+      adminUI = 3002;
+      webhook = 10000;
+    };
+  };
 
   # AppleBuyers Configuration
   services.applebuyers-site = {
@@ -134,6 +134,13 @@
   services.code-server-applebuyers = {
     enable = true;
     port = 8890;
+  };
+
+  # File Manager Configuration
+  services.file-manager = {
+    enable = true;
+    port = 9000;
+    rootDir = "/home/noguchilin";
   };
 
   # Define a user account. Don't forget to set a password with 'passwd'.
@@ -230,6 +237,18 @@
       }
       {
         command = "/run/current-system/sw/bin/systemctl * code-server-applebuyers.service";
+        options = [ "NOPASSWD" ];
+      }
+      {
+        command = "/run/current-system/sw/bin/systemctl * nakamura-misaki-api.service";
+        options = [ "NOPASSWD" ];
+      }
+      {
+        command = "/run/current-system/sw/bin/systemctl * nakamura-misaki-admin.service";
+        options = [ "NOPASSWD" ];
+      }
+      {
+        command = "/run/current-system/sw/bin/systemctl * filebrowser.service";
         options = [ "NOPASSWD" ];
       }
     ];

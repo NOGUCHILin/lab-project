@@ -7,11 +7,6 @@ let
 
   services = {
     dashboard = { port = 3000; path = "/"; name = "Unified Dashboard"; description = "Service monitoring and management"; healthCheck = "/api/health"; icon = "🏠"; };
-    realtime = { port = 8891; path = "/realtime"; name = "GPT Realtime Voice"; description = "OpenAI Realtime API voice conversation"; healthCheck = "/health"; icon = "🎤"; };
-    aiGateway = { port = 8892; path = "/gateway"; name = "AI Gateway"; description = "LiteLLM - 100+ AI providers"; healthCheck = "/health"; icon = "🤖"; docsPath = "/docs"; };
-    aiAgents = { port = 8893; path = "/agents"; name = "AI Agents"; description = "CrewAI - Multi-agent collaboration"; healthCheck = "/health"; icon = "🧠"; docsPath = "/docs"; };
-    aiKnowledge = { port = 8894; path = "/knowledge"; name = "AI Knowledge"; description = "RAG - LlamaIndex knowledge search"; healthCheck = "/health"; icon = "📚"; docsPath = "/docs"; };
-    mumuko = { port = 8895; path = "/mumuko"; name = "Mumuko"; description = "Mumuko Service"; healthCheck = "/health"; icon = "🎭"; };
     codeServer = { port = 8889; path = "/code"; name = "Code Server"; description = "Browser-based VSCode"; healthCheck = "/healthz"; icon = "💻"; };
     n8n = { port = 5678; path = "/n8n"; name = "n8n Workflow"; description = "Workflow automation platform"; healthCheck = "/healthLive"; icon = "🔄"; };
     syncthing = { port = 8384; path = "/syncthing"; name = "Syncthing"; description = "File synchronization"; healthCheck = "/rest/noauth/health"; icon = "🔄"; };
