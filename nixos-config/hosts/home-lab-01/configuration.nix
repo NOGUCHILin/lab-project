@@ -224,6 +224,14 @@
         command = "/run/current-system/sw/bin/systemctl * openai-realtime.service";
         options = [ "NOPASSWD" ];
       }
+      {
+        command = "/run/current-system/sw/bin/systemctl * applebuyers-site.service";
+        options = [ "NOPASSWD" ];
+      }
+      {
+        command = "/run/current-system/sw/bin/systemctl * code-server-applebuyers.service";
+        options = [ "NOPASSWD" ];
+      }
     ];
   }];
 

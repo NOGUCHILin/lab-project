@@ -43,10 +43,15 @@ in {
         Group = "users";
         WorkingDirectory = projectDir;
 
-        # 依存関係インストール（起動時に一度だけ）
+        # 依存関係インストール + ポートクリーンアップ
         ExecStartPre = pkgs.writeShellScript "applebuyers-install" ''
-          export PATH=${pkgs.nodejs_22}/bin:${pkgs.bash}/bin:$PATH
+          export PATH=${pkgs.nodejs_22}/bin:${pkgs.bash}/bin:${pkgs.procps}/bin:$PATH
           export HUSKY=0
+
+          # Port 13005を使用している既存のプロセスを停止
+          echo "🧹 Cleaning up port ${toString cfg.port}..."
+          pkill -f "next.*${toString cfg.port}" || true
+          sleep 1
 
           if [ ! -d "node_modules" ]; then
             echo "📦 Installing dependencies..."
