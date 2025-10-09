@@ -65,7 +65,7 @@ in {
           export PATH=${pkgs.nodejs_22}/bin:${pkgs.bash}/bin:$PATH
           cd ${projectDir}
           echo "🚀 Starting AppleBuyers dev server on port ${toString cfg.port} (memory limit: ${toString cfg.memoryLimit}MB)"
-          exec npm run dev:network
+          exec npm run dev -- -H 0.0.0.0 -p ${toString cfg.port}
         '';
 
         Restart = "always";
