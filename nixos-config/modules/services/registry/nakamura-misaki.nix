@@ -55,16 +55,10 @@ in {
         Group = "users";
         WorkingDirectory = projectDir;
 
-        # sops-nixで管理された秘密情報を使用
-        LoadCredential = [
-          "slack_token:${config.sops.secrets.slack_bot_token.path}"
-          "anthropic_key:${config.sops.secrets.anthropic_api_key.path}"
-        ];
-
         ExecStart = pkgs.writeShellScript "nakamura-api-start" ''
-          # 秘密情報を環境変数に設定
-          export SLACK_BOT_TOKEN=$(cat $CREDENTIALS_DIRECTORY/slack_token)
-          export ANTHROPIC_API_KEY=$(cat $CREDENTIALS_DIRECTORY/anthropic_key)
+          # 秘密情報を環境変数に設定（sops-nixで復号化されたファイルから読み込み）
+          export SLACK_BOT_TOKEN=$(cat ${config.sops.secrets.slack_bot_token.path})
+          export ANTHROPIC_API_KEY=$(cat ${config.sops.secrets.anthropic_api_key.path})
 
           # venv存在確認
           if [ ! -f ${projectDir}/.venv/bin/python ]; then
