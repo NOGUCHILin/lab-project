@@ -114,15 +114,15 @@
     baseUrl = "https://home-lab-01.tail4ed625.ts.net";
   };
 
-  # Nakamura-Misaki Configuration
-  services.nakamura-misaki = {
-    enable = true;
-    ports = {
-      api = 8010;
-      adminUI = 3002;
-      webhook = 10000;
-    };
-  };
+  # Nakamura-Misaki Configuration (disabled - requires sops-nix secrets)
+  # services.nakamura-misaki = {
+  #   enable = true;
+  #   ports = {
+  #     api = 8010;
+  #     adminUI = 3002;
+  #     webhook = 10000;
+  #   };
+  # };
 
   # AppleBuyers Configuration
   services.applebuyers-site = {
