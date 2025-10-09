@@ -76,12 +76,41 @@ in {
     description = "Setup Tailscale direct service access";
     after = [ "tailscaled.service" "network-online.target" ];
     wants = [ "tailscaled.service" "network-online.target" ];
+    requires = [ "tailscaled.service" ];
     wantedBy = [ "multi-user.target" ];
-    
+
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      ExecStart = "${pkgs.bash}/bin/bash -c 'sleep 10 && /run/current-system/sw/bin/setup-tailscale-direct'";
+      ExecStart = pkgs.writeShellScript "tailscale-serve-setup" ''
+        export PATH=${pkgs.tailscale}/bin:${pkgs.coreutils}/bin:$PATH
+
+        # Wait for tailscaled to be ready
+        for i in {1..30}; do
+          if tailscale status &>/dev/null; then
+            break
+          fi
+          echo "Waiting for tailscaled... ($i/30)"
+          sleep 1
+        done
+
+        # Setup Tailscale Serve for all registered services
+        ${lib.concatStringsSep "\n" (
+          lib.mapAttrsToList (name: service:
+            if service.port == 3000 then
+              # Dashboard on main HTTPS port
+              "tailscale serve --bg --https 443 http://localhost:${toString service.port}"
+            else
+              # Other services on their respective ports
+              "tailscale serve --bg --https ${toString service.port} http://localhost:${toString service.port}"
+          ) services
+        )}
+
+        echo "✅ Tailscale Serve configured for all services"
+      '';
+      # Restart on failure
+      Restart = "on-failure";
+      RestartSec = "10s";
     };
   };
 }
