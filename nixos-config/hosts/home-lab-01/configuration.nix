@@ -127,7 +127,7 @@
   # AppleBuyers Configuration
   services.applebuyers-site = {
     enable = true;
-    port = 13005;
+    port = 13006;
     memoryLimit = 384;  # 384MB memory limit
   };
 
