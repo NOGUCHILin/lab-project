@@ -128,7 +128,7 @@
   services.applebuyers-site = {
     enable = true;
     port = 13006;
-    memoryLimit = 384;  # 384MB memory limit
+    memoryLimit = 768;  # 768MB memory limit
   };
 
   services.code-server-applebuyers = {

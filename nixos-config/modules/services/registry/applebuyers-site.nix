@@ -17,7 +17,7 @@ in {
 
     memoryLimit = lib.mkOption {
       type = lib.types.int;
-      default = 384;
+      default = 768;
       description = "Node.js memory limit in MB";
     };
   };
