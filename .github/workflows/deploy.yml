@@ -56,28 +56,21 @@ jobs:
           key: ${{ secrets.NIXOS_SSH_KEY }}
           command_timeout: 30m
           script: |
-            # nixos-configを効率的に更新（初回のみclone、以降はpull）
-            if [ ! -d ~/nixos-config/.git ]; then
-              echo "📦 Initial clone of nixos-config..."
-              cd ~
-              git clone --filter=blob:none --no-checkout --depth 1 https://github.com/NOGUCHILin/lab-project.git lab-project-temp
-              cd lab-project-temp
-              git sparse-checkout init --cone
-              git sparse-checkout set nixos-config
-              git checkout main
-              mv nixos-config ~/nixos-config
-              cd ~
-              rm -rf lab-project-temp
-            else
-              echo "🔄 Updating nixos-config..."
-              cd ~/nixos-config
-              git fetch origin main
-              git reset --hard origin/main
-            fi
+            # nixos-configをsparse checkoutで同期
+            cd ~
+            rm -rf nixos-temp nixos-config
+            git clone --depth 1 --filter=blob:none --sparse https://github.com/NOGUCHILin/lab-project.git nixos-temp
+            cd nixos-temp
+            git sparse-checkout set nixos-config
 
-            # サーバー上でビルド・デプロイ
-            cd ~/nixos-config
+            # nixos-config内でビルド（正しいgit構造を維持）
+            cd nixos-config
             sudo nixos-rebuild switch --flake .#home-lab-01
+
+            # 成功後、永続化位置に移動
+            cd ~
+            mv nixos-temp/nixos-config nixos-config
+            rm -rf nixos-temp
 
       # デプロイ完了確認
       - name: Verify deployment
