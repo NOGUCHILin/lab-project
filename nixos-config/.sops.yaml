@@ -1,0 +1,8 @@
+keys:
+  - &admin_home_lab_01 age1qnm0nq8qt5whjy78tzswfh30vyarljwft365g09rw6e92a9g04ysc2ylyj
+
+creation_rules:
+  - path_regex: secrets/[^/]+\.yaml$
+    key_groups:
+      - age:
+          - *admin_home_lab_01

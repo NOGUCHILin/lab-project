@@ -47,6 +47,21 @@
         group = "users";
         mode = "0400";
       };
+
+      # Nakamura-Misaki secrets (from separate file)
+      "slack_bot_token" = {
+        sopsFile = ../../secrets/nakamura-misaki.yaml;
+        owner = "noguchilin";
+        group = "users";
+        mode = "0400";
+      };
+
+      "anthropic_api_key" = {
+        sopsFile = ../../secrets/nakamura-misaki.yaml;
+        owner = "noguchilin";
+        group = "users";
+        mode = "0400";
+      };
     };
   };
 }
