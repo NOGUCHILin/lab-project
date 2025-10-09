@@ -36,6 +36,8 @@
       ../../modules/services/registry/nats.nix               # NATS Event-Driven Messaging (monitoring via registry)
       ../../modules/services/registry/unified-dashboard.nix       # 統合ダッシュボード
       ../../modules/services/registry/nakamura-misaki.nix         # Nakamura-Misaki Claude Agent
+      ../../modules/services/registry/applebuyers-site.nix        # AppleBuyers Public Site (dev server)
+      ../../modules/services/registry/code-server-applebuyers.nix # Code Server for AppleBuyers
     ];
 
   # Bootloader.
@@ -121,6 +123,18 @@
   #     webhook = 10000;
   #   };
   # };
+
+  # AppleBuyers Configuration
+  services.applebuyers-site = {
+    enable = true;
+    port = 13005;
+    memoryLimit = 384;  # 384MB memory limit
+  };
+
+  services.code-server-applebuyers = {
+    enable = true;
+    port = 8890;
+  };
 
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.noguchilin = {
