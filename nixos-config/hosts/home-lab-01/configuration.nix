@@ -35,6 +35,7 @@
       ../../modules/services/registry/mumuko.nix              # Mumuko Service (registry-based)
       ../../modules/services/registry/nats.nix               # NATS Event-Driven Messaging (monitoring via registry)
       ../../modules/services/registry/unified-dashboard.nix       # 統合ダッシュボード
+      ../../modules/services/registry/nakamura-misaki.nix         # Nakamura-Misaki Claude Agent
     ];
 
   # Bootloader.
@@ -104,10 +105,21 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
-  # Unified Dashboard Configuration
-  services.unified-dashboard = {
-    # Development mode switch - change this to toggle between dev and production
-    developmentMode = false;  # Set to true for development, false for production
+  # Dashboard Configuration
+  services.dashboard = {
+    enable = true;
+    port = 3000;
+    baseUrl = "https://home-lab-01.tail4ed625.ts.net";
+  };
+
+  # Nakamura-Misaki Configuration
+  services.nakamura-misaki = {
+    enable = true;
+    ports = {
+      api = 8010;
+      adminUI = 3002;
+      webhook = 10000;
+    };
   };
 
   # Define a user account. Don't forget to set a password with 'passwd'.
