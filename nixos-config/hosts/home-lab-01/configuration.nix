@@ -112,15 +112,15 @@
     baseUrl = "https://home-lab-01.tail4ed625.ts.net";
   };
 
-  # Nakamura-Misaki Configuration
-  services.nakamura-misaki = {
-    enable = true;
-    ports = {
-      api = 8010;
-      adminUI = 3002;
-      webhook = 10000;
-    };
-  };
+  # Nakamura-Misaki Configuration (disabled until secrets are configured)
+  # services.nakamura-misaki = {
+  #   enable = true;
+  #   ports = {
+  #     api = 8010;
+  #     adminUI = 3002;
+  #     webhook = 10000;
+  #   };
+  # };
 
   # Define a user account. Don't forget to set a password with 'passwd'.
   users.users.noguchilin = {
