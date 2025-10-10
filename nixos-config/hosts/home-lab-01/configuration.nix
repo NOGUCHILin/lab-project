@@ -117,6 +117,7 @@
   # Nakamura-Misaki Configuration
   services.nakamura-misaki = {
     enable = true;
+    enforceDeclarative = false;  # Allow manual restart for testing
     ports = {
       api = 8010;
       adminUI = 3002;

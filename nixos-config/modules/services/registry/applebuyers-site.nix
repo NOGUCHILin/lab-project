@@ -11,7 +11,6 @@ in {
 
     port = lib.mkOption {
       type = lib.types.port;
-      default = 13006;
       description = "Dev server port for live preview";
     };
 

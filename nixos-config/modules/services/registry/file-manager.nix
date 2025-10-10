@@ -9,7 +9,6 @@ in {
 
     port = lib.mkOption {
       type = lib.types.port;
-      default = 9000;
       description = "Filebrowser port";
     };
 

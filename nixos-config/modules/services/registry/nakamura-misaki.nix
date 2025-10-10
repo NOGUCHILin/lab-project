@@ -12,19 +12,16 @@ in {
     ports = {
       api = lib.mkOption {
         type = lib.types.port;
-        default = 8010;
         description = "API Backend port";
       };
 
       adminUI = lib.mkOption {
         type = lib.types.port;
-        default = 3002;
         description = "Admin UI port";
       };
 
       webhook = lib.mkOption {
         type = lib.types.port;
-        default = 10000;
         description = "Slack Webhook port (exposed via Tailscale Funnel)";
       };
     };
@@ -127,7 +124,7 @@ in {
 
         ExecStart = pkgs.writeShellScript "nakamura-admin-start" ''
           export PATH=${pkgs.nodejs_22}/bin:$PATH
-          exec npm start
+          exec npm start -- -H 127.0.0.1
         '';
 
         Restart = "always";
