@@ -37,7 +37,8 @@
       ../../modules/services/registry/unified-dashboard.nix       # 統合ダッシュボード
       ../../modules/services/registry/nakamura-misaki.nix         # Nakamura-Misaki Claude Agent
       ../../modules/services/registry/applebuyers-site.nix        # AppleBuyers Public Site (dev server)
-      ../../modules/services/registry/code-server-applebuyers.nix # Code Server for AppleBuyers
+      ../../modules/services/registry/code-server-applebuyers.nix     # Code Server for AppleBuyers (Writers)
+      ../../modules/services/registry/code-server-applebuyers-dev.nix # Code Server for AppleBuyers (Engineers)
     ];
 
   # Bootloader.
@@ -133,9 +134,16 @@
     memoryLimit = 768;  # 768MB memory limit
   };
 
+  # Code Server for AppleBuyers Writers
   services.code-server-applebuyers = {
     enable = true;
     port = 8890;
+  };
+
+  # Code Server for AppleBuyers Engineers
+  services.code-server-applebuyers-dev = {
+    enable = true;
+    port = 8891;
   };
 
   # File Manager Configuration

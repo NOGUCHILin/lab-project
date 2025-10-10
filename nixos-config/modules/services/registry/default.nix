@@ -19,7 +19,8 @@ let
     fileManager = { port = cfg.file-manager.port; path = "/files"; name = "File Manager"; description = "Web-based file management"; healthCheck = "/api/public/dl/nopass"; icon = "📁"; };
     nakamuraMisaki = { port = cfg.nakamura-misaki.ports.adminUI; path = "/nakamura"; name = "Nakamura-Misaki"; description = "Multi-user Claude Code Agent - Admin UI"; healthCheck = "/health"; icon = "🤖"; };
     nakamuraMisakiApi = { port = cfg.nakamura-misaki.ports.api; path = "/nakamura-api"; name = "Nakamura-Misaki API"; description = "Claude Agent API Backend"; healthCheck = "/health"; icon = "🔧"; };
-    applebuyersEditor = { port = 8890; path = "/applebuyers-editor"; name = "AppleBuyers Editor"; description = "記事編集 Code Server"; healthCheck = "/healthz"; icon = "📝"; };
+    applebuyersWriterEditor = { port = 8890; path = "/applebuyers-writer"; name = "AppleBuyers Writer"; description = "ライター用記事編集"; healthCheck = "/healthz"; icon = "✍️"; };
+    applebuyersDevEditor = { port = 8891; path = "/applebuyers-dev"; name = "AppleBuyers Dev"; description = "エンジニア用開発環境"; healthCheck = "/healthz"; icon = "⚙️"; };
     applebuyersPreview = { port = cfg.applebuyers-site.port; path = "/applebuyers-preview"; name = "AppleBuyers Preview"; description = "記事プレビュー"; healthCheck = "/"; icon = "👁️"; };
   };
 
