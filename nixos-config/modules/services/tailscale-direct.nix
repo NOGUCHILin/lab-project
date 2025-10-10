@@ -108,10 +108,10 @@ in {
 
         # Funnel設定: nakamura-misaki API（ポート8010）のみインターネット公開
         # Slack Webhook用に専用ポートを公開
-        tailscale funnel --bg --https ${toString services.nakamuraMisaki.port} http://localhost:${toString services.nakamuraMisaki.port}
+        tailscale funnel --bg --https ${toString services.nakamuraMisakiApi.port} http://localhost:${toString services.nakamuraMisakiApi.port}
 
         echo "✅ Tailscale Serve configured for all services"
-        echo "✅ Tailscale Funnel configured for nakamura-misaki API (port ${toString services.nakamuraMisaki.port})"
+        echo "✅ Tailscale Funnel configured for nakamura-misaki API (port ${toString services.nakamuraMisakiApi.port})"
       '';
       # Restart on failure
       Restart = "on-failure";
