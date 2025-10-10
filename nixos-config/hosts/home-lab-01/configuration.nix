@@ -45,6 +45,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "home-lab-01"; # Define your hostname.
+  networking.domain = "tail4ed625.ts.net"; # Tailscale domain
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -111,7 +112,7 @@
   services.dashboard = {
     enable = true;
     port = 3000;
-    baseUrl = "https://home-lab-01.tail4ed625.ts.net";
+    baseUrl = "https://${config.networking.hostName}.${config.networking.domain}";
   };
 
   # Nakamura-Misaki Configuration

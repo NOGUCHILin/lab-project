@@ -1,9 +1,11 @@
 { config, lib, pkgs, ... }:
 
 let
-  # Resolve domain from process env to avoid config recursion; fallback to hostName or localhost
-  domain = let fromEnv = builtins.getEnv "TAILSCALE_DOMAIN"; in
-    if fromEnv != "" then fromEnv else (config.networking.hostName or "localhost");
+  # Build full Tailscale domain from networking config
+  domain =
+    if config.networking ? domain && config.networking.domain != ""
+    then "${config.networking.hostName}.${config.networking.domain}"
+    else config.networking.hostName;
 
   # Reference ports from actual service configurations
   cfg = config.services;
