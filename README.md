@@ -13,10 +13,8 @@ NixOS統合環境 - 全プロジェクト・NixOS設定を統合管理する統�
 ```
 lab-project/
 ├── projects/                  # 全サービス統一管理
-│   ├── frontend/              # Next.js 15 (新規)
-│   ├── backend/               # FastAPI (新規)
-│   ├── dashboard/             # Next.js 22 (既存)
-│   ├── nakamura-misaki/       # FastAPI + Next.js (既存)
+│   ├── dashboard/             # Next.js 22 統合ダッシュボード
+│   ├── nakamura-misaki/       # Claude Agent (FastAPI + Next.js)
 │   ├── code-server/           # ブラウザ版VSCode
 │   ├── filebrowser/           # Webファイル管理
 │   └── nats/                  # NATS messaging
