@@ -106,7 +106,12 @@ in {
           ) services
         )}
 
+        # Funnel設定: Slack Webhookのみインターネット公開
+        # nakamura-misaki APIの/webhook/slackパスのみをFunnel経由で公開
+        tailscale funnel --bg --https=443 --set-path=/webhook/slack ${toString services.nakamura-misaki.port}
+
         echo "✅ Tailscale Serve configured for all services"
+        echo "✅ Tailscale Funnel configured for Slack Webhook (/webhook/slack)"
       '';
       # Restart on failure
       Restart = "on-failure";
