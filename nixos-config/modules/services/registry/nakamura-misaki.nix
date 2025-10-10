@@ -99,6 +99,7 @@ in {
 
       environment = {
         PORT = toString cfg.ports.adminUI;
+        HOSTNAME = "127.0.0.1";
         NODE_ENV = "production";
         NEXT_PUBLIC_API_URL = "https://home-lab-01.tail4ed625.ts.net:${toString cfg.ports.api}";
       };

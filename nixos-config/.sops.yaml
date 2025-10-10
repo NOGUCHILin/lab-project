@@ -1,5 +1,5 @@
 keys:
-  - &admin_home_lab_01 age1qnm0nq8qt5whjy78tzswfh30vyarljwft365g09rw6e92a9g04ysc2ylyj
+  - &admin_home_lab_01 age1nm3fv55cpggpvgyhcg75xxwu8weew220kae3pz52kzggwgy72apqtxl8t6
 
 creation_rules:
   - path_regex: secrets/[^/]+\.yaml$
