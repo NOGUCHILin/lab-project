@@ -42,6 +42,7 @@ in {
             --port ${toString cfg.port} \
             --auth none \
             --disable-telemetry \
+            --user-data-dir /home/noguchilin/.local/share/code-server-applebuyers \
             /home/noguchilin/projects/applebuyers_application/public-site
         '';
 

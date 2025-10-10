@@ -25,7 +25,10 @@ let
 
   servicesJson = builtins.toJSON (lib.mapAttrs (_: service:
     let
-      httpsUrl = "https://${domain}${service.path}";
+      # Dashboard (port 3000) uses root domain, others use port-based URLs
+      httpsUrl = if service.port == 3000
+        then "https://${domain}"
+        else "https://${domain}:${toString service.port}";
       httpUrl = "http://localhost:${toString service.port}";
       publicUrl = if domain == "localhost" then httpUrl else httpsUrl;
     in service // { url = publicUrl; apiUrl = httpUrl; }
