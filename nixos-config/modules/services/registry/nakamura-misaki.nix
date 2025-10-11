@@ -46,6 +46,8 @@ in {
         NAKAMURA_USER_ID = "U09AHTB4X4H";
       };
 
+      path = with pkgs; [ nodejs_22 bash coreutils python3 ];
+
       serviceConfig = {
         Type = "simple";
         User = "noguchilin";
