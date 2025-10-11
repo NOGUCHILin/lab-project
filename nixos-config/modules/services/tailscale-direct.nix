@@ -94,24 +94,13 @@ in {
           sleep 1
         done
 
-        # Setup Tailscale Serve for all registered services (Tailscaleネットワーク内のみ)
-        ${lib.concatStringsSep "\n" (
-          lib.mapAttrsToList (name: service:
-            if service.port == 3000 then
-              # Dashboard on main HTTPS port (tailnet only)
-              "tailscale serve --bg --https 443 http://localhost:${toString service.port}"
-            else
-              # Other services on their respective ports (tailnet only)
-              "tailscale serve --bg --https ${toString service.port} http://localhost:${toString service.port}"
-          ) services
-        )}
-
-        # Funnel設定: nakamura-misaki API（ポート8010）のみインターネット公開
+        # Funnel設定: nakamura-misaki API（ポート10000）のみインターネット公開
         # Slack Webhook用に専用ポートを公開
-        tailscale funnel --bg --https ${toString services.nakamuraMisakiApi.port} http://localhost:${toString services.nakamuraMisakiApi.port}
+        # Note: Tailscale Funnelは443, 8443, 10000のみ使用可能
+        tailscale funnel --bg 10000
 
-        echo "✅ Tailscale Serve configured for all services"
-        echo "✅ Tailscale Funnel configured for nakamura-misaki API (port ${toString services.nakamuraMisakiApi.port})"
+        echo "✅ Tailscale Funnel configured for nakamura-misaki API (port 10000)"
+        echo "⚠️  All other services are accessible only within Tailscale network (not exposed via Serve)"
       '';
       # Restart on failure
       Restart = "on-failure";

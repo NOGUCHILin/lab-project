@@ -121,9 +121,9 @@
     enable = true;
     enforceDeclarative = false;  # Allow manual restart for testing
     ports = {
-      api = 8010;
+      api = 10000;  # Changed to 10000 for Tailscale Funnel compatibility
       adminUI = 3002;
-      webhook = 10000;
+      webhook = 10000;  # Deprecated, using api port instead
     };
   };
 
