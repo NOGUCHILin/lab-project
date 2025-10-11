@@ -44,6 +44,8 @@ in {
         PORT = toString cfg.ports.api;
         PYTHONUNBUFFERED = "1";
         NAKAMURA_USER_ID = "U09AHTB4X4H";
+        # Version marker to force service restart on code changes
+        CODE_VERSION = "phase0-asyncio-fix-20251012";
       };
 
       path = with pkgs; [ nodejs_22 bash coreutils python3 ];
