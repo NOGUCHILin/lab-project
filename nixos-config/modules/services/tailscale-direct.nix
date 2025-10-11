@@ -97,9 +97,11 @@ in {
         # Funnel設定: nakamura-misaki API（ポート10000）のみインターネット公開
         # Slack Webhook用に専用ポートを公開
         # Note: Tailscale Funnelは443, 8443, 10000のみ使用可能
-        tailscale funnel --bg 10000
+        # ポート10000でHTTPSを直接公開
+        tailscale funnel --bg --https 10000 http://localhost:10000
 
         echo "✅ Tailscale Funnel configured for nakamura-misaki API (port 10000)"
+        echo "   Access URL: https://home-lab-01.tail4ed625.ts.net:10000/webhook/slack"
         echo "⚠️  All other services are accessible only within Tailscale network (not exposed via Serve)"
       '';
       # Restart on failure
