@@ -75,7 +75,7 @@ in {
         REDIS_HOST = "127.0.0.1";
         REDIS_PORT = "6380";
         # Version marker to force service restart on code changes
-        CODE_VERSION = "phase1-redis-rq-20251012";
+        CODE_VERSION = "phase1-rq-fix-20251012";
       };
 
       path = with pkgs; [ nodejs_22 bash coreutils python3 ];
