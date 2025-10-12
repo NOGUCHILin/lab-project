@@ -94,19 +94,35 @@ in {
           sleep 1
         done
 
-        # Serve設定: 統合ダッシュボード（ポート443/デフォルト）
+        # Serve設定: 全サービスを宣言的に公開
+        echo "🔧 Setting up Tailscale Serve for all services..."
+
+        # ダッシュボード（ポート443/デフォルト）
         tailscale serve --bg --https 443 http://localhost:3000
-        echo "✅ Dashboard on https://home-lab-01.tail4ed625.ts.net/"
+        echo "✅ Dashboard on https://${tailscaleDomain}/"
+
+        # 各サービスを個別ポートで公開
+        ${lib.concatStringsSep "\n" (
+          lib.mapAttrsToList (name: service:
+            if service.port != 3000 then
+              ''
+                tailscale serve --bg --https ${toString service.port} http://localhost:${toString service.port}
+                echo "✅ ${service.name} on https://${tailscaleDomain}:${toString service.port}/"
+              ''
+            else ""
+          ) services
+        )}
 
         # Funnel設定: nakamura-misaki API（ポート10000）のみインターネット公開
         # Slack Webhook用に専用ポートを公開
         # Note: Tailscale Funnelは443, 8443, 10000のみ使用可能
-        # ポート10000でHTTPSを直接公開
         tailscale funnel --bg --https 10000 http://localhost:10000
 
-        echo "✅ Tailscale Funnel configured for nakamura-misaki API (port 10000)"
-        echo "   Access URL: https://home-lab-01.tail4ed625.ts.net:10000/webhook/slack"
-        echo "⚠️  Other services accessible only within Tailscale network"
+        echo ""
+        echo "✅ All services configured!"
+        echo "   Dashboard: https://${tailscaleDomain}/"
+        echo "   Funnel (Internet): https://${tailscaleDomain}:10000/webhook/slack"
+        echo "   Other services: https://${tailscaleDomain}:[port]"
       '';
       # Restart on failure
       Restart = "on-failure";
