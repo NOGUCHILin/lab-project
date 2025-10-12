@@ -20,7 +20,7 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
 
-      # Dashboardコードを同期（service.nixが参照するため）
+      # Dashboard & Nakamura-Misakiコードを同期
       - name: Sync Dashboard code
         uses: appleboy/ssh-action@master
         with:
@@ -28,13 +28,13 @@ jobs:
           username: ${{ secrets.NIXOS_USER }}
           key: ${{ secrets.NIXOS_SSH_KEY }}
           script: |
-            # Dashboardコード取得（GitHubから）
+            # lab-projectコード取得（GitHubから）
             cd /tmp
             rm -rf lab-project-temp
             git clone --filter=blob:none --no-checkout --depth 1 https://github.com/NOGUCHILin/lab-project.git lab-project-temp
             cd lab-project-temp
             git sparse-checkout init --cone
-            git sparse-checkout set projects/dashboard
+            git sparse-checkout set projects/dashboard nakamura-misaki
             git checkout main
 
             # ~/projects/dashboard/ に同期
@@ -42,6 +42,15 @@ jobs:
               --exclude='node_modules' \
               --exclude='.next' \
               projects/dashboard/ /home/noguchilin/projects/dashboard/
+
+            # ~/projects/lab-project/nakamura-misaki/ に同期
+            mkdir -p /home/noguchilin/projects/lab-project
+            rsync -av --delete \
+              --exclude='.venv' \
+              --exclude='node_modules' \
+              --exclude='workspaces/user_*' \
+              --exclude='workspaces/sessions/*.json' \
+              nakamura-misaki/ /home/noguchilin/projects/lab-project/nakamura-misaki/
 
             # 一時ディレクトリ削除
             cd ~
