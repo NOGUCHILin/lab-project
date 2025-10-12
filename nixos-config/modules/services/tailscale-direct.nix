@@ -94,6 +94,10 @@ in {
           sleep 1
         done
 
+        # Serve設定: 統合ダッシュボード（ポート443/デフォルト）
+        tailscale serve --bg --https 443 http://localhost:3000
+        echo "✅ Dashboard on https://home-lab-01.tail4ed625.ts.net/"
+
         # Funnel設定: nakamura-misaki API（ポート10000）のみインターネット公開
         # Slack Webhook用に専用ポートを公開
         # Note: Tailscale Funnelは443, 8443, 10000のみ使用可能
@@ -102,7 +106,7 @@ in {
 
         echo "✅ Tailscale Funnel configured for nakamura-misaki API (port 10000)"
         echo "   Access URL: https://home-lab-01.tail4ed625.ts.net:10000/webhook/slack"
-        echo "⚠️  All other services are accessible only within Tailscale network (not exposed via Serve)"
+        echo "⚠️  Other services accessible only within Tailscale network"
       '';
       # Restart on failure
       Restart = "on-failure";
