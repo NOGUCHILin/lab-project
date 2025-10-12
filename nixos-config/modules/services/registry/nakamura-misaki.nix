@@ -34,18 +34,46 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    # Redis for nakamura-misaki message queue
+    services.redis.servers.nakamura = {
+      enable = true;
+      port = 6380;
+      bind = "127.0.0.1";  # Only local access
+
+      # Persistence settings
+      save = [
+        [ 900 1 ]    # After 900 sec (15 min) if at least 1 key changed
+        [ 300 10 ]   # After 300 sec (5 min) if at least 10 keys changed
+        [ 60 10000 ] # After 60 sec if at least 10000 keys changed
+      ];
+
+      # AOF (Append-Only File) for durability
+      appendOnly = true;
+      appendFsync = "everysec";
+
+      # Security
+      requirePass = null;  # No password needed (local-only)
+
+      # Performance
+      maxmemory = "256mb";
+      maxmemoryPolicy = "allkeys-lru";
+    };
+
     # API Backend Service
     systemd.services.nakamura-misaki-api = {
       description = "Nakamura-Misaki API Backend";
       wantedBy = [ "multi-user.target" ];
-      after = [ "network.target" ];
+      after = [ "network.target" "redis-nakamura.service" ];
 
       environment = {
         PORT = toString cfg.ports.api;
         PYTHONUNBUFFERED = "1";
         NAKAMURA_USER_ID = "U09AHTB4X4H";
+        # Redis connection
+        REDIS_HOST = "127.0.0.1";
+        REDIS_PORT = "6380";
         # Version marker to force service restart on code changes
-        CODE_VERSION = "phase0-asyncio-fix-20251012";
+        CODE_VERSION = "phase1-redis-rq-20251012";
       };
 
       path = with pkgs; [ nodejs_22 bash coreutils python3 ];
@@ -136,6 +164,61 @@ in {
         PrivateTmp = true;
         ProtectHome = false;
         ReadWritePaths = [ "${projectDir}/admin-ui" ];
+      };
+
+      unitConfig = lib.mkIf cfg.enforceDeclarative {
+        RefuseManualStop = true;
+        RefuseManualStart = true;
+      };
+    };
+
+    # RQ Worker Service for Claude Agent processing
+    systemd.services.nakamura-misaki-worker = {
+      description = "Nakamura-Misaki RQ Worker (Claude Agent Processing)";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network.target" "redis-nakamura.service" ];
+
+      environment = {
+        PYTHONUNBUFFERED = "1";
+        REDIS_HOST = "127.0.0.1";
+        REDIS_PORT = "6380";
+      };
+
+      path = with pkgs; [ nodejs_22 bash coreutils python3 ];
+
+      serviceConfig = {
+        Type = "simple";
+        User = "noguchilin";
+        Group = "users";
+        WorkingDirectory = projectDir;
+
+        ExecStart = pkgs.writeShellScript "nakamura-worker-start" ''
+          # Load secrets
+          export SLACK_BOT_TOKEN=$(cat ${config.sops.secrets.slack_bot_token.path})
+          export ANTHROPIC_API_KEY=$(cat ${config.sops.secrets.anthropic_api_key.path})
+
+          # venv check
+          if [ ! -f ${projectDir}/.venv/bin/python ]; then
+            echo "❌ venv not found at ${projectDir}/.venv"
+            exit 1
+          fi
+
+          cd ${projectDir}
+          source .venv/bin/activate
+          exec python -m src.workers.claude_worker
+        '';
+
+        Restart = "always";
+        RestartSec = 10;
+        KillMode = "mixed";
+        KillSignal = "SIGTERM";
+        TimeoutStopSec = 30;  # Longer timeout for graceful worker shutdown
+
+        # Security
+        PrivateTmp = true;
+        ProtectSystem = "strict";
+        ProtectHome = false;
+        ReadWritePaths = [ projectDir ];
       };
 
       unitConfig = lib.mkIf cfg.enforceDeclarative {
