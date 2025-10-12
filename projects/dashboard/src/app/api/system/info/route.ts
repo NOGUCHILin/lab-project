@@ -64,28 +64,28 @@ export async function GET() {
     try {
       const { stdout: hostname } = await execAsync('hostname');
       systemInfo.hostname = hostname.trim();
-    } catch (e) {
+    } catch {
       // ignore
     }
 
     try {
       const { stdout: uptime } = await execAsync('uptime');
       systemInfo.network.uptime = uptime.trim();
-    } catch (e) {
-      // ignore  
+    } catch {
+      // ignore
     }
 
     try {
       const { stdout: ps } = await execAsync('ps aux | grep -E "(npm|next|node)" | grep -v grep');
       systemInfo.processInfo.relatedProcesses = ps.trim().split('\n').slice(0, 10);
-    } catch (e) {
+    } catch {
       systemInfo.processInfo.relatedProcesses = [];
     }
 
     try {
       const { stdout: netstat } = await execAsync('ss -tuln | grep -E "(3005|8889|8891|8384)"');
       systemInfo.network.listeningPorts = netstat.trim().split('\n');
-    } catch (e) {
+    } catch {
       systemInfo.network.listeningPorts = [];
     }
 

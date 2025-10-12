@@ -5,7 +5,7 @@
 
 'use client';
 
-import { ExternalLink, BookOpen, Sparkles, Info } from 'lucide-react';
+import { ExternalLink, Sparkles, Info } from 'lucide-react';
 import { Service } from '@/config/services';
 import Link from 'next/link';
 

@@ -34,7 +34,7 @@ export function ServicePage({ service }: ServicePageProps) {
     }));
   };
 
-  const SectionHeader = ({ title, icon: Icon, section, count }: { title: string; icon: any; section: string; count?: number }) => (
+  const SectionHeader = ({ title, icon: Icon, section, count }: { title: string; icon: React.ComponentType<{ className?: string }>; section: string; count?: number }) => (
     <button
       onClick={() => toggleSection(section)}
       className="flex items-center justify-between w-full p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"

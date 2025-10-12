@@ -3,9 +3,7 @@
  * HTMLから絶対パス /realtime.js でアクセスされるため
  */
 
-import { NextRequest } from 'next/server';
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // OpenAI Realtimeサービスから直接realtime.jsを取得
     const response = await fetch('http://127.0.0.1:8891/realtime.js');

@@ -14,7 +14,7 @@ export async function GET() {
           const m = await getMetrics();
           const payload = `data: ${JSON.stringify(m)}\n\n`;
           controller.enqueue(encoder.encode(payload));
-        } catch (e) {
+        } catch {
           controller.enqueue(encoder.encode(`event: error\n`));
         }
       }
@@ -30,8 +30,8 @@ export async function GET() {
         clearInterval(id);
         try { controller.close(); } catch {}
       };
-      // @ts-ignore
-      (globalThis as any).addEventListener?.('close', close);
+      // @ts-expect-error - addEventListener may not exist on globalThis in all environments
+      (globalThis as { addEventListener?: (event: string, handler: () => void) => void }).addEventListener?.('close', close);
     },
     cancel() {},
   });

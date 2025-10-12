@@ -40,7 +40,6 @@ export function useHealthCheck(
 
     let isActive = true;
     let timeoutId: NodeJS.Timeout;
-    let intervalId: NodeJS.Timeout;
 
     const checkHealth = async () => {
       if (!isActive) return;
@@ -54,7 +53,7 @@ export function useHealthCheck(
 
         // Simple fetch with no-cors mode
         // This won't give us detailed status but can detect basic connectivity
-        const response = await fetch(url, {
+        await fetch(url, {
           method: 'HEAD',
           mode: 'no-cors',
           signal: controller.signal,
@@ -85,7 +84,7 @@ export function useHealthCheck(
     checkHealth();
 
     // Set up interval for periodic checks
-    intervalId = setInterval(checkHealth, interval);
+    const intervalId = setInterval(checkHealth, interval);
 
     // Cleanup function
     return () => {
@@ -102,8 +101,7 @@ export function useHealthCheck(
  * Hook for checking multiple services at once
  */
 export function useMultipleHealthChecks(
-  urls: Array<{ id: string; url?: string }>,
-  options: UseHealthCheckOptions = {}
+  urls: Array<{ id: string; url?: string }>
 ): Map<string, HealthStatus> {
   const [statuses, setStatuses] = useState<Map<string, HealthStatus>>(new Map());
 

@@ -17,10 +17,10 @@ test.describe('Performance Tests', () => {
 
   test('メモリ使用量チェック', async ({ page }) => {
     await page.goto('/');
-    
+
     // ページ読み込み後、メモリリークがないか
     const initialMetrics = await page.evaluate(() => {
-      const memory = (performance as any).memory;
+      const memory = (performance as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number } }).memory;
       return memory ? {
         usedJSHeapSize: memory.usedJSHeapSize || 0,
         totalJSHeapSize: memory.totalJSHeapSize || 0
@@ -34,7 +34,7 @@ test.describe('Performance Tests', () => {
     }
     
     const finalMetrics = await page.evaluate(() => {
-      const memory = (performance as any).memory;
+      const memory = (performance as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number } }).memory;
       return memory ? {
         usedJSHeapSize: memory.usedJSHeapSize || 0,
         totalJSHeapSize: memory.totalJSHeapSize || 0

@@ -8,8 +8,9 @@ export async function GET() {
   try {
     const m = await getMetrics();
     return NextResponse.json(m, { headers: { 'Cache-Control': 'no-store' } });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'metrics failed' }, { status: 500 });
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : 'metrics failed';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
