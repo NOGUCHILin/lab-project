@@ -34,7 +34,7 @@ in {
         HUSKY = "0";
       };
 
-      path = [ pkgs.nodejs_22 pkgs.bash pkgs.coreutils ];
+      path = [ pkgs.nodejs_22 pkgs.nodePackages.pnpm pkgs.bash pkgs.coreutils ];
 
       serviceConfig = {
         Type = "simple";
@@ -42,9 +42,9 @@ in {
         Group = "users";
         WorkingDirectory = projectDir;
 
-        # 依存関係インストール + ポートクリーンアップ（改善版）
+        # 依存関係インストール + ポートクリーンアップ（pnpm対応版）
         ExecStartPre = pkgs.writeShellScript "applebuyers-install" ''
-          export PATH=${pkgs.nodejs_22}/bin:${pkgs.bash}/bin:${pkgs.procps}/bin:${pkgs.coreutils}/bin:$PATH
+          export PATH=${pkgs.nodejs_22}/bin:${pkgs.nodePackages.pnpm}/bin:${pkgs.bash}/bin:${pkgs.procps}/bin:${pkgs.coreutils}/bin:$PATH
           export HUSKY=0
 
           # Port cleanup
@@ -52,25 +52,25 @@ in {
           pkill -f "next.*${toString cfg.port}" || true
           sleep 1
 
-          # 依存関係の確実な更新（package.json/package-lock.jsonのハッシュチェック）
+          # 依存関係の確実な更新（package.json/pnpm-lock.yamlのハッシュチェック）
           PACKAGE_HASH=""
-          if [ -f "package.json" ] && [ -f "package-lock.json" ]; then
-            PACKAGE_HASH=$(cat package.json package-lock.json | md5sum | cut -d' ' -f1)
+          if [ -f "package.json" ] && [ -f "pnpm-lock.yaml" ]; then
+            PACKAGE_HASH=$(cat package.json pnpm-lock.yaml | md5sum | cut -d' ' -f1)
           fi
 
           INSTALLED_HASH=""
-          if [ -f ".npm-install-hash" ]; then
-            INSTALLED_HASH=$(cat .npm-install-hash)
+          if [ -f ".pnpm-install-hash" ]; then
+            INSTALLED_HASH=$(cat .pnpm-install-hash)
           fi
 
           # ハッシュが異なる、またはnode_modulesがない場合は再インストール
           if [ "$PACKAGE_HASH" != "$INSTALLED_HASH" ] || [ ! -d "node_modules" ]; then
-            echo "📦 Installing/updating dependencies..."
+            echo "📦 Installing/updating dependencies with pnpm..."
             echo "Previous hash: $INSTALLED_HASH"
             echo "Current hash:  $PACKAGE_HASH"
             rm -rf node_modules .next
-            npm ci --ignore-scripts
-            echo "$PACKAGE_HASH" > .npm-install-hash
+            pnpm install --frozen-lockfile --ignore-scripts
+            echo "$PACKAGE_HASH" > .pnpm-install-hash
             echo "✅ Dependencies updated"
           else
             echo "✅ Dependencies up to date (hash: $PACKAGE_HASH)"
@@ -78,10 +78,10 @@ in {
         '';
 
         ExecStart = pkgs.writeShellScript "applebuyers-dev" ''
-          export PATH=${pkgs.nodejs_22}/bin:${pkgs.bash}/bin:$PATH
+          export PATH=${pkgs.nodejs_22}/bin:${pkgs.nodePackages.pnpm}/bin:${pkgs.bash}/bin:$PATH
           cd ${projectDir}
           echo "🚀 Starting AppleBuyers dev server on port ${toString cfg.port} (memory limit: ${toString cfg.memoryLimit}MB)"
-          exec npm run dev -- -H 127.0.0.1 -p ${toString cfg.port}
+          exec pnpm run dev -- -H 127.0.0.1 -p ${toString cfg.port}
         '';
 
         Restart = "always";
