@@ -4,7 +4,7 @@
 
 let
   cfg = config.services.nakamura-misaki;
-  projectDir = "/home/noguchilin/projects/nakamura-misaki";
+  projectDir = "/home/noguchilin/projects/lab-project/nakamura-misaki";
 in {
   options.services.nakamura-misaki = {
     enable = lib.mkEnableOption "Nakamura-Misaki Claude Agent Service";

@@ -43,3 +43,8 @@ Thumbs.db
 secrets/*.key
 secrets/*.age
 !secrets/.gitkeep
+
+# Nakamura-Misaki
+nakamura-misaki/workspaces/user_*/
+nakamura-misaki/workspaces/sessions/*.json
+!nakamura-misaki/workspaces/_templates/

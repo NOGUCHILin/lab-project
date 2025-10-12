@@ -1,0 +1,19 @@
+# Core dependencies
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+
+# Slack SDK
+slack-sdk
+slack-bolt
+
+# Claude Agent SDK
+claude-agent-sdk
+
+# Message Queue (Phase 1)
+redis
+rq
+
+# HTTP client
+httpx
