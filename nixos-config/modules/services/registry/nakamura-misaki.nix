@@ -91,11 +91,17 @@ in {
           export SLACK_BOT_TOKEN=$(cat ${config.sops.secrets.slack_bot_token.path})
           export ANTHROPIC_API_KEY=$(cat ${config.sops.secrets.anthropic_api_key.path})
 
-          # venv存在確認
+          # venv存在確認と依存関係インストール
           if [ ! -f ${projectDir}/.venv/bin/python ]; then
             echo "❌ venv not found at ${projectDir}/.venv"
             echo "Run: cd ${projectDir} && python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt"
             exit 1
+          fi
+
+          # 依存関係が最新か確認（requirements.txtが更新された場合に再インストール）
+          if [ -f ${projectDir}/requirements.txt ]; then
+            source ${projectDir}/.venv/bin/activate
+            pip install -q -r ${projectDir}/requirements.txt
           fi
 
           cd ${projectDir}
@@ -203,6 +209,12 @@ in {
           if [ ! -f ${projectDir}/.venv/bin/python ]; then
             echo "❌ venv not found at ${projectDir}/.venv"
             exit 1
+          fi
+
+          # 依存関係が最新か確認（requirements.txtが更新された場合に再インストール）
+          if [ -f ${projectDir}/requirements.txt ]; then
+            source ${projectDir}/.venv/bin/activate
+            pip install -q -r ${projectDir}/requirements.txt
           fi
 
           cd ${projectDir}
