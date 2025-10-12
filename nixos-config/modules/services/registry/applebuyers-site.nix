@@ -81,7 +81,7 @@ in {
           export PATH=${pkgs.nodejs_22}/bin:${pkgs.nodePackages.pnpm}/bin:${pkgs.bash}/bin:$PATH
           cd ${projectDir}
           echo "🚀 Starting AppleBuyers dev server on port ${toString cfg.port} (memory limit: ${toString cfg.memoryLimit}MB)"
-          exec pnpm run dev -- -H 127.0.0.1 -p ${toString cfg.port}
+          exec pnpm exec next dev -H 127.0.0.1 -p ${toString cfg.port}
         '';
 
         Restart = "always";
