@@ -202,23 +202,23 @@
         options = [ "NOPASSWD" ];
       }
       {
-        command = "/run/current-system/sw/bin/systemctl restart unified-dashboard.service";
+        command = "/run/current-system/sw/bin/systemctl restart dashboard.service";
         options = [ "NOPASSWD" ];
       }
       {
-        command = "/run/current-system/sw/bin/systemctl status unified-dashboard.service";
+        command = "/run/current-system/sw/bin/systemctl status dashboard.service";
         options = [ "NOPASSWD" ];
       }
       {
-        command = "/run/current-system/sw/bin/systemctl stop unified-dashboard.service";
+        command = "/run/current-system/sw/bin/systemctl stop dashboard.service";
         options = [ "NOPASSWD" ];
       }
       {
-        command = "/run/current-system/sw/bin/systemctl start unified-dashboard.service";
+        command = "/run/current-system/sw/bin/systemctl start dashboard.service";
         options = [ "NOPASSWD" ];
       }
       {
-        command = "/run/current-system/sw/bin/systemctl * unified-dashboard.service";
+        command = "/run/current-system/sw/bin/systemctl * dashboard.service";
         options = [ "NOPASSWD" ];
       }
       {

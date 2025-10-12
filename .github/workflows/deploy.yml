@@ -81,6 +81,22 @@ jobs:
             mv nixos-temp/nixos-config nixos-config
             rm -rf nixos-temp
 
+      # Dashboard再起動（新しいコードを反映）
+      - name: Restart Dashboard
+        uses: appleboy/ssh-action@master
+        with:
+          host: home-lab-01
+          username: ${{ secrets.NIXOS_USER }}
+          key: ${{ secrets.NIXOS_SSH_KEY }}
+          script: |
+            # Dashboard.service再起動（NixOS設定でNOPASSWD許可済み）
+            sudo systemctl restart dashboard.service
+
+            # 再起動完了を待機
+            sleep 5
+
+            echo "✅ Dashboard restarted with new code"
+
       # デプロイ完了確認
       - name: Verify deployment
         uses: appleboy/ssh-action@master
