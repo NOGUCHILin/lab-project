@@ -4,8 +4,6 @@
  * 単一の真実の情報源（Single Source of Truth）を実現
  */
 
-import fs from 'fs';
-
 export interface Service {
   id: string;
   name: string;
@@ -93,58 +91,37 @@ const inferDocsUrl = (id: string): string | undefined => {
 };
 
 /**
- * NixOSレジストリからサービス一覧を読み込み
- * ビルド時に/etc/unified-dashboard/services.jsonを読み込む
+ * NixOSレジストリからサービスを生成
+ * APIルート経由で取得したレジストリデータからServiceオブジェクトを生成
  */
-function loadServicesFromNixOS(): Service[] {
-  const servicesPath = process.env.SERVICES_CONFIG || '/etc/unified-dashboard/services.json';
-
-  try {
-    // サーバーサイドでのみファイルを読み込み
-    if (typeof window === 'undefined') {
-      const rawData = fs.readFileSync(servicesPath, 'utf-8');
-      const registry: NixOSServiceRegistry = JSON.parse(rawData);
-
-      return Object.entries(registry).map(([id, service]) => ({
-        id,
-        name: service.name,
-        url: service.url,
-        icon: service.icon,
-        description: service.description,
-        category: inferCategory(service.name),
-        healthCheck: service.url + service.healthCheck,
-        status: 'active' as const,
-        tags: inferTags(service.name, service.description),
-        features: inferFeatures(service.name, id),
-        docsUrl: inferDocsUrl(id),
-        port: service.port,
-        path: service.path,
-        apiUrl: service.apiUrl,
-      }));
-    }
-  } catch (error) {
-    console.error('Failed to load services from NixOS registry:', error);
-  }
-
-  // フォールバック: 空配列（クライアントサイドまたはエラー時）
-  return [];
+export function transformNixOSRegistry(registry: NixOSServiceRegistry): Service[] {
+  return Object.entries(registry).map(([id, service]) => ({
+    id,
+    name: service.name,
+    url: service.url,
+    icon: service.icon,
+    description: service.description,
+    category: inferCategory(service.name),
+    healthCheck: service.url + service.healthCheck,
+    status: 'active' as const,
+    tags: inferTags(service.name, service.description),
+    features: inferFeatures(service.name, id),
+    docsUrl: inferDocsUrl(id),
+    port: service.port,
+    path: service.path,
+    apiUrl: service.apiUrl,
+  }));
 }
 
-// サービス一覧をビルド時に読み込み
-export const SERVICES: Service[] = loadServicesFromNixOS();
+// Utility functions (now accept services array as parameter)
+export const getServicesByCategory = (services: Service[], category: Service['category']): Service[] =>
+  services.filter(service => service.category === category);
 
-// Utility functions
-export const getServicesByCategory = (category: Service['category']): Service[] =>
-  SERVICES.filter(service => service.category === category);
+export const getActiveServices = (services: Service[]): Service[] =>
+  services.filter(service => service.status !== 'deprecated');
 
-export const getActiveServices = (): Service[] =>
-  SERVICES.filter(service => service.status !== 'deprecated');
+export const getServiceById = (services: Service[], id: string): Service | undefined =>
+  services.find(service => service.id === id);
 
-export const getServiceById = (id: string): Service | undefined =>
-  SERVICES.find(service => service.id === id);
-
-export const getServicesByTag = (tag: string): Service[] =>
-  SERVICES.filter(service => service.tags?.includes(tag));
-
-// Export for easy import
-export default SERVICES;
+export const getServicesByTag = (services: Service[], tag: string): Service[] =>
+  services.filter(service => service.tags?.includes(tag));

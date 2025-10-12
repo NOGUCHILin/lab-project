@@ -1,21 +1,43 @@
 /**
  * 🚀 NEW SIMPLIFIED Dashboard Page
- * No complex service providers, just pure static service display
+ * Server-side service loading from NixOS registry
  */
 
-'use client';
-
 import { ServiceGrid } from '@/components/services/ServiceGrid';
-import { SERVICES, getServicesByCategory } from '@/config/services';
+import { transformNixOSRegistry, getServicesByCategory, type Service } from '@/config/services';
 
-export default function UnifiedDashboard() {
+async function getServices(): Promise<Service[]> {
+  // In production, read from local API route
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+  try {
+    const response = await fetch(`${baseUrl}/api/services`, {
+      cache: 'no-store', // Always get fresh data
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch services:', response.statusText);
+      return [];
+    }
+
+    const registry = await response.json();
+    return transformNixOSRegistry(registry);
+  } catch (error) {
+    console.error('Error loading services:', error);
+    return [];
+  }
+}
+
+export default async function UnifiedDashboard() {
+  const services = await getServices();
+
   // Simple stats calculation
   const stats = {
-    total: SERVICES.length,
-    ai: getServicesByCategory('ai').length,
-    development: getServicesByCategory('development').length,
-    storage: getServicesByCategory('storage').length,
-    infrastructure: getServicesByCategory('infrastructure').length
+    total: services.length,
+    ai: getServicesByCategory(services, 'ai').length,
+    development: getServicesByCategory(services, 'development').length,
+    storage: getServicesByCategory(services, 'storage').length,
+    infrastructure: getServicesByCategory(services, 'infrastructure').length
   };
 
   return (
@@ -56,7 +78,7 @@ export default function UnifiedDashboard() {
         </header>
 
         {/* Services Grid */}
-        <ServiceGrid services={SERVICES} columns={3} />
+        <ServiceGrid services={services} columns={3} />
 
         {/* System Information */}
         <section className="bg-gray-800 rounded-lg p-8 mt-12 border border-gray-700">
