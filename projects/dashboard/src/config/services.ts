@@ -1,11 +1,11 @@
 /**
- * 🚀 REFACTORED SERVICES CONFIGURATION
- * Now using environment variables for flexibility
- * No more hardcoded URLs - configuration via .env files
+ * 🚀 NixOS統合サービス設定
+ * NixOSレジストリ（/etc/unified-dashboard/services.json）から動的に読み込み
+ * 単一の真実の情報源（Single Source of Truth）を実現
  */
 
-import { env } from '@/lib/env';
-import { buildDynamicServiceUrl } from '@/lib/config/dynamic-url';
+import fs from 'fs';
+import path from 'path';
 
 export interface Service {
   id: string;
@@ -17,121 +17,122 @@ export interface Service {
   healthCheck?: string;
   status?: 'active' | 'deprecated' | 'maintenance';
   tags?: string[];
-  features?: string[];  // 主な機能リスト
-  docsUrl?: string;     // 使い方・ドキュメントへのリンク
+  features?: string[];
+  docsUrl?: string;
+  port?: number;
+  path?: string;
+  apiUrl?: string;
 }
 
-// Use dynamic URL builder instead of env.BASE_URL
-const buildServiceUrl = buildDynamicServiceUrl;
+interface NixOSServiceRegistry {
+  [key: string]: {
+    name: string;
+    description: string;
+    icon: string;
+    port: number;
+    path: string;
+    url: string;
+    apiUrl: string;
+    healthCheck: string;
+  };
+}
 
-export const SERVICES: Service[] = [
-  // Dashboard itself (ホーム)
-  {
-    id: 'dashboard',
-    name: 'Dashboard',
-    url: '/',
-    icon: '🏠',
-    description: 'Service monitoring and management',
-    category: 'infrastructure',
-    status: 'active',
-    tags: ['dashboard', 'home']
-  },
+// カテゴリマッピング（サービス名からカテゴリを推定）
+const inferCategory = (serviceName: string): Service['category'] => {
+  const name = serviceName.toLowerCase();
+  if (name.includes('nakamura') || name.includes('ai')) return 'ai';
+  if (name.includes('code') || name.includes('editor') || name.includes('preview') || name.includes('applebuyers')) return 'development';
+  if (name.includes('file') || name.includes('syncthing')) return 'storage';
+  return 'infrastructure';
+};
 
-  // Development Tools - 汎用
-  {
-    id: 'code-server',
-    name: 'Code Server',
-    url: 'https://home-lab-01.tail4ed625.ts.net:8889/',
-    icon: '💻',
-    description: 'Browser-based VSCode',
-    category: 'development',
-    healthCheck: 'https://home-lab-01.tail4ed625.ts.net:8889/healthz',
-    tags: ['editor', 'development'],
-    features: ['ブラウザでVSCodeを使用', 'リモート開発環境', '拡張機能サポート'],
-    docsUrl: 'https://github.com/coder/code-server/blob/main/docs/guide.md'
-  },
+// タグ生成（サービス特性からタグを推定）
+const inferTags = (serviceName: string, description: string): string[] => {
+  const tags: string[] = [];
+  const text = `${serviceName} ${description}`.toLowerCase();
 
-  // AI Services
-  {
-    id: 'nakamura-misaki',
-    name: 'Nakamura-Misaki',
-    url: buildServiceUrl(3002, '/'),
-    icon: '🤖',
-    description: 'Multi-user Claude Code Agent - Admin UI',
-    category: 'ai',
-    healthCheck: buildServiceUrl(8010, '/health'),
-    tags: ['ai', 'claude', 'agent', 'slack', 'admin'],
-    features: ['Slack統合', 'マルチユーザー対応', 'プロンプト管理', 'タスク管理', 'エラーログ監視'],
-    docsUrl: '/projects/nakamura-misaki/README.md',
-    status: 'active'
-  },
+  if (text.includes('editor') || text.includes('vscode')) tags.push('editor');
+  if (text.includes('applebuyers')) tags.push('applebuyers');
+  if (text.includes('slack')) tags.push('slack');
+  if (text.includes('claude')) tags.push('claude', 'ai');
+  if (text.includes('file')) tags.push('files');
+  if (text.includes('sync')) tags.push('sync');
+  if (text.includes('preview')) tags.push('preview');
+  if (text.includes('dashboard')) tags.push('dashboard', 'home');
 
-  // Storage & File Management
-  {
-    id: 'file-manager',
-    name: 'File Manager',
-    url: 'https://home-lab-01.tail4ed625.ts.net:9000/',
-    icon: '📁',
-    description: 'Web-based file management',
-    category: 'storage',
-    healthCheck: 'https://home-lab-01.tail4ed625.ts.net:9000/api/public/dl/nopass',
-    tags: ['files', 'manager'],
-    features: ['Webファイルブラウザ', 'アップロード/ダウンロード', 'ファイル編集'],
-    docsUrl: 'https://github.com/filebrowser/filebrowser'
-  },
+  return tags;
+};
 
-  // Development Tools - AppleBuyers専用
-  {
-    id: 'applebuyers-article-editor',
-    name: '記事編集 (Code Server)',
-    url: 'https://home-lab-01.tail4ed625.ts.net:8890/',
-    icon: '📝',
-    description: 'AppleBuyers Public Site記事をMarkdownで編集 (~/projects/applebuyers_application/public-site/content/articles/)',
-    category: 'development',
-    tags: ['editor', 'writing', 'markdown', 'applebuyers'],
-    features: ['Markdown記事編集', '画像アップロード', 'リアルタイムプレビュー'],
-    status: 'active'
-  },
-  {
-    id: 'applebuyers-preview',
-    name: '記事プレビュー',
-    url: 'https://home-lab-01.tail4ed625.ts.net:13005/',
-    icon: '👁️',
-    description: 'AppleBuyers Public Siteのプレビュー表示',
-    category: 'development',
-    tags: ['preview', 'applebuyers', 'nextjs'],
-    features: ['編集中記事のプレビュー', 'Next.js開発サーバー'],
-    status: 'active'
-  },
+// 機能リスト生成（サービスタイプから推定）
+const inferFeatures = (serviceName: string, id: string): string[] => {
+  const featuresMap: Record<string, string[]> = {
+    'nakamuraMisaki': ['Slack統合', 'マルチユーザー対応', 'プロンプト管理', 'タスク管理', 'エラーログ監視'],
+    'codeServer': ['ブラウザでVSCodeを使用', 'リモート開発環境', '拡張機能サポート'],
+    'applebuyersWriterEditor': ['Markdown記事編集', '画像アップロード', 'リアルタイムプレビュー'],
+    'applebuyersPreview': ['編集中記事のプレビュー', 'Next.js開発サーバー'],
+    'fileManager': ['Webファイルブラウザ', 'アップロード/ダウンロード', 'ファイル編集'],
+    'syncthing': ['P2Pファイル同期', '暗号化通信', 'マルチデバイス対応'],
+    'nats': ['高速メッセージング', 'Pub/Sub', 'マイクロサービス通信'],
+    'n8n': ['ワークフロー自動化', 'ノーコード統合', 'API連携'],
+  };
 
-  // Storage & File Management
-  {
-    id: 'syncthing',
-    name: 'Syncthing',
-    url: 'https://home-lab-01.tail4ed625.ts.net:8384/',
-    icon: '🔄',
-    description: 'File synchronization',
-    category: 'storage',
-    healthCheck: 'https://home-lab-01.tail4ed625.ts.net:8384/rest/noauth/health',
-    tags: ['sync', 'files'],
-    features: ['P2Pファイル同期', '暗号化通信', 'マルチデバイス対応'],
-    docsUrl: 'https://docs.syncthing.net/'
-  },
+  return featuresMap[id] || [];
+};
 
-  // Infrastructure
-  {
-    id: 'nats',
-    name: 'NATS',
-    url: 'https://home-lab-01.tail4ed625.ts.net:8222/',
-    icon: '📡',
-    description: 'Event-driven messaging',
-    category: 'infrastructure',
-    healthCheck: 'https://home-lab-01.tail4ed625.ts.net:8222/varz',
-    tags: ['messaging', 'events'],
-    features: ['高速メッセージング', 'Pub/Sub', 'マイクロサービス通信'],
-    docsUrl: 'https://docs.nats.io/'
+// ドキュメントURL生成
+const inferDocsUrl = (id: string): string | undefined => {
+  const docsMap: Record<string, string> = {
+    'nakamuraMisaki': '/projects/nakamura-misaki/README.md',
+    'codeServer': 'https://github.com/coder/code-server/blob/main/docs/guide.md',
+    'fileManager': 'https://github.com/filebrowser/filebrowser',
+    'syncthing': 'https://docs.syncthing.net/',
+    'nats': 'https://docs.nats.io/',
+    'n8n': 'https://docs.n8n.io/',
+  };
+
+  return docsMap[id];
+};
+
+/**
+ * NixOSレジストリからサービス一覧を読み込み
+ * ビルド時に/etc/unified-dashboard/services.jsonを読み込む
+ */
+function loadServicesFromNixOS(): Service[] {
+  const servicesPath = process.env.SERVICES_CONFIG || '/etc/unified-dashboard/services.json';
+
+  try {
+    // サーバーサイドでのみファイルを読み込み
+    if (typeof window === 'undefined') {
+      const rawData = fs.readFileSync(servicesPath, 'utf-8');
+      const registry: NixOSServiceRegistry = JSON.parse(rawData);
+
+      return Object.entries(registry).map(([id, service]) => ({
+        id,
+        name: service.name,
+        url: service.url,
+        icon: service.icon,
+        description: service.description,
+        category: inferCategory(service.name),
+        healthCheck: service.url + service.healthCheck,
+        status: 'active' as const,
+        tags: inferTags(service.name, service.description),
+        features: inferFeatures(service.name, id),
+        docsUrl: inferDocsUrl(id),
+        port: service.port,
+        path: service.path,
+        apiUrl: service.apiUrl,
+      }));
+    }
+  } catch (error) {
+    console.error('Failed to load services from NixOS registry:', error);
   }
-];
+
+  // フォールバック: 空配列（クライアントサイドまたはエラー時）
+  return [];
+}
+
+// サービス一覧をビルド時に読み込み
+export const SERVICES: Service[] = loadServicesFromNixOS();
 
 // Utility functions
 export const getServicesByCategory = (category: Service['category']): Service[] =>
