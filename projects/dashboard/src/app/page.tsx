@@ -5,22 +5,15 @@
 
 import { ServiceGrid } from '@/components/services/ServiceGrid';
 import { transformNixOSRegistry, getServicesByCategory, type Service } from '@/config/services';
+import fs from 'fs';
 
 async function getServices(): Promise<Service[]> {
-  // In production, read from local API route
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const servicesPath = process.env.SERVICES_CONFIG || '/etc/unified-dashboard/services.json';
 
   try {
-    const response = await fetch(`${baseUrl}/api/services`, {
-      cache: 'no-store', // Always get fresh data
-    });
-
-    if (!response.ok) {
-      console.error('Failed to fetch services:', response.statusText);
-      return [];
-    }
-
-    const registry = await response.json();
+    // Direct file read (server-side only)
+    const rawData = fs.readFileSync(servicesPath, 'utf-8');
+    const registry = JSON.parse(rawData);
     return transformNixOSRegistry(registry);
   } catch (error) {
     console.error('Error loading services:', error);

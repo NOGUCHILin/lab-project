@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { transformNixOSRegistry, getServiceById, type Service } from '@/config/services';
 import { ServicePage } from '@/components/services/ServicePage';
+import fs from 'fs';
 
 interface ServiceDetailPageProps {
   params: {
@@ -9,18 +10,11 @@ interface ServiceDetailPageProps {
 }
 
 async function getServices(): Promise<Service[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const servicesPath = process.env.SERVICES_CONFIG || '/etc/unified-dashboard/services.json';
 
   try {
-    const response = await fetch(`${baseUrl}/api/services`, {
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      return [];
-    }
-
-    const registry = await response.json();
+    const rawData = fs.readFileSync(servicesPath, 'utf-8');
+    const registry = JSON.parse(rawData);
     return transformNixOSRegistry(registry);
   } catch (error) {
     console.error('Error loading services:', error);
