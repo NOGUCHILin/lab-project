@@ -54,9 +54,11 @@ in {
       # Security
       requirePass = null;  # No password needed (local-only)
 
-      # Performance
-      maxmemory = "256mb";
-      maxmemoryPolicy = "allkeys-lru";
+      # Performance - use settings attribute set
+      settings = {
+        maxmemory = "256mb";
+        maxmemory-policy = "allkeys-lru";
+      };
     };
 
     # API Backend Service
