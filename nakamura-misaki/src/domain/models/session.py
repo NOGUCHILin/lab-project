@@ -32,10 +32,13 @@ class SessionInfo:
     workspace_path: str = ""
     claude_options: Dict | None = None
     is_active: bool = True
+    message_history: list[dict] | None = None  # Anthropic Context Compaction用
 
     def __post_init__(self) -> None:
         if self.claude_options is None:
             self.claude_options = {}
+        if self.message_history is None:
+            self.message_history = []
 
     @classmethod
     def create_new(cls, user_id: str, workspace_path: Path) -> SessionInfo:
