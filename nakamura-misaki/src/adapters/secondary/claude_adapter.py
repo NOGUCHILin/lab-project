@@ -55,6 +55,7 @@ class ClaudeAgentAdapter(ClaudeService):
         session_id: str | None = None,
         continue_conversation: bool = False,
         is_dm: bool = False,
+        saved_notes: str = "",
     ) -> str:
         """Send message to Claude Code"""
         if not CLAUDE_AVAILABLE or query is None or ClaudeAgentOptions is None:
@@ -74,6 +75,7 @@ class ClaudeAgentAdapter(ClaudeService):
             "{channel_type}", "DM" if is_dm else "Channel Mention"
         )
         system_prompt = system_prompt.replace("{task_context}", task_context)
+        system_prompt = system_prompt.replace("{saved_notes}", saved_notes)
 
         options = ClaudeAgentOptions(
             cwd=workspace_path,

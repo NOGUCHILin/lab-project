@@ -7,6 +7,7 @@ from ...domain.models.session import SessionInfo
 from ...domain.repositories.session_repository import SessionRepository
 from ...domain.services.claude_service import ClaudeService
 from ...infrastructure.context_manager import ContextManager
+from ...infrastructure.note_store import NoteStore
 
 
 @dataclass
@@ -51,6 +52,9 @@ class ChatCommandHandler:
             )
             await self.session_repository.save(session)
 
+        # Anthropic Structured Note-Taking: Initialize note store
+        note_store = NoteStore(command.workspace_path)
+
         # Anthropic Context Compaction: メッセージ履歴に追加
         if session.message_history is None:
             session.message_history = []
@@ -70,6 +74,9 @@ class ChatCommandHandler:
             session.message_history = compressed_history
             print(f"✂️ User {command.user_id}: Context compressed")
 
+        # Anthropic Structured Note-Taking: 過去のノートを取得
+        saved_notes = await note_store.retrieve_notes(command.user_id, limit=5)
+
         # Determine if we should continue conversation
         continue_conversation = session.message_count > 0
 
@@ -81,6 +88,7 @@ class ChatCommandHandler:
             session_id=session.session_id if continue_conversation else None,
             continue_conversation=continue_conversation,
             is_dm=command.is_dm,  # Anthropic Context Engineering: チャネルタイプを渡す
+            saved_notes=saved_notes,  # Anthropic Structured Note-Taking: セッション間記憶
         )
 
         # Anthropic Context Compaction: Claudeの応答を履歴に追加
