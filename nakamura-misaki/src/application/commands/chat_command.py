@@ -15,6 +15,7 @@ class ChatCommand:
     user_id: str
     message: str
     workspace_path: str
+    is_dm: bool = False  # Anthropic Context Engineering: チャネルタイプ情報
 
 
 @dataclass
@@ -58,6 +59,7 @@ class ChatCommandHandler:
             workspace_path=command.workspace_path,
             session_id=session.session_id if continue_conversation else None,
             continue_conversation=continue_conversation,
+            is_dm=command.is_dm,  # Anthropic Context Engineering: チャネルタイプを渡す
         )
 
         # Update session

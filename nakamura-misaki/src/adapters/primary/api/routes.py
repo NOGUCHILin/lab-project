@@ -58,6 +58,7 @@ async def process_slack_message(
         user_id=user_id,
         message=text,
         workspace_path=str(base_workspace),
+        is_dm=is_dm,  # Anthropic Context Engineering: チャネルタイプをコンテキストに追加
     )
     result = await chat_handler.handle(command)
 

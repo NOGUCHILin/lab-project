@@ -54,6 +54,7 @@ class ClaudeAgentAdapter(ClaudeService):
         workspace_path: str,
         session_id: str | None = None,
         continue_conversation: bool = False,
+        is_dm: bool = False,
     ) -> str:
         """Send message to Claude Code"""
         if not CLAUDE_AVAILABLE or query is None or ClaudeAgentOptions is None:
@@ -65,10 +66,14 @@ class ClaudeAgentAdapter(ClaudeService):
         # タスクコンテキストを動的に生成
         task_context = await self._generate_task_context(user_id)
 
-        # プロンプトにタスクコンテキストを埋め込む
-        system_prompt = prompt_config.system_prompt.replace(
-            "{task_context}", task_context
+        # Anthropic推奨: すべてのコンテキスト変数を埋め込む
+        system_prompt = prompt_config.system_prompt
+        system_prompt = system_prompt.replace("{user_id}", user_id)
+        system_prompt = system_prompt.replace("{workspace_path}", workspace_path)
+        system_prompt = system_prompt.replace(
+            "{channel_type}", "DM" if is_dm else "Channel Mention"
         )
+        system_prompt = system_prompt.replace("{task_context}", task_context)
 
         options = ClaudeAgentOptions(
             cwd=workspace_path,
