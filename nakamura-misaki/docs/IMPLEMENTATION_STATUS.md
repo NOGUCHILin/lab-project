@@ -67,18 +67,34 @@
 - [x] Unit tests for parsers (100% pass)
 - [x] Unit tests for use cases (100% pass)
 
-### 🚧 Phase 4: Team Hub (50% Complete)
+### ✅ Phase 4: PostgreSQL + pgvector (100% Complete)
 
-#### Application Layer
-- [x] Domain models (Bottleneck, TeamStats)
-- [x] Use Cases (DetectBottleneckUseCase, QueryTeamStatsUseCase) - 基礎実装のみ
-- [ ] Admin UI (FastAPI) - 未実装
-- [ ] Chart.js統合 - 未実装
+#### Infrastructure
+- [x] PostgreSQL 16 + pgvector extension
+- [x] Database schema with vector columns
+- [x] systemd services:
+  - nakamura-misaki-init-db.service
+  - nakamura-misaki-enable-vector.service
+  - nakamura-misaki-reminder.timer
 
-#### Pending
-- [ ] Admin UI実装
-- [ ] Bottleneck検出ロジック完成
-- [ ] チーム統計API完成
+### 🚧 Phase 5: Slack Bot Integration (90% Complete)
+
+#### Implementation
+- [x] FastAPI server ([src/adapters/primary/api.py](../src/adapters/primary/api.py:1))
+- [x] Slack Event Handler ([src/adapters/primary/slack_event_handler.py](../src/adapters/primary/slack_event_handler.py:1))
+- [x] Signature verification with Signing Secret
+- [x] sops-nix secrets encryption
+- [x] systemd service (nakamura-misaki-api.nix)
+- [ ] Dependency management (pyproject.toml - aiohttp追加必要)
+- [ ] Port configuration (uvicorn → 127.0.0.1)
+- [ ] Service deployment and verification
+
+#### Known Issues
+- ⚠️ Port conflict with Tailscale Funnel (0.0.0.0:10000)
+- ⚠️ Missing aiohttp dependency in pyproject.toml
+- ⚠️ Deploy workflow needs dependency sync step
+
+See [RECOVERY_PLAN_2025-10-14.md](./RECOVERY_PLAN_2025-10-14.md) for recovery strategy.
 
 ### ✅ Infrastructure (100% Complete)
 
@@ -87,47 +103,32 @@
 
 ---
 
-## 次のステップ（ユーザー確認が必要）
+## 次のステップ
 
-### 1. NixOS Configuration
+### Phase 5完了に向けて
 
-以下のNixOS設定が必要です（Phase 1デプロイに必須）：
+詳細は [PHASE5_IMPLEMENTATION_PLAN.md](./PHASE5_IMPLEMENTATION_PLAN.md) を参照
 
-```nix
-# modules/services/registry/nakamura-misaki-db.nix
-- PostgreSQL 16 + pgvector extension
-- DATABASE_URL secrets設定
+1. **依存関係の宣言的管理**
+   - pyproject.tomlに`aiohttp`追加
+   - slack-sdkを`>=3.37.0`に変更
 
-# modules/services/registry/nakamura-misaki-reminder.nix
-- systemd timer (毎分実行)
-- scripts/send_reminders.py実行
-```
+2. **NixOS設定修正**
+   - uvicornバインドアドレスを`127.0.0.1`に変更
+   - デプロイワークフローに依存関係同期ステップ追加
 
-### 2. Secrets設定
+3. **クリーンデプロイ**
+   - 手動インストール済み依存関係の削除
+   - 宣言的設定のみでの再デプロイ
 
-sops-nixでの秘密情報設定:
+4. **Slack App設定**
+   - Event Subscriptions有効化
+   - Request URL設定
 
-```yaml
-# secrets/nakamura-misaki.yaml
-DATABASE_URL: postgresql+asyncpg://...
-SLACK_BOT_TOKEN: xoxb-...
-ANTHROPIC_API_KEY: sk-ant-...
-PM_USER_ID: U01ABC123
-```
-
-### 3. Slack Integration
-
-Slack Event Adapter実装（既存の`slack_event_adapter.py`に統合）：
-
-- タスクコマンド処理
-- ハンドオフコマンド処理
-- チーム統計コマンド処理
-
-### 4. E2E Testing
-
-- Slackコマンド経由のタスク登録〜完了フロー
-- ハンドオフ登録〜リマインダー〜完了フロー
-- チーム統計取得フロー
+5. **E2E Testing**
+   - URL Verification
+   - メッセージイベント受信
+   - Taskコマンド動作確認
 
 ---
 
