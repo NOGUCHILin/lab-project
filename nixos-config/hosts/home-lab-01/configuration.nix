@@ -36,6 +36,8 @@
       ../../modules/services/registry/nats.nix               # NATS Event-Driven Messaging (monitoring via registry)
       ../../modules/services/registry/unified-dashboard.nix       # 統合ダッシュボード
       ../../modules/services/registry/nakamura-misaki.nix         # Nakamura-Misaki Claude Agent
+      ../../modules/services/registry/nakamura-misaki-db.nix      # Nakamura-Misaki v4.0.0 Database (PostgreSQL + pgvector)
+      ../../modules/services/registry/nakamura-misaki-reminder.nix # Nakamura-Misaki v4.0.0 Handoff Reminder Scheduler
       ../../modules/services/registry/applebuyers-site.nix        # AppleBuyers Public Site (dev server)
       ../../modules/services/registry/code-server-applebuyers.nix     # Code Server for AppleBuyers (Writers)
       ../../modules/services/registry/code-server-applebuyers-dev.nix # Code Server for AppleBuyers (Engineers)

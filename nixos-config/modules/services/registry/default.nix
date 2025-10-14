@@ -22,6 +22,8 @@ let
     applebuyersWriterEditor = { port = 8890; path = "/applebuyers-writer"; name = "AppleBuyers Writer"; description = "ライター用記事編集"; healthCheck = "/healthz"; icon = "✍️"; };
     applebuyersDevEditor = { port = 8891; path = "/applebuyers-dev"; name = "AppleBuyers Dev"; description = "エンジニア用開発環境"; healthCheck = "/healthz"; icon = "⚙️"; };
     applebuyersPreview = { port = cfg.applebuyers-site.port; path = "/applebuyers-preview"; name = "AppleBuyers Preview"; description = "記事プレビュー"; healthCheck = "/"; icon = "👁️"; };
+    nakamuraMisakiDb = { port = null; path = null; name = "nakamura-misaki Database"; description = "PostgreSQL 16 + pgvector for v4.0.0"; healthCheck = null; icon = "🗄️"; };
+    nakamuraMisakiReminder = { port = null; path = null; name = "nakamura-misaki Reminder"; description = "Handoff reminder scheduler (runs every minute)"; healthCheck = null; icon = "⏰"; };
   };
 
   servicesJson = builtins.toJSON (lib.mapAttrs (_: service:
