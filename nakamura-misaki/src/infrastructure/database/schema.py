@@ -13,9 +13,10 @@ from sqlalchemy import (
     Text,
     text,
 )
-from sqlalchemy.dialects.postgresql import UUID, VECTOR
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase
+from pgvector.sqlalchemy import Vector
 
 from ...domain.models.task import TaskStatus
 
@@ -85,7 +86,7 @@ class NoteTable(Base):
     user_id = Column(String(100), nullable=False, index=True)
     content = Column(Text, nullable=False)
     category = Column(String(50), nullable=False, default="general")
-    embedding = Column(VECTOR(1024), nullable=True)  # Claude API: 1024-dim
+    embedding = Column(Vector(1024), nullable=True)  # Claude API: 1024-dim
     created_at = Column(DateTime, nullable=False, default=datetime.now)
 
     __table_args__ = (
