@@ -56,6 +56,24 @@ jobs:
             cd ~
             rm -rf /tmp/lab-project-temp
 
+      # nakamura-misaki依存関係を同期
+      - name: Install nakamura-misaki dependencies
+        uses: appleboy/ssh-action@master
+        with:
+          host: home-lab-01
+          username: ${{ secrets.NIXOS_USER }}
+          key: ${{ secrets.NIXOS_SSH_KEY }}
+          script: |
+            cd /home/noguchilin/projects/lab-project/nakamura-misaki
+
+            # 依存関係をインストール
+            if [ -f .venv/bin/pip ]; then
+              .venv/bin/pip install -e .
+              echo "✅ Dependencies installed"
+            else
+              echo "Warning: venv not found, skipping dependency installation"
+            fi
+
       # NixOS設定をデプロイ
       - name: Deploy NixOS configuration
         uses: appleboy/ssh-action@master

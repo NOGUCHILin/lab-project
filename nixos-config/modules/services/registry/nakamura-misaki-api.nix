@@ -44,7 +44,7 @@
         # Start FastAPI server with uvicorn
         if [ -f .venv/bin/uvicorn ]; then
           .venv/bin/uvicorn src.adapters.primary.api:app \
-            --host 0.0.0.0 \
+            --host 127.0.0.1 \
             --port 10000 \
             --log-level info
         else
