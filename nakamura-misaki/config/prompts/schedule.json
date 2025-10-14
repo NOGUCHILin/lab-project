@@ -6,6 +6,8 @@
   "metadata": {
     "created_at": "2025-10-02",
     "author": "noguchilin",
-    "use_case": "スケジュール管理、リマインダー"
+    "use_case": "スケジュール管理、リマインダー",
+    "deprecated": true,
+    "deprecation_reason": "v4.0.0でdefault.jsonに統合"
   }
 }

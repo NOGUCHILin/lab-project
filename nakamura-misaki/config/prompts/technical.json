@@ -6,6 +6,8 @@
   "metadata": {
     "created_at": "2025-10-02",
     "author": "noguchilin",
-    "use_case": "技術サポート、コードレビュー"
+    "use_case": "技術サポート、コードレビュー",
+    "deprecated": true,
+    "deprecation_reason": "v4.0.0からタスク管理に特化（技術サポートは非対応）"
   }
 }

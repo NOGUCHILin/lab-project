@@ -1,0 +1,98 @@
+name: Test nakamura-misaki
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'nakamura-misaki/**'
+      - '.github/workflows/test-nakamura-misaki.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'nakamura-misaki/**'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nakamura-misaki
+
+    services:
+      postgres:
+        image: ankane/pgvector:v0.5.1
+        env:
+          POSTGRES_USER: nakamura_misaki
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: nakamura_misaki_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: |
+          uv sync
+
+      - name: Setup test database
+        run: |
+          uv run python scripts/init_db.py
+        env:
+          DATABASE_URL: postgresql+asyncpg://nakamura_misaki:test_password@localhost:5432/nakamura_misaki_test
+
+      - name: Run linter (ruff)
+        run: |
+          uv run ruff check src/ tests/
+
+      - name: Run type checker (mypy)
+        run: |
+          uv run mypy src/
+        continue-on-error: true  # Phase 0では型エラーを許容
+
+      - name: Run unit tests
+        run: |
+          uv run pytest tests/unit/ -v --cov=src --cov-report=xml --cov-report=term
+        env:
+          DATABASE_URL: postgresql+asyncpg://nakamura_misaki:test_password@localhost:5432/nakamura_misaki_test
+
+      - name: Run integration tests
+        run: |
+          uv run pytest tests/integration/ -v
+        env:
+          DATABASE_URL: postgresql+asyncpg://nakamura_misaki:test_password@localhost:5432/nakamura_misaki_test
+          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_APP_TOKEN: ${{ secrets.SLACK_APP_TOKEN }}
+
+      - name: Upload coverage reports
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./nakamura-misaki/coverage.xml
+          flags: unittests
+          name: nakamura-misaki-coverage
+
+  # E2Eテストは本番環境依存のため、Phase 2以降で有効化
+  # e2e:
+  #   runs-on: ubuntu-latest
+  #   needs: test
+  #   steps:
+  #     - name: Run E2E tests
+  #       run: |
+  #         uv run pytest tests/e2e/ -v

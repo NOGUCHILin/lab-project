@@ -12,6 +12,10 @@ let
     codeServer = 8889;
     unifiedDashboard = 3005;
     openaiRealtime = 9000;
+    nakamuraMisaki = {
+      api = 10000;
+      adminUi = 3002;
+    };
     syncthing = {
       gui = 8384;
       sync = 22000;
@@ -64,6 +68,8 @@ in
           ++ optional (config.services.code-server.enable or false) cfg.ports.codeServer
           ++ optional (config.services.unified-dashboard.enable or false) cfg.ports.unifiedDashboard
           ++ optional (config.services.openai-realtime.enable or false) cfg.ports.openaiRealtime
+          ++ optional (config.services.nakamura-misaki-api.enable or false) cfg.ports.nakamuraMisaki.api
+          ++ optional (config.services.nakamura-misaki-admin.enable or false) cfg.ports.nakamuraMisaki.adminUi
           ++ optionals config.services.syncthing.enable [
                cfg.ports.syncthing.sync
                cfg.ports.syncthing.discovery
@@ -82,7 +88,9 @@ in
             allowedTCPPorts = []
               ++ optional (config.services.code-server.enable or false) cfg.ports.codeServer
               ++ optional (config.services.unified-dashboard.enable or false) cfg.ports.unifiedDashboard
-              ++ optional (config.services.openai-realtime.enable or false) cfg.ports.openaiRealtime;
+              ++ optional (config.services.openai-realtime.enable or false) cfg.ports.openaiRealtime
+              ++ optional (config.services.nakamura-misaki-api.enable or false) cfg.ports.nakamuraMisaki.api
+              ++ optional (config.services.nakamura-misaki-admin.enable or false) cfg.ports.nakamuraMisaki.adminUi;
           };
         };
       })
@@ -104,13 +112,21 @@ in
           ${optionalString (config.services.code-server.enable or false) ''
             add_network_rules ${toString cfg.ports.codeServer} tcp
           ''}
-          
+
           ${optionalString (config.services.unified-dashboard.enable or false) ''
             add_network_rules ${toString cfg.ports.unifiedDashboard} tcp
           ''}
-          
+
           ${optionalString (config.services.openai-realtime.enable or false) ''
             add_network_rules ${toString cfg.ports.openaiRealtime} tcp
+          ''}
+
+          ${optionalString (config.services.nakamura-misaki-api.enable or false) ''
+            add_network_rules ${toString cfg.ports.nakamuraMisaki.api} tcp
+          ''}
+
+          ${optionalString (config.services.nakamura-misaki-admin.enable or false) ''
+            add_network_rules ${toString cfg.ports.nakamuraMisaki.adminUi} tcp
           ''}
         '';
         
@@ -120,6 +136,8 @@ in
             iptables -D nixos-fw -s ${network} -p tcp --dport ${toString cfg.ports.codeServer} -j nixos-fw-accept 2>/dev/null || true
             iptables -D nixos-fw -s ${network} -p tcp --dport ${toString cfg.ports.unifiedDashboard} -j nixos-fw-accept 2>/dev/null || true
             iptables -D nixos-fw -s ${network} -p tcp --dport ${toString cfg.ports.openaiRealtime} -j nixos-fw-accept 2>/dev/null || true
+            iptables -D nixos-fw -s ${network} -p tcp --dport ${toString cfg.ports.nakamuraMisaki.api} -j nixos-fw-accept 2>/dev/null || true
+            iptables -D nixos-fw -s ${network} -p tcp --dport ${toString cfg.ports.nakamuraMisaki.adminUi} -j nixos-fw-accept 2>/dev/null || true
           '') cfg.allowedNetworks}
         '';
       })
@@ -139,13 +157,21 @@ in
           ${optionalString (config.services.code-server.enable or false) ''
             echo "Code Server: ${toString cfg.ports.codeServer}" | ${pkgs.systemd}/bin/systemd-cat -t port-registry
           ''}
-          
+
           ${optionalString (config.services.unified-dashboard.enable or false) ''
             echo "Unified Dashboard: ${toString cfg.ports.unifiedDashboard}" | ${pkgs.systemd}/bin/systemd-cat -t port-registry
           ''}
-          
+
           ${optionalString (config.services.openai-realtime.enable or false) ''
             echo "OpenAI Realtime: ${toString cfg.ports.openaiRealtime}" | ${pkgs.systemd}/bin/systemd-cat -t port-registry
+          ''}
+
+          ${optionalString (config.services.nakamura-misaki-api.enable or false) ''
+            echo "nakamura-misaki API: ${toString cfg.ports.nakamuraMisaki.api}" | ${pkgs.systemd}/bin/systemd-cat -t port-registry
+          ''}
+
+          ${optionalString (config.services.nakamura-misaki-admin.enable or false) ''
+            echo "nakamura-misaki Admin UI: ${toString cfg.ports.nakamuraMisaki.adminUi}" | ${pkgs.systemd}/bin/systemd-cat -t port-registry
           ''}
         '';
       };
@@ -164,6 +190,22 @@ in
       {
         assertion = cfg.ports.unifiedDashboard != cfg.ports.openaiRealtime;
         message = "Unified Dashboard and OpenAI Realtime ports must be different";
+      }
+      {
+        assertion = cfg.ports.nakamuraMisaki.api != cfg.ports.nakamuraMisaki.adminUi;
+        message = "nakamura-misaki API and Admin UI ports must be different";
+      }
+      {
+        assertion = cfg.ports.codeServer != cfg.ports.nakamuraMisaki.api && cfg.ports.codeServer != cfg.ports.nakamuraMisaki.adminUi;
+        message = "Code Server port conflicts with nakamura-misaki ports";
+      }
+      {
+        assertion = cfg.ports.unifiedDashboard != cfg.ports.nakamuraMisaki.api && cfg.ports.unifiedDashboard != cfg.ports.nakamuraMisaki.adminUi;
+        message = "Unified Dashboard port conflicts with nakamura-misaki ports";
+      }
+      {
+        assertion = cfg.ports.openaiRealtime != cfg.ports.nakamuraMisaki.api && cfg.ports.openaiRealtime != cfg.ports.nakamuraMisaki.adminUi;
+        message = "OpenAI Realtime port conflicts with nakamura-misaki ports";
       }
     ];
   };
