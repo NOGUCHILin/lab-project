@@ -17,3 +17,8 @@ rq
 
 # HTTP client
 httpx
+
+# Database (Phase 4 - v4.0.0)
+sqlalchemy[asyncio]
+asyncpg
+pgvector
