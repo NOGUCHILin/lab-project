@@ -8,7 +8,7 @@
     enableTCPIP = true;
 
     # pgvector extension
-    extraPlugins = with pkgs.postgresql16Packages; [
+    extensions = with pkgs.postgresql16Packages; [
       pgvector
     ];
 
