@@ -57,12 +57,12 @@
       Group = "nakamura-misaki";
       WorkingDirectory = "/var/lib/nakamura-misaki";
 
-      # 環境変数
-      EnvironmentFile = config.sops.secrets."nakamura-misaki/env".path;
-
       # 初期化スクリプト実行
       ExecStart = pkgs.writeShellScript "init-nakamura-db" ''
         set -e
+
+        # Database URL (local trust authentication, no password needed)
+        export DATABASE_URL="postgresql+asyncpg://nakamura_misaki@localhost:5432/nakamura_misaki"
 
         # uvインストール（nakamura-misakiプロジェクト用）
         export PATH="${pkgs.python3}/bin:$PATH"
@@ -86,13 +86,5 @@
         echo "✅ Database initialized successfully"
       '';
     };
-  };
-
-  # Secrets設定
-  sops.secrets."nakamura-misaki/env" = {
-    sopsFile = ../../../secrets/nakamura-misaki.yaml;
-    owner = "nakamura-misaki";
-    group = "nakamura-misaki";
-    mode = "0400";
   };
 }
