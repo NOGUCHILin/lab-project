@@ -29,16 +29,6 @@
     '';
   };
 
-  # nakamura-misakiユーザー作成
-  users.users.nakamura-misaki = {
-    isSystemUser = true;
-    group = "nakamura-misaki";
-    home = "/var/lib/nakamura-misaki";
-    createHome = true;
-  };
-
-  users.groups.nakamura-misaki = {};
-
   # データベース初期化サービス
   systemd.services.nakamura-misaki-init-db = {
     description = "Initialize nakamura-misaki v4.0.0 database";
@@ -48,14 +38,14 @@
 
     # 初回のみ実行
     unitConfig = {
-      ConditionPathExists = "!/var/lib/nakamura-misaki/.db-initialized";
+      ConditionPathExists = "!/home/noguchilin/projects/lab-project/nakamura-misaki/.db-initialized";
     };
 
     serviceConfig = {
       Type = "oneshot";
-      User = "nakamura-misaki";
-      Group = "nakamura-misaki";
-      WorkingDirectory = "/var/lib/nakamura-misaki";
+      User = "noguchilin";
+      Group = "users";
+      WorkingDirectory = "/home/noguchilin/projects/lab-project/nakamura-misaki";
 
       # 初期化スクリプト実行
       ExecStart = pkgs.writeShellScript "init-nakamura-db" ''
@@ -64,11 +54,10 @@
         # Database URL (local trust authentication, no password needed)
         export DATABASE_URL="postgresql+asyncpg://nakamura_misaki@localhost:5432/nakamura_misaki"
 
-        # uvインストール（nakamura-misakiプロジェクト用）
         export PATH="${pkgs.python3}/bin:$PATH"
 
-        # プロジェクトディレクトリ
-        PROJECT_DIR="/var/lib/nakamura-misaki/nakamura-misaki"
+        # プロジェクトディレクトリ（nakamura-misaki API serviceと同じ）
+        PROJECT_DIR="/home/noguchilin/projects/lab-project/nakamura-misaki"
 
         if [ ! -d "$PROJECT_DIR" ]; then
           echo "Error: nakamura-misaki project not found at $PROJECT_DIR"
@@ -77,11 +66,16 @@
 
         cd "$PROJECT_DIR"
 
+        # Activate venv if exists
+        if [ -f .venv/bin/activate ]; then
+          source .venv/bin/activate
+        fi
+
         # データベース初期化
-        ${pkgs.python3}/bin/python scripts/init_db.py
+        python scripts/init_db.py
 
         # 初期化完了マーク
-        touch /var/lib/nakamura-misaki/.db-initialized
+        touch "$PROJECT_DIR/.db-initialized"
 
         echo "✅ Database initialized successfully"
       '';
