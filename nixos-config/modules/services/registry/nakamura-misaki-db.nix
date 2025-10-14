@@ -29,8 +29,9 @@
     '';
 
     # pgvector extension setup (must be created as superuser)
-    initialScript = pkgs.writeText "init-pgvector.sql" ''
-      CREATE EXTENSION IF NOT EXISTS vector;
+    # postStartはensureDatabases後に実行される
+    postStart = ''
+      $PSQL -d nakamura_misaki -c 'CREATE EXTENSION IF NOT EXISTS vector;'
     '';
   };
 
