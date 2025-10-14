@@ -27,6 +27,11 @@
       host all all 127.0.0.1/32 trust
       host all all ::1/128 trust
     '';
+
+    # pgvector extension setup (must be created as superuser)
+    initialScript = pkgs.writeText "init-pgvector.sql" ''
+      CREATE EXTENSION IF NOT EXISTS vector;
+    '';
   };
 
   # データベース初期化サービス
