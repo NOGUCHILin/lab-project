@@ -1,5 +1,22 @@
 { config, pkgs, ... }:
 
+let
+  # Python環境をNixで宣言的に定義
+  pythonEnv = pkgs.python3.withPackages (ps: with ps; [
+    fastapi
+    uvicorn
+    slack-bolt
+    slack-sdk
+    anthropic
+    aiohttp
+    psycopg
+    sqlalchemy
+    pgvector
+    pydantic
+    pydantic-settings
+    python-dateutil
+  ]);
+in
 {
   # nakamura-misaki API Service（Slack Events API）
   systemd.services.nakamura-misaki-api = {
@@ -30,27 +47,14 @@
         # C++ library path for numpy (required by pgvector)
         export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
 
-        export PATH="${pkgs.python3}/bin:$PATH"
+        # PYTHONPATHに現在のプロジェクトを追加
+        export PYTHONPATH="/home/noguchilin/projects/lab-project/nakamura-misaki:$PYTHONPATH"
 
-        PROJECT_DIR="/home/noguchilin/projects/lab-project/nakamura-misaki"
-
-        if [ ! -d "$PROJECT_DIR" ]; then
-          echo "Error: nakamura-misaki project not found at $PROJECT_DIR"
-          exit 1
-        fi
-
-        cd "$PROJECT_DIR"
-
-        # Start FastAPI server with uvicorn
-        if [ -f .venv/bin/uvicorn ]; then
-          .venv/bin/uvicorn src.adapters.primary.api:app \
-            --host 127.0.0.1 \
-            --port 10000 \
-            --log-level info
-        else
-          echo "Error: venv not found at $PROJECT_DIR/.venv"
-          exit 1
-        fi
+        # Start FastAPI server with uvicorn（Nix管理のPython環境から実行）
+        ${pythonEnv}/bin/uvicorn src.adapters.primary.api:app \
+          --host 127.0.0.1 \
+          --port 10000 \
+          --log-level info
       '';
     };
   };
