@@ -61,72 +61,7 @@ in {
       };
     };
 
-    # API Backend Service
-    systemd.services.nakamura-misaki-api = {
-      description = "Nakamura-Misaki API Backend";
-      wantedBy = [ "multi-user.target" ];
-      after = [ "network.target" "redis-nakamura.service" ];
-
-      environment = {
-        PORT = toString cfg.ports.api;
-        PYTHONUNBUFFERED = "1";
-        NAKAMURA_USER_ID = "U09AHTB4X4H";
-        # Redis connection
-        REDIS_HOST = "127.0.0.1";
-        REDIS_PORT = "6380";
-        # Version marker to force service restart on code changes
-        CODE_VERSION = "phase1-rq-fix-20251012";
-      };
-
-      path = with pkgs; [ nodejs_22 bash coreutils python3 ];
-
-      serviceConfig = {
-        Type = "simple";
-        User = "noguchilin";
-        Group = "users";
-        WorkingDirectory = projectDir;
-
-        ExecStart = pkgs.writeShellScript "nakamura-api-start" ''
-          # 秘密情報を環境変数に設定（sops-nixで復号化されたファイルから読み込み）
-          export SLACK_BOT_TOKEN=$(cat ${config.sops.secrets.slack_bot_token.path})
-          export ANTHROPIC_API_KEY=$(cat ${config.sops.secrets.anthropic_api_key.path})
-
-          # venv存在確認と依存関係インストール
-          if [ ! -f ${projectDir}/.venv/bin/python ]; then
-            echo "❌ venv not found at ${projectDir}/.venv"
-            echo "Run: cd ${projectDir} && python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt"
-            exit 1
-          fi
-
-          # 依存関係が最新か確認（requirements.txtが更新された場合に再インストール）
-          if [ -f ${projectDir}/requirements.txt ]; then
-            source ${projectDir}/.venv/bin/activate
-            pip install -q -r ${projectDir}/requirements.txt
-          fi
-
-          cd ${projectDir}
-          source .venv/bin/activate
-          exec python -m src.main
-        '';
-
-        Restart = "always";
-        RestartSec = 10;
-        KillMode = "mixed";
-        KillSignal = "SIGTERM";
-        TimeoutStopSec = 10;
-
-        # セキュリティ設定
-        PrivateTmp = true;
-        ProtectSystem = "strict";
-        ProtectHome = false;  # プロジェクトディレクトリアクセス許可
-        ReadWritePaths = [ projectDir ];
-      };
-
-      unitConfig = lib.mkIf cfg.enforceDeclarative {
-        RefuseManualStop = true;
-        RefuseManualStart = true;
-      };
-    };
+    # Note: nakamura-misaki-api service is defined in nakamura-misaki-api.nix
 
     # Admin UI Service
     systemd.services.nakamura-misaki-admin = {
