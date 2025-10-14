@@ -29,11 +29,15 @@ let
   servicesJson = builtins.toJSON (lib.mapAttrs (_: service:
     let
       # Dashboard (port 3000) uses root domain, others use port-based URLs
-      httpsUrl = if service.port == 3000
+      # Skip URL generation for services without ports (like DB/timers)
+      httpsUrl = if service.port == null then null
+        else if service.port == 3000
         then "https://${domain}"
         else "https://${domain}:${toString service.port}";
-      httpUrl = "http://localhost:${toString service.port}";
-      publicUrl = if domain == "localhost" then httpUrl else httpsUrl;
+      httpUrl = if service.port == null then null
+        else "http://localhost:${toString service.port}";
+      publicUrl = if service.port == null then null
+        else if domain == "localhost" then httpUrl else httpsUrl;
     in service // { url = publicUrl; apiUrl = httpUrl; }
   ) services);
 in {
