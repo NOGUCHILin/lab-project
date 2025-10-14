@@ -27,12 +27,6 @@
       host all all 127.0.0.1/32 trust
       host all all ::1/128 trust
     '';
-
-    # pgvector extension setup (must be created as superuser)
-    # postStartはensureDatabases後に実行される
-    postStart = ''
-      $PSQL -d nakamura_misaki -c 'CREATE EXTENSION IF NOT EXISTS vector;'
-    '';
   };
 
   # pgvector extension有効化サービス（一度だけ実行）
