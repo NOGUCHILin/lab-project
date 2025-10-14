@@ -54,6 +54,9 @@
         # Database URL (local trust authentication, no password needed)
         export DATABASE_URL="postgresql+asyncpg://nakamura_misaki@localhost:5432/nakamura_misaki"
 
+        # C++ library path for numpy (required by pgvector)
+        export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
+
         export PATH="${pkgs.python3}/bin:$PATH"
 
         # プロジェクトディレクトリ（nakamura-misaki API serviceと同じ）
