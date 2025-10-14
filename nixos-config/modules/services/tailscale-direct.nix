@@ -59,15 +59,20 @@ in {
       export PATH=${pkgs.curl}/bin:$PATH
       echo "=== Service Status Check ==="
       ${lib.concatStringsSep "\n" (
-        lib.mapAttrsToList (name: service: 
-          ''
-            echo -n "${service.name} (port ${toString service.port}): "
-            if curl -s -o /dev/null -w "%{http_code}" http://localhost:${toString service.port}${service.healthCheck or "/"} | grep -q "200\|302"; then
-              echo "✅ OK"
-            else
-              echo "❌ Failed"
-            fi
-          ''
+        lib.mapAttrsToList (name: service:
+          if service.port != null then
+            ''
+              echo -n "${service.name} (port ${toString service.port}): "
+              if curl -s -o /dev/null -w "%{http_code}" http://localhost:${toString service.port}${service.healthCheck or "/"} | grep -q "200\|302"; then
+                echo "✅ OK"
+              else
+                echo "❌ Failed"
+              fi
+            ''
+          else
+            ''
+              echo "${service.name}: ⏭️  Skipped (no port)"
+            ''
         ) services
       )}
     '')
