@@ -20,9 +20,11 @@ in {
     # Tailscaleインターフェースを信頼
     trustedInterfaces = [ "tailscale0" ];
     
-    # 各サービスのポートを開放
+    # 各サービスのポートを開放（nullを除外）
     allowedTCPPorts = lib.unique (
-      lib.mapAttrsToList (name: service: service.port) services
+      lib.filter (port: port != null) (
+        lib.mapAttrsToList (name: service: service.port) services
+      )
     );
   };
 
@@ -37,10 +39,10 @@ in {
       tailscale serve --bg --https 443 http://localhost:3000
       echo "✓ Dashboard on https://${tailscaleDomain}/"
 
-      # 各サービスを個別ポートで公開
+      # 各サービスを個別ポートで公開（nullと3000を除外）
       ${lib.concatStringsSep "\n" (
         lib.mapAttrsToList (name: service:
-          if service.port != 3000 then
+          if service.port != null && service.port != 3000 then
             ''
               tailscale serve --bg --https ${toString service.port} http://localhost:${toString service.port}
               echo "✓ ${service.name} on https://${tailscaleDomain}:${toString service.port}/"
