@@ -56,6 +56,13 @@
         mode = "0400";
       };
 
+      "slack_signing_secret" = {
+        sopsFile = ../../secrets/nakamura-misaki.yaml;
+        owner = "noguchilin";
+        group = "users";
+        mode = "0400";
+      };
+
       "anthropic_api_key" = {
         sopsFile = ../../secrets/nakamura-misaki.yaml;
         owner = "noguchilin";

@@ -37,6 +37,7 @@
       ../../modules/services/registry/unified-dashboard.nix       # 統合ダッシュボード
       ../../modules/services/registry/nakamura-misaki.nix         # Nakamura-Misaki Claude Agent
       ../../modules/services/registry/nakamura-misaki-db.nix      # Nakamura-Misaki v4.0.0 Database (PostgreSQL + pgvector)
+      ../../modules/services/registry/nakamura-misaki-api.nix     # Nakamura-Misaki v4.0.0 API Server (Slack Events API)
       ../../modules/services/registry/nakamura-misaki-reminder.nix # Nakamura-Misaki v4.0.0 Handoff Reminder Scheduler
       ../../modules/services/registry/applebuyers-site.nix        # AppleBuyers Public Site (dev server)
       ../../modules/services/registry/code-server-applebuyers.nix     # Code Server for AppleBuyers (Writers)
