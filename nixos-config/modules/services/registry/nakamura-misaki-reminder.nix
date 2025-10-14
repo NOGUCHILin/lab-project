@@ -34,13 +34,13 @@
 
         cd "$PROJECT_DIR"
 
-        # Activate venv and run reminders
-        if [ -f .venv/bin/activate ]; then
-          source .venv/bin/activate
+        # リマインダー送信（venvのpythonを直接使用）
+        if [ -f .venv/bin/python ]; then
+          .venv/bin/python scripts/send_reminders.py
+        else
+          echo "Error: venv not found at $PROJECT_DIR/.venv"
+          exit 1
         fi
-
-        # リマインダー送信
-        python scripts/send_reminders.py
       '';
 
       # エラー時も継続

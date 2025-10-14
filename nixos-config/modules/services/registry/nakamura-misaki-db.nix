@@ -66,13 +66,13 @@
 
         cd "$PROJECT_DIR"
 
-        # Activate venv if exists
-        if [ -f .venv/bin/activate ]; then
-          source .venv/bin/activate
+        # データベース初期化（venvのpythonを直接使用）
+        if [ -f .venv/bin/python ]; then
+          .venv/bin/python scripts/init_db.py
+        else
+          echo "Error: venv not found at $PROJECT_DIR/.venv"
+          exit 1
         fi
-
-        # データベース初期化
-        python scripts/init_db.py
 
         # 初期化完了マーク
         touch "$PROJECT_DIR/.db-initialized"
