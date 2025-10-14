@@ -35,10 +35,35 @@
     '';
   };
 
+  # pgvector extension有効化サービス（一度だけ実行）
+  systemd.services.nakamura-misaki-enable-vector = {
+    description = "Enable pgvector extension in nakamura_misaki database";
+    after = [ "postgresql.service" ];
+    requires = [ "postgresql.service" ];
+    wantedBy = [ "multi-user.target" ];
+
+    unitConfig = {
+      ConditionPathExists = "!/var/lib/postgresql/.nakamura-vector-enabled";
+    };
+
+    serviceConfig = {
+      Type = "oneshot";
+      User = "postgres";
+
+      ExecStart = pkgs.writeShellScript "enable-vector" ''
+        ${pkgs.postgresql_16}/bin/psql -d nakamura_misaki -c \
+          'CREATE EXTENSION IF NOT EXISTS vector;'
+        touch /var/lib/postgresql/.nakamura-vector-enabled
+        echo "✅ pgvector extension enabled in nakamura_misaki database"
+      '';
+    };
+  };
+
   # データベース初期化サービス
   systemd.services.nakamura-misaki-init-db = {
     description = "Initialize nakamura-misaki v4.0.0 database";
-    after = [ "postgresql.service" ];
+    after = [ "postgresql.service" "nakamura-misaki-enable-vector.service" ];
+    requires = [ "nakamura-misaki-enable-vector.service" ];
     wants = [ "postgresql.service" ];
     wantedBy = [ "multi-user.target" ];
 
