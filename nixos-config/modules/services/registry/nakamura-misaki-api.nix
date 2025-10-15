@@ -33,9 +33,8 @@
         # PYTHONPATHに現在のプロジェクトを追加（ソースコードはrsyncで配置）
         export PYTHONPATH="/home/noguchilin/projects/lab-project/nakamura-misaki:$PYTHONPATH"
 
-        # Start FastAPI server with uvicorn（Nixパッケージから実行）
-        # nakamura-misakiパッケージのPython環境を使用
-        ${nakamura-misaki}/bin/python -m uvicorn src.adapters.primary.api:app \
+        # Start FastAPI server with uvicorn from nakamura-misaki package
+        exec ${nakamura-misaki}/bin/uvicorn src.adapters.primary.api:app \
           --host 127.0.0.1 \
           --port 10000 \
           --log-level info

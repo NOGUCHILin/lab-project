@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, nakamura-misaki, ... }:
 
 {
   # PostgreSQL 16 + pgvector
@@ -82,8 +82,6 @@
         # C++ library path for numpy (required by pgvector)
         export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
 
-        export PATH="${pkgs.python3}/bin:$PATH"
-
         # プロジェクトディレクトリ（nakamura-misaki API serviceと同じ）
         PROJECT_DIR="/home/noguchilin/projects/lab-project/nakamura-misaki"
 
@@ -94,13 +92,9 @@
 
         cd "$PROJECT_DIR"
 
-        # データベース初期化（venvのpythonを直接使用）
-        if [ -f .venv/bin/python ]; then
-          .venv/bin/python scripts/init_db.py
-        else
-          echo "Error: venv not found at $PROJECT_DIR/.venv"
-          exit 1
-        fi
+        # データベース初期化（nakamura-misakiパッケージのPythonを使用）
+        export PYTHONPATH="$PROJECT_DIR:$PYTHONPATH"
+        ${nakamura-misaki}/bin/python scripts/init_db.py
 
         # 初期化完了マーク
         touch "$PROJECT_DIR/.db-initialized"
