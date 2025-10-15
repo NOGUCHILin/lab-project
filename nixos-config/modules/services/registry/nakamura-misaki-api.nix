@@ -34,7 +34,8 @@
         export PYTHONPATH="/home/noguchilin/projects/lab-project/nakamura-misaki:$PYTHONPATH"
 
         # Start FastAPI server with uvicorn from Python environment
-        exec ${nakamura-misaki.python}/bin/uvicorn src.adapters.primary.api:app \
+        # Note: Must use src.adapters.primary.api.app:app (not api:app) since api/ is now a package
+        exec ${nakamura-misaki.python}/bin/uvicorn src.adapters.primary.api.app:app \
           --host 127.0.0.1 \
           --port 10000 \
           --log-level info
