@@ -3,6 +3,7 @@
 Provides RESTful endpoints for CRUD operations on tasks.
 """
 
+import logging
 from datetime import datetime
 from typing import Optional
 
@@ -19,6 +20,7 @@ from src.infrastructure.di import DIContainer
 from ..dependencies import get_db_session
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 # Request/Response Models
@@ -69,6 +71,8 @@ async def create_task(
     Returns:
         作成されたタスク
     """
+    logger.info(f"Creating task: user={task_data.user_id}, title={task_data.title}")
+
     # TODO: Anthropic/Slack clientを適切に取得
     claude_client = Anthropic()
     slack_client = AsyncWebClient()
@@ -84,6 +88,7 @@ async def create_task(
     )
 
     task = await use_case.execute(dto)
+    logger.info(f"Task created successfully: task_id={task.task_id}")
     return TaskResponse.model_validate(task)
 
 
@@ -118,6 +123,8 @@ async def list_tasks(
     Returns:
         タスク一覧
     """
+    logger.info(f"Listing tasks: user={user_id}, status={status}")
+
     # TODO: Anthropic/Slack clientを適切に取得
     claude_client = Anthropic()
     slack_client = AsyncWebClient()
@@ -131,6 +138,7 @@ async def list_tasks(
         use_case = container.build_query_today_tasks_use_case()
         tasks = await use_case.execute(user_id)
 
+    logger.info(f"Tasks retrieved: count={len(tasks)}")
     return [TaskResponse.model_validate(task) for task in tasks]
 
 
@@ -150,6 +158,8 @@ async def update_task(
     Returns:
         更新されたタスク
     """
+    logger.info(f"Updating task: task_id={task_id}, updates={task_data.model_dump(exclude_none=True)}")
+
     # TODO: Anthropic/Slack clientを適切に取得
     claude_client = Anthropic()
     slack_client = AsyncWebClient()
@@ -166,6 +176,7 @@ async def update_task(
     )
 
     task = await use_case.execute(dto)
+    logger.info(f"Task updated successfully: task_id={task_id}")
     return TaskResponse.model_validate(task)
 
 
@@ -182,6 +193,8 @@ async def complete_task(
     Returns:
         完了したタスク
     """
+    logger.info(f"Completing task: task_id={task_id}")
+
     # TODO: Anthropic/Slack clientを適切に取得
     claude_client = Anthropic()
     slack_client = AsyncWebClient()
@@ -190,4 +203,5 @@ async def complete_task(
     use_case = container.build_complete_task_use_case()
 
     task = await use_case.execute(task_id)
+    logger.info(f"Task completed successfully: task_id={task_id}")
     return TaskResponse.model_validate(task)

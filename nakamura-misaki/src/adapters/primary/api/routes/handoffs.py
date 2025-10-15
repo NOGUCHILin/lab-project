@@ -3,6 +3,7 @@
 Provides RESTful endpoints for handoff operations.
 """
 
+import logging
 from datetime import datetime
 from typing import Optional
 
@@ -18,6 +19,7 @@ from src.infrastructure.di import DIContainer
 from ..dependencies import get_db_session
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 # Request/Response Models
@@ -60,6 +62,11 @@ async def create_handoff(
     Returns:
         作成されたハンドオフ
     """
+    logger.info(
+        f"Creating handoff: task_id={handoff_data.task_id}, "
+        f"from={handoff_data.from_user_id}, to={handoff_data.to_user_id}"
+    )
+
     # TODO: Anthropic/Slack clientを適切に取得
     claude_client = Anthropic()
     slack_client = AsyncWebClient()
@@ -76,6 +83,7 @@ async def create_handoff(
     )
 
     handoff = await use_case.execute(dto)
+    logger.info(f"Handoff created successfully: handoff_id={handoff.handoff_id}")
     return HandoffResponse.model_validate(handoff)
 
 
@@ -92,6 +100,8 @@ async def list_handoffs(
     Returns:
         ハンドオフ一覧
     """
+    logger.info(f"Listing handoffs: user={user_id}")
+
     # TODO: Anthropic/Slack clientを適切に取得
     claude_client = Anthropic()
     slack_client = AsyncWebClient()
@@ -100,6 +110,7 @@ async def list_handoffs(
     use_case = container.build_query_handoffs_by_user_use_case()
 
     handoffs = await use_case.execute(user_id)
+    logger.info(f"Handoffs retrieved: count={len(handoffs)}")
     return [HandoffResponse.model_validate(handoff) for handoff in handoffs]
 
 
@@ -116,6 +127,8 @@ async def complete_handoff(
     Returns:
         完了したハンドオフ
     """
+    logger.info(f"Completing handoff: handoff_id={handoff_id}")
+
     # TODO: Anthropic/Slack clientを適切に取得
     claude_client = Anthropic()
     slack_client = AsyncWebClient()
@@ -124,4 +137,5 @@ async def complete_handoff(
     use_case = container.build_complete_handoff_use_case()
 
     handoff = await use_case.execute(handoff_id)
+    logger.info(f"Handoff completed successfully: handoff_id={handoff_id}")
     return HandoffResponse.model_validate(handoff)

@@ -27,11 +27,17 @@
         export ANTHROPIC_API_KEY=$(cat ${config.sops.secrets.anthropic_api_key.path})
         export DATABASE_URL="postgresql+asyncpg://nakamura_misaki@localhost:5432/nakamura_misaki"
 
+        # Logging configuration
+        export LOG_LEVEL="INFO"  # Set to DEBUG for verbose logging
+
         # C++ library path for numpy (required by pgvector)
         export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
 
         # PYTHONPATHに現在のプロジェクトを追加（ソースコードはrsyncで配置）
         export PYTHONPATH="/home/noguchilin/projects/lab-project/nakamura-misaki:$PYTHONPATH"
+
+        # Configure Python logging
+        export PYTHONUNBUFFERED=1  # Force unbuffered output for real-time logs
 
         # Start FastAPI server with uvicorn from Python environment
         # Note: Must use src.adapters.primary.api.app:app (not api:app) since api/ is now a package
