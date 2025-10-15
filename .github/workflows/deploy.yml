@@ -68,8 +68,9 @@ jobs:
             # nixos-configをsparse checkoutで同期
             echo "📥 Cloning nixos-config..."
             cd ~
-            # 権限エラーを回避するため、sudo で確実に削除
-            sudo rm -rf nixos-temp nixos-config
+            # 前回の残骸を削除（git objectの権限エラー対策: chmod +w で書き込み可能にしてから削除）
+            [ -d nixos-temp ] && chmod -R +w nixos-temp && rm -rf nixos-temp
+            [ -d nixos-config ] && chmod -R +w nixos-config && rm -rf nixos-config
             git clone --depth 1 --filter=blob:none --sparse https://github.com/NOGUCHILin/lab-project.git nixos-temp
             cd nixos-temp
             git sparse-checkout set nixos-config
