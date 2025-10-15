@@ -7,8 +7,9 @@ v5.0.0: Uses SlackEventHandlerV5 with Claude Tool Use API
 import logging
 import os
 
-from anthropic import Anthropic
+from anthropic import AsyncAnthropic
 from fastapi import FastAPI
+from slack_sdk.web.async_client import AsyncWebClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -82,16 +83,22 @@ def create_app() -> FastAPI:
         )
         logger.info("Database connection established")
 
-        # DI Container初期化 & SlackEventHandlerV5作成
-        logger.info("Initializing DI Container and SlackEventHandlerV5")
-        di_container = DIContainer(
-            session_maker=app.state.async_session_maker,
-            slack_token=app.state.slack_token,
-        )
-        app.state.slack_event_handler = di_container.build_slack_event_handler_v5(
-            anthropic_api_key=app.state.anthropic_api_key,
-            conversation_ttl_hours=app.state.conversation_ttl_hours,
-        )
+        # SlackEventHandlerV5作成（セッションは各リクエストで作成）
+        logger.info("Initializing SlackEventHandlerV5")
+        # Temporary session for handler initialization (repositories will use request-scoped sessions)
+        async with app.state.async_session_maker() as temp_session:
+            anthropic_client = AsyncAnthropic(api_key=app.state.anthropic_api_key)
+            slack_client = AsyncWebClient(token=app.state.slack_token)
+
+            di_container = DIContainer(
+                session=temp_session,
+                claude_client=None,  # Not used in v5
+                slack_client=slack_client,
+            )
+            app.state.slack_event_handler = di_container.build_slack_event_handler(
+                anthropic_api_key=app.state.anthropic_api_key,
+                conversation_ttl_hours=app.state.conversation_ttl_hours,
+            )
         logger.info("SlackEventHandlerV5 initialized")
 
         logger.info("✅ nakamura-misaki API server v5.0.0 started successfully")
