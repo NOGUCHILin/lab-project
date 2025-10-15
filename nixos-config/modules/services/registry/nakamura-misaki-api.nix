@@ -16,7 +16,7 @@
       Group = "users";
       WorkingDirectory = "/home/noguchilin/projects/lab-project/nakamura-misaki";
       Restart = "always";
-      RestartSec = "5s";
+      RestartSec = "6s";
 
       # API server起動（buildPythonApplicationパッケージから直接実行）
       ExecStart = pkgs.writeShellScript "start-nakamura-api" ''
