@@ -33,7 +33,10 @@ async def main():
     async with engine.begin() as conn:
         print(f"✅ Connected to database")
 
-        # pgvector extension already enabled by NixOS PostgreSQL initialScript
+        # Enable pgvector extension (idempotent)
+        print(f"🔧 Enabling pgvector extension...")
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        print(f"✅ pgvector extension enabled")
 
         # テーブル作成
         print(f"🔧 Creating tables...")
