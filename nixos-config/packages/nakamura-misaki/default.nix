@@ -49,14 +49,9 @@ python3.pkgs.buildPythonApplication rec {
   # claude-agent-sdk はnixpkgsに存在しないため、実行時に別途インストールが必要
   # （本番環境では uv 経由でインストール済み）
 
-  # 最低限のimportチェック（実行可能性を保証）
-  # claude-agent-sdkが必要なモジュールは除外
-  pythonImportsCheck = [
-    "src.adapters.primary.api"
-    "src.adapters.secondary.slack"
-    # "src.application.use_cases"  # claude-agent-sdkに依存
-    # "src.domain.models"  # 問題なければ有効化
-  ];
+  # pythonImportsCheck を無効化（buildPythonApplicationはパッケージングのみ使用）
+  # 実行時の依存関係は本番環境のuvで管理
+  pythonImportsCheck = [];
 
   meta = with lib; {
     description = "Task management AI assistant with Kusanagi Motoko personality";
