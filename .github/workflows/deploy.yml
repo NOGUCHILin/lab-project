@@ -72,9 +72,8 @@ jobs:
             cd nixos-temp
             git sparse-checkout set nixos-config
 
-            # nixos-config内でビルド（正しいgit構造を維持）
-            cd nixos-config
-            sudo nixos-rebuild switch --flake .#home-lab-01
+            # git repositoryのルートからビルド（Nixがgit追跡ファイルを正しく認識）
+            sudo nixos-rebuild switch --flake ./nixos-config#home-lab-01
 
             # 成功後、永続化位置に移動
             cd ~
