@@ -61,18 +61,13 @@
     wants = [ "postgresql.service" ];
     wantedBy = [ "multi-user.target" ];
 
-    # 初回のみ実行
-    unitConfig = {
-      ConditionPathExists = "!/home/noguchilin/projects/lab-project/nakamura-misaki/.db-initialized";
-    };
-
     serviceConfig = {
       Type = "oneshot";
       User = "noguchilin";
       Group = "users";
       WorkingDirectory = "/home/noguchilin/projects/lab-project/nakamura-misaki";
 
-      # 初期化スクリプト実行
+      # 初期化スクリプト実行（冪等性があるため毎回実行可能）
       ExecStart = pkgs.writeShellScript "init-nakamura-db" ''
         set -e
 
@@ -96,10 +91,7 @@
         export PYTHONPATH="$PROJECT_DIR:$PYTHONPATH"
         ${nakamura-misaki.python}/bin/python scripts/init_db.py
 
-        # 初期化完了マーク
-        touch "$PROJECT_DIR/.db-initialized"
-
-        echo "✅ Database initialized successfully"
+        echo "✅ Database initialization complete"
       '';
     };
   };
