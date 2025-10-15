@@ -3,12 +3,12 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    
+
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -18,15 +18,23 @@
       url = "github:serokell/deploy-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # nakamura-misakiソースコード（親ディレクトリから相対パス参照）
+    nakamura-misaki-src = {
+      url = "path:../nakamura-misaki";
+      flake = false;  # Flakeではなく、ソースディレクトリとして扱う
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, sops-nix, deploy-rs, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, sops-nix, deploy-rs, nakamura-misaki-src, ... }@inputs:
   let
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
   in {
-    # nakamura-misaki package
-    packages.${system}.nakamura-misaki = pkgs.callPackage ./packages/nakamura-misaki { };
+    # nakamura-misaki package (Flake inputのソースを使用)
+    packages.${system}.nakamura-misaki = pkgs.callPackage ./packages/nakamura-misaki {
+      src = nakamura-misaki-src;
+    };
 
     # Developer experience: formatter, devShells, and basic checks
     formatter.${system} = pkgs.alejandra;

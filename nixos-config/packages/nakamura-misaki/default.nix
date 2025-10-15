@@ -1,6 +1,6 @@
 { lib
 , python3
-, fetchFromGitHub
+, src
 }:
 
 python3.pkgs.buildPythonApplication rec {
@@ -8,9 +8,9 @@ python3.pkgs.buildPythonApplication rec {
   version = "4.0.0";
   format = "pyproject";
 
-  # ローカルソースを使用（GitHub Actionsでrsyncされた本番ソースを参照）
-  # nixos-rebuild時には/home/noguchilin/projects/lab-project/nakamura-misakiが存在する
-  src = /home/noguchilin/projects/lab-project/nakamura-misaki;
+  # Flake inputから渡されたソースを使用
+  # デプロイ時に path:../nakamura-misaki が参照される
+  inherit src;
 
   # ビルド時の依存関係
   nativeBuildInputs = with python3.pkgs; [
