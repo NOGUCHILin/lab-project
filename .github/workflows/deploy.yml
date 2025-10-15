@@ -81,8 +81,8 @@ jobs:
             mv nixos-temp/nixos-config nixos-config
             rm -rf nixos-temp
 
-      # Dashboard再起動（新しいコードを反映）
-      - name: Restart Dashboard
+      # サービス再起動（新しいコードとNixOS設定を反映）
+      - name: Restart services
         uses: appleboy/ssh-action@master
         with:
           host: home-lab-01
@@ -92,10 +92,13 @@ jobs:
             # Dashboard.service再起動（NixOS設定でNOPASSWD許可済み）
             sudo systemctl restart dashboard.service
 
+            # nakamura-misaki-api.service再起動（Python環境変更を反映）
+            sudo systemctl restart nakamura-misaki-api.service
+
             # 再起動完了を待機
             sleep 5
 
-            echo "✅ Dashboard restarted with new code"
+            echo "✅ Services restarted with new code"
 
       # デプロイ完了確認
       - name: Verify deployment
