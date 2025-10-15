@@ -87,10 +87,8 @@ def create_app() -> FastAPI:
         logger.info("Initializing SlackEventHandlerV5")
         # Strip whitespace from API key (secret file may contain trailing newline)
         api_key = app.state.anthropic_api_key
-        logger.info(f"[DEBUG] BEFORE strip: length={len(api_key) if api_key else 0}")
         if api_key:
             api_key = api_key.strip()
-        logger.info(f"[DEBUG] AFTER strip: length={len(api_key) if api_key else 0}, starts with: {api_key[:10] if api_key else 'None'}...")
         # Temporary session for handler initialization (repositories will use request-scoped sessions)
         async with app.state.async_session_maker() as temp_session:
             anthropic_client = AsyncAnthropic(api_key=api_key)
