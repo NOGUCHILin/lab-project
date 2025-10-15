@@ -1,6 +1,7 @@
 """FastAPI Application Factory
 
 Creates and configures the FastAPI application with all routes.
+v5.0.0: Uses SlackEventHandlerV5 with Claude Tool Use API
 """
 
 import logging
@@ -11,6 +12,7 @@ from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
+from src.infrastructure.di import DIContainer
 from .routes import admin, handoffs, slack, tasks, team
 
 logger = logging.getLogger(__name__)
@@ -23,9 +25,9 @@ def create_app() -> FastAPI:
         Configured FastAPI instance
     """
     app = FastAPI(
-        title="nakamura-misaki v4.0.0 API",
-        description="Task management AI assistant with Kusanagi Motoko personality",
-        version="4.0.0",
+        title="nakamura-misaki v5.0.0 API",
+        description="Task management AI assistant with Claude Tool Use API",
+        version="5.0.0",
     )
 
     # グローバル状態（起動時に初期化）
@@ -33,7 +35,9 @@ def create_app() -> FastAPI:
     app.state.database_url = None
     app.state.slack_token = None
     app.state.anthropic_api_key = None
+    app.state.conversation_ttl_hours = None
     app.state.async_session_maker = None
+    app.state.slack_event_handler = None
 
     @app.on_event("startup")
     async def startup():
@@ -45,13 +49,14 @@ def create_app() -> FastAPI:
             format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
         logger.info(f"Logging configured: level={log_level}")
-        logger.info("Starting nakamura-misaki API server v4.0.0")
+        logger.info("Starting nakamura-misaki API server v5.0.0")
 
         # 環境変数読み込み
         app.state.slack_signing_secret = os.getenv("SLACK_SIGNING_SECRET")
         app.state.database_url = os.getenv("DATABASE_URL")
         app.state.slack_token = os.getenv("SLACK_BOT_TOKEN")
         app.state.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
+        app.state.conversation_ttl_hours = int(os.getenv("CONVERSATION_TTL_HOURS", "24"))
 
         # 環境変数バリデーション
         if not app.state.slack_signing_secret:
@@ -77,12 +82,24 @@ def create_app() -> FastAPI:
         )
         logger.info("Database connection established")
 
-        logger.info("✅ nakamura-misaki API server started successfully")
+        # DI Container初期化 & SlackEventHandlerV5作成
+        logger.info("Initializing DI Container and SlackEventHandlerV5")
+        di_container = DIContainer(
+            session_maker=app.state.async_session_maker,
+            slack_token=app.state.slack_token,
+        )
+        app.state.slack_event_handler = di_container.build_slack_event_handler_v5(
+            anthropic_api_key=app.state.anthropic_api_key,
+            conversation_ttl_hours=app.state.conversation_ttl_hours,
+        )
+        logger.info("SlackEventHandlerV5 initialized")
+
+        logger.info("✅ nakamura-misaki API server v5.0.0 started successfully")
 
     @app.get("/health")
     async def health():
         """ヘルスチェック"""
-        return {"status": "ok", "service": "nakamura-misaki", "version": "4.0.0"}
+        return {"status": "ok", "service": "nakamura-misaki", "version": "5.0.0"}
 
     # ルート登録
     app.include_router(slack.router, prefix="/webhook", tags=["Slack"])

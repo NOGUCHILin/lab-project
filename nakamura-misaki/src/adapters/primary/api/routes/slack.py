@@ -12,7 +12,7 @@ from anthropic import Anthropic
 from fastapi import APIRouter, Header, HTTPException, Request
 from slack_sdk.web.async_client import AsyncWebClient
 
-from src.adapters.primary.slack_event_handler import SlackEventHandler
+from src.adapters.primary.slack_event_handler import SlackEventHandlerV5
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -85,33 +85,27 @@ async def slack_events(
             logger.info(f"Message event: user={user_id}, channel={channel}, text_length={len(text)}")
             logger.debug(f"Message text: {text}")
 
-            # ハンドラーでメッセージ処理
-            async_session_maker = request.app.state.async_session_maker
-            async with async_session_maker() as session:
-                claude_client = Anthropic(api_key=request.app.state.anthropic_api_key)
-                slack_token = request.app.state.slack_token
-                handler = SlackEventHandler(session, claude_client, slack_token)
+            # v5.0.0: SlackEventHandlerV5を使用
+            handler = request.app.state.slack_event_handler
+            slack_token = request.app.state.slack_token
 
-                try:
-                    response_text = await handler.handle_message(user_id, text)
-                    logger.info(f"Message handled, response_generated={bool(response_text)}")
+            try:
+                response_text = await handler.handle_message(user_id, text, channel)
+                logger.info(f"Message handled, response_generated={bool(response_text)}")
 
-                    # 応答がある場合（Task/Handoffコマンド）のみSlackに返信
-                    if response_text:
-                        slack_client = AsyncWebClient(token=slack_token)
-                        await slack_client.chat_postMessage(
-                            channel=channel,
-                            text=response_text,
-                            unfurl_links=False,
-                            unfurl_media=False,
-                        )
-                        logger.info(f"Response sent to Slack channel={channel}")
-
-                    await session.commit()
-                    logger.debug("Database session committed")
-                except Exception as e:
-                    logger.error(f"Error handling message: {e}", exc_info=True)
-                    raise
+                # 応答がある場合はSlackに返信
+                if response_text:
+                    slack_client = AsyncWebClient(token=slack_token)
+                    await slack_client.chat_postMessage(
+                        channel=channel,
+                        text=response_text,
+                        unfurl_links=False,
+                        unfurl_media=False,
+                    )
+                    logger.info(f"Response sent to Slack channel={channel}")
+            except Exception as e:
+                logger.error(f"Error handling message: {e}", exc_info=True)
+                raise
 
     logger.info("Webhook processed successfully")
     return {"status": "ok"}
