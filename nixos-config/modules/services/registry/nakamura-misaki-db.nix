@@ -92,9 +92,9 @@
 
         cd "$PROJECT_DIR"
 
-        # データベース初期化（nakamura-misakiパッケージのPythonを使用）
+        # データベース初期化（nakamura-misakiパッケージのPython環境を使用）
         export PYTHONPATH="$PROJECT_DIR:$PYTHONPATH"
-        ${nakamura-misaki}/bin/python scripts/init_db.py
+        ${nakamura-misaki.python}/bin/python scripts/init_db.py
 
         # 初期化完了マーク
         touch "$PROJECT_DIR/.db-initialized"
