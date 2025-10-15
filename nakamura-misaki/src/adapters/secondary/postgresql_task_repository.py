@@ -113,13 +113,26 @@ class PostgreSQLTaskRepository(TaskRepository):
 
         return [self._map_to_entity(tt) for tt in task_tables]
 
-    async def list_overdue(self, user_id: str) -> list[Task]:
-        """期限切れタスク一覧取得"""
+    async def list_all(self, status: TaskStatus | None = None) -> list[Task]:
+        """全タスク一覧取得（Phase 4用）"""
+        stmt = select(TaskTable)
+
+        if status:
+            stmt = stmt.where(TaskTable.status == status.value)
+
+        stmt = stmt.order_by(TaskTable.created_at.desc())
+
+        result = await self._session.execute(stmt)
+        task_tables = result.scalars().all()
+
+        return [self._map_to_entity(tt) for tt in task_tables]
+
+    async def list_overdue(self) -> list[Task]:
+        """期限切れタスク一覧取得（Phase 4用）"""
         now = datetime.now()
 
         stmt = (
             select(TaskTable)
-            .where(TaskTable.user_id == user_id)
             .where(TaskTable.due_at < now)
             .where(TaskTable.status != TaskStatus.COMPLETED.value)
             .where(TaskTable.status != TaskStatus.CANCELLED.value)
@@ -131,16 +144,31 @@ class PostgreSQLTaskRepository(TaskRepository):
 
         return [self._map_to_entity(tt) for tt in task_tables]
 
-    async def list_stale(self, user_id: str, days: int = 7) -> list[Task]:
-        """更新されていないタスク一覧取得"""
+    async def list_stale(self, days: int) -> list[Task]:
+        """長期停滞タスク一覧取得（Phase 4用）"""
         cutoff_date = datetime.now() - timedelta(days=days)
 
         stmt = (
             select(TaskTable)
-            .where(TaskTable.user_id == user_id)
             .where(TaskTable.created_at < cutoff_date)
             .where(TaskTable.status == TaskStatus.IN_PROGRESS.value)
             .order_by(TaskTable.created_at.asc())
+        )
+
+        result = await self._session.execute(stmt)
+        task_tables = result.scalars().all()
+
+        return [self._map_to_entity(tt) for tt in task_tables]
+
+    async def list_created_between(
+        self, start: datetime, end: datetime
+    ) -> list[Task]:
+        """期間内に作成されたタスク一覧取得（Phase 4用）"""
+        stmt = (
+            select(TaskTable)
+            .where(TaskTable.created_at >= start)
+            .where(TaskTable.created_at < end)
+            .order_by(TaskTable.created_at.desc())
         )
 
         result = await self._session.execute(stmt)
