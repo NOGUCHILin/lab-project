@@ -25,6 +25,9 @@
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
   in {
+    # nakamura-misaki package
+    packages.${system}.nakamura-misaki = pkgs.callPackage ./packages/nakamura-misaki { };
+
     # Developer experience: formatter, devShells, and basic checks
     formatter.${system} = pkgs.alejandra;
 
@@ -57,12 +60,16 @@
     nixosConfigurations = {
       home-lab-01 = nixpkgs.lib.nixosSystem {
         system = system;
+        specialArgs = {
+          # nakamura-misakiパッケージをモジュールに渡す
+          nakamura-misaki = self.packages.${system}.nakamura-misaki;
+        };
         modules = [
           ./hosts/home-lab-01/configuration.nix
-          
+
           # sops-nix module for secrets management
           sops-nix.nixosModules.sops
-          
+
           home-manager.nixosModules.home-manager
           {
             home-manager.useGlobalPkgs = true;

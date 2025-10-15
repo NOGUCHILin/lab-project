@@ -1,22 +1,5 @@
-{ config, pkgs, ... }:
+{ config, pkgs, nakamura-misaki, ... }:
 
-let
-  # Python環境をNixで宣言的に定義
-  pythonEnv = pkgs.python3.withPackages (ps: with ps; [
-    fastapi
-    uvicorn
-    slack-bolt
-    slack-sdk
-    anthropic
-    aiohttp
-    psycopg
-    sqlalchemy
-    pgvector
-    pydantic
-    pydantic-settings
-    python-dateutil
-  ]);
-in
 {
   # nakamura-misaki API Service（Slack Events API）
   systemd.services.nakamura-misaki-api = {
@@ -34,7 +17,7 @@ in
       Restart = "always";
       RestartSec = "5s";
 
-      # API server起動
+      # API server起動（buildPythonApplicationパッケージから直接実行）
       ExecStart = pkgs.writeShellScript "start-nakamura-api" ''
         set -e
 
@@ -47,11 +30,12 @@ in
         # C++ library path for numpy (required by pgvector)
         export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
 
-        # PYTHONPATHに現在のプロジェクトを追加
+        # PYTHONPATHに現在のプロジェクトを追加（ソースコードはrsyncで配置）
         export PYTHONPATH="/home/noguchilin/projects/lab-project/nakamura-misaki:$PYTHONPATH"
 
-        # Start FastAPI server with uvicorn（Nix管理のPython環境から実行）
-        ${pythonEnv}/bin/uvicorn src.adapters.primary.api:app \
+        # Start FastAPI server with uvicorn（Nixパッケージから実行）
+        # nakamura-misakiパッケージのPython環境を使用
+        ${nakamura-misaki}/bin/python -m uvicorn src.adapters.primary.api:app \
           --host 127.0.0.1 \
           --port 10000 \
           --log-level info
