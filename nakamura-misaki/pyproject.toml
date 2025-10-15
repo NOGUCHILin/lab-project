@@ -11,6 +11,7 @@ dependencies = [
     # "claude-agent-sdk>=0.1.3",  # Not in nixpkgs, installed separately via uv
     "anthropic>=0.37.0",
     "aiohttp>=3.10.0",  # Relaxed from 3.13.0 for nixpkgs compatibility
+    "asyncpg>=0.30.0",  # Required for SQLAlchemy async postgresql+asyncpg://
     "psycopg[binary,pool]>=3.2.0",
     "sqlalchemy>=2.0.0",
     "pgvector>=0.3.0",
