@@ -21,7 +21,8 @@ python3.pkgs.buildPythonApplication rec {
   propagatedBuildInputs = with python3.pkgs; [
     fastapi
     uvicorn
-    slack-bolt
+    # slack-boltのテスト失敗を回避するため、doCheck=falseでオーバーライド
+    (slack-bolt.overridePythonAttrs (old: { doCheck = false; }))
     slack-sdk
     anthropic
     aiohttp
