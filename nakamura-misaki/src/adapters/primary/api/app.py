@@ -85,8 +85,10 @@ def create_app() -> FastAPI:
 
         # SlackEventHandlerV5作成（セッションは各リクエストで作成）
         logger.info("Initializing SlackEventHandlerV5")
-        # DEBUG: Check API key format
+        # Strip whitespace from API key (secret file may contain trailing newline)
         api_key = app.state.anthropic_api_key
+        if api_key:
+            api_key = api_key.strip()
         logger.info(f"API key length: {len(api_key) if api_key else 0}, starts with: {api_key[:10] if api_key else 'None'}...")
         # Temporary session for handler initialization (repositories will use request-scoped sessions)
         async with app.state.async_session_maker() as temp_session:
@@ -99,7 +101,7 @@ def create_app() -> FastAPI:
                 slack_client=slack_client,
             )
             app.state.slack_event_handler = di_container.build_slack_event_handler(
-                anthropic_api_key=api_key.strip() if api_key else "",
+                anthropic_api_key=api_key or "",
                 conversation_ttl_hours=app.state.conversation_ttl_hours,
             )
         logger.info("SlackEventHandlerV5 initialized")
