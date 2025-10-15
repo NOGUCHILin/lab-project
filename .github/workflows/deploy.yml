@@ -66,19 +66,50 @@ jobs:
           command_timeout: 30m
           script: |
             # nixos-configをsparse checkoutで同期
+            echo "📥 Cloning nixos-config..."
             cd ~
             rm -rf nixos-temp nixos-config
             git clone --depth 1 --filter=blob:none --sparse https://github.com/NOGUCHILin/lab-project.git nixos-temp
             cd nixos-temp
             git sparse-checkout set nixos-config
 
+            echo "📋 Git commit info:"
+            git log -1 --oneline
+            echo ""
+
+            echo "📁 nixos-config structure:"
+            ls -la nixos-config/modules/services/registry/nakamura-misaki-api.nix
+            echo ""
+
             # git repositoryのルートからビルド（Nixがgit追跡ファイルを正しく認識）
-            sudo nixos-rebuild switch --flake ./nixos-config#home-lab-01
+            echo "🔨 Running nixos-rebuild switch..."
+            sudo nixos-rebuild switch --flake ./nixos-config#home-lab-01 2>&1 | tee /tmp/nixos-rebuild.log
+            REBUILD_EXIT_CODE=${PIPESTATUS[0]}
+
+            echo ""
+            echo "📊 nixos-rebuild exit code: $REBUILD_EXIT_CODE"
+
+            if [ $REBUILD_EXIT_CODE -ne 0 ]; then
+              echo "❌ nixos-rebuild failed!"
+              exit $REBUILD_EXIT_CODE
+            fi
+
+            echo ""
+            echo "🔍 New systemd service check:"
+            cat /etc/systemd/system/nakamura-misaki-api.service | grep ExecStart
+            echo ""
+
+            echo "📦 New Nix store scripts:"
+            ls -lt /nix/store/*start-nakamura-api 2>/dev/null | grep -v '.drv' | head -3
+            echo ""
 
             # 成功後、永続化位置に移動
+            echo "📂 Moving nixos-config to permanent location..."
             cd ~
             mv nixos-temp/nixos-config nixos-config
             rm -rf nixos-temp
+
+            echo "✅ NixOS configuration deployed successfully"
 
       # サービス再起動（新しいコードとNixOS設定を反映）
       - name: Restart services
@@ -88,16 +119,25 @@ jobs:
           username: ${{ secrets.NIXOS_USER }}
           key: ${{ secrets.NIXOS_SSH_KEY }}
           script: |
+            echo "🔄 Restarting services..."
+
             # Dashboard.service再起動（NixOS設定でNOPASSWD許可済み）
+            echo "  - Restarting dashboard.service..."
             sudo systemctl restart dashboard.service
 
             # nakamura-misaki-api.service再起動（Python環境変更を反映）
+            echo "  - Restarting nakamura-misaki-api.service..."
             sudo systemctl restart nakamura-misaki-api.service
 
             # 再起動完了を待機
             sleep 5
 
-            echo "✅ Services restarted with new code"
+            echo ""
+            echo "📊 Service status:"
+            systemctl status nakamura-misaki-api.service --no-pager -l || true
+            echo ""
+
+            echo "✅ Services restarted"
 
       # デプロイ完了確認
       - name: Verify deployment
@@ -107,7 +147,28 @@ jobs:
           username: ${{ secrets.NIXOS_USER }}
           key: ${{ secrets.NIXOS_SSH_KEY }}
           script: |
-            systemctl is-active dashboard.service
-            systemctl is-active nakamura-misaki-api.service
-            systemctl is-active code-server.service
+            echo "🔍 Verifying service status..."
+            echo ""
+
+            echo "Dashboard:"
+            systemctl is-active dashboard.service && echo "  ✅ Running" || echo "  ❌ Not running"
+
+            echo "nakamura-misaki API:"
+            systemctl is-active nakamura-misaki-api.service && echo "  ✅ Running" || echo "  ❌ Not running"
+
+            echo "Code Server:"
+            systemctl is-active code-server.service && echo "  ✅ Running" || echo "  ❌ Not running"
+
+            echo ""
+
+            # nakamura-misaki-apiが失敗している場合、ログを表示
+            if ! systemctl is-active nakamura-misaki-api.service > /dev/null; then
+              echo "⚠️  nakamura-misaki-api.service failed, showing logs:"
+              journalctl -u nakamura-misaki-api.service -n 10 --no-pager
+              echo ""
+              echo "ExecStart path:"
+              cat /etc/systemd/system/nakamura-misaki-api.service | grep ExecStart
+              exit 1
+            fi
+
             echo "✅ All services running"
