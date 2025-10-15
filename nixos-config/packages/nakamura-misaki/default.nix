@@ -8,8 +8,9 @@ python3.pkgs.buildPythonApplication rec {
   version = "4.0.0";
   format = "pyproject";
 
-  # ローカルソースを使用（相対パスで../../../nakamura-misakiを参照）
-  src = ../../../nakamura-misaki;
+  # ローカルソースを使用（GitHub Actionsでrsyncされた本番ソースを参照）
+  # nixos-rebuild時には/home/noguchilin/projects/lab-project/nakamura-misakiが存在する
+  src = /home/noguchilin/projects/lab-project/nakamura-misaki;
 
   # ビルド時の依存関係
   nativeBuildInputs = with python3.pkgs; [
