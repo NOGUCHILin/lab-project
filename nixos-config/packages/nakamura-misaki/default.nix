@@ -13,6 +13,7 @@ let
     slack-sdk
     anthropic
     aiohttp
+    asyncpg  # required for postgresql+asyncpg:// connection
     psycopg  # psycopg[binary,pool]
     sqlalchemy
     pgvector
@@ -42,6 +43,7 @@ let
       slack-sdk
       anthropic
       aiohttp
+      asyncpg
       psycopg
       sqlalchemy
       pgvector
