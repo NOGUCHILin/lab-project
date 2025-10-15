@@ -169,6 +169,11 @@
     ];
   };
 
+  # Root user SSH key for deploy-rs
+  users.users.root.openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG/tXGwO4MO54lSVf+XIG4RHeqa5WOVFliWPlyA1MAJa github-actions-deploy@lab-project"
+  ];
+
   # Enable automatic login for the user.
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = "noguchilin";

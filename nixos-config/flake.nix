@@ -96,9 +96,9 @@
       nodes = {
         home-lab-01 = {
           hostname = "home-lab-01";  # Tailscale hostname
-          sshUser = "noguchilin";
+          sshUser = "root";  # deploy-rsはroot権限で直接デプロイ
           sshOpts = [ "-p" "22" ];
-          
+
           profiles.system = {
             user = "root";
             path = deploy-rs.lib.${system}.activate.nixos self.nixosConfigurations.home-lab-01;
