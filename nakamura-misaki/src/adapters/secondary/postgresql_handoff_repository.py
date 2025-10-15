@@ -104,6 +104,22 @@ class PostgreSQLHandoffRepository(HandoffRepository):
 
         return self._map_to_entity(handoff_table)
 
+    async def list_created_between(
+        self, start: datetime, end: datetime
+    ) -> list[Handoff]:
+        """期間内に作成されたハンドオフ一覧取得（Phase 4用）"""
+        stmt = (
+            select(HandoffTable)
+            .where(HandoffTable.created_at >= start)
+            .where(HandoffTable.created_at < end)
+            .order_by(HandoffTable.created_at.desc())
+        )
+
+        result = await self._session.execute(stmt)
+        handoff_tables = result.scalars().all()
+
+        return [self._map_to_entity(ht) for ht in handoff_tables]
+
     def _map_to_entity(self, handoff_table: HandoffTable) -> Handoff:
         """TableモデルからDomainモデルに変換"""
         return Handoff(
