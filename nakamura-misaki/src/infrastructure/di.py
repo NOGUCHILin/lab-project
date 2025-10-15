@@ -3,10 +3,14 @@
 Application全体の依存関係を管理するコンテナ。
 """
 
-from anthropic import Anthropic
+from anthropic import Anthropic, AsyncAnthropic
 from slack_sdk.web.async_client import AsyncWebClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.adapters.primary.slack_event_handler import SlackEventHandlerV5
+from src.adapters.secondary.postgresql_conversation_repository import (
+    PostgreSQLConversationRepository,
+)
 from src.adapters.secondary.postgresql_handoff_repository import (
     PostgreSQLHandoffRepository,
 )
@@ -48,6 +52,7 @@ class DIContainer:
         self._note_repository = None
         self._task_repository = None
         self._handoff_repository = None
+        self._conversation_repository = None
 
     # Repository Getters
 
@@ -73,6 +78,13 @@ class DIContainer:
         if self._handoff_repository is None:
             self._handoff_repository = PostgreSQLHandoffRepository(self._session)
         return self._handoff_repository
+
+    @property
+    def conversation_repository(self):
+        """Get ConversationRepository"""
+        if self._conversation_repository is None:
+            self._conversation_repository = PostgreSQLConversationRepository(self._session)
+        return self._conversation_repository
 
     # Use Case Builders - Task
 
@@ -137,3 +149,34 @@ class DIContainer:
     def build_query_team_stats_use_case(self) -> QueryTeamStatsUseCase:
         """Build QueryTeamStatsUseCase"""
         return QueryTeamStatsUseCase(self.task_repository)
+
+    # SlackEventHandler v5.0.0
+
+    def build_slack_event_handler(
+        self, anthropic_api_key: str, conversation_ttl_hours: int = 24
+    ) -> SlackEventHandlerV5:
+        """Build SlackEventHandlerV5 for v5.0.0.
+
+        Args:
+            anthropic_api_key: Anthropic API key
+            conversation_ttl_hours: Conversation TTL in hours
+
+        Returns:
+            SlackEventHandlerV5: Event handler instance
+        """
+        # Create AsyncAnthropic client
+        anthropic_client = AsyncAnthropic(api_key=anthropic_api_key)
+
+        return SlackEventHandlerV5(
+            anthropic_client=anthropic_client,
+            slack_client=self._slack_client,
+            conversation_repository=self.conversation_repository,
+            register_task_use_case=self.build_register_task_use_case(),
+            query_user_tasks_use_case=self.build_query_user_tasks_use_case(),
+            complete_task_use_case=self.build_complete_task_use_case(),
+            update_task_use_case=self.build_update_task_use_case(),
+            register_handoff_use_case=self.build_register_handoff_use_case(),
+            query_handoffs_use_case=self.build_query_handoffs_by_user_use_case(),
+            complete_handoff_use_case=self.build_complete_handoff_use_case(),
+            conversation_ttl_hours=conversation_ttl_hours,
+        )

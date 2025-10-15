@@ -9,11 +9,12 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Index,
+    JSON,
     String,
     Text,
     text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase
 from pgvector.sqlalchemy import Vector
@@ -116,3 +117,27 @@ class SessionTable(Base):
     is_active = Column(Text, nullable=False, default="true")
     created_at = Column(DateTime, nullable=False, default=datetime.now)
     last_active = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
+
+
+class ConversationTable(Base):
+    """Conversations table for managing chat history with Claude.
+
+    Stores conversation history with 24-hour TTL.
+    Messages are stored in JSONB format compatible with Claude Messages API.
+    """
+
+    __tablename__ = "conversations"
+
+    conversation_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    user_id = Column(String(100), nullable=False, index=True)
+    channel_id = Column(String(100), nullable=False, index=True)
+    # Use JSON type (compatible with both PostgreSQL JSONB and SQLite JSON)
+    messages = Column(JSON, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now())
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now())
+    last_message_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(), index=True)
+
+    __table_args__ = (
+        Index("idx_conversations_user_channel", "user_id", "channel_id"),
+        Index("idx_conversations_last_message", "last_message_at"),
+    )

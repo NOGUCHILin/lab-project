@@ -1,269 +1,329 @@
-# Nakamura-Misaki Project
+# nakamura-misaki v5.0.0
 
-汎用リマインダーサービス - マルチユーザー対応のスケジュール管理・通知システム
+**自然言語タスク管理AIアシスタント**
 
-## 概要
+**現在のバージョン**: v5.0.0 (Implementation Complete)
+**前バージョン**: v4.0.0 (Deprecated)
 
-Nakamura-Misakiは、複数ユーザーに対応した設定可能なリマインダーサービスです。REST API、Webhook、Slack連携を提供し、柔軟なスケジュール管理を実現します。
+---
 
-## 特徴
+> 📊 **進捗状況**: [`PROJECT_STATUS.md`](PROJECT_STATUS.md) で実装状況・次のアクションを確認してください
 
-- 🌐 **マルチユーザー対応** - 複数ユーザーの個別設定管理
-- 🚀 **REST API** - 豊富なAPIエンドポイント（10+）
-- 🔗 **Webhook対応** - 外部サービスとの連携
-- 💬 **Slack統合** - Slackボット機能とリマインダー送信
-- 🤖 **Claude Code統合** - AI支援による開発サポート
-- ⚙️ **設定駆動** - yamlファイルによる柔軟な設定管理
+---
 
-## 技術スタック
+## 🎯 概要
 
-- **Python 3.12**: メインプログラミング言語
-- **HTTP Server**: 標準ライブラリベースの軽量サーバー
-- **APScheduler**: スケジュール管理（統合予定）
-- **Slack API**: Webhook・リマインダー連携
-- **Claude Code**: AI開発アシスタント
-- **NixOS**: 宣言的サービス管理
+nakamura-misakiは、**Slackでの会話を通じてタスク管理を行うAIアシスタント**です。
+Claudeを活用した自然言語理解により、柔軟で直感的なタスク操作を実現します。
 
-## プロジェクト構造
+### v5.0.0（実装完了）
+
+- **自然言語駆動型**: Claude Tool Use APIによる柔軟なタスク理解
+- **会話履歴保持**: 24時間TTLでコンテキストを保った対話
+- **雑談対応**: タスク以外のメッセージにも自然に応答
+- **7つのTool**: Task管理4個 + Handoff管理3個
+
+**実装サマリー**: [V5_MIGRATION_SUMMARY.md](V5_MIGRATION_SUMMARY.md)
+**移行計画**: [claudedocs/v5-migration-plan.md](claudedocs/v5-migration-plan.md)
+
+---
+
+## ✨ 主要機能
+
+### v5.0.0
+
+- 🤖 **自然言語理解**: 「明日までにレポート書く」でタスク登録
+- 💭 **会話履歴**: 24時間TTLで前後の文脈を保持
+- 🎨 **柔軟な表現**: 「あのレポート終わった」でタスク完了
+- 😊 **雑談対応**: 「おはよう」「疲れた」にも自然に反応
+- 🎯 **タスク管理**: 登録・一覧・更新・完了
+- 🤝 **ハンドオフ**: チーム間でのタスク引き継ぎ
+- 💬 **Slack統合**: Events APIでメッセージ受信
+- 📊 **チーム機能**: タスク統計・ボトルネック検出
+- 🔒 **セキュア**: sops-nixによる秘密情報管理
+
+---
+
+## 🏗️ 技術スタック
+
+| カテゴリ | 技術 | バージョン |
+|---------|------|-----------|
+| **言語** | Python | 3.12 |
+| **Web Framework** | FastAPI | 0.115+ |
+| **AI** | Claude 3.5 Sonnet | via Anthropic API |
+| **Database** | PostgreSQL + pgvector | 16 |
+| **ORM** | SQLAlchemy | 2.0 (async) |
+| **Messaging** | Slack Events API | - |
+| **Deployment** | NixOS + deploy-rs | - |
+| **Secrets** | sops-nix | - |
+
+---
+
+## 📂 プロジェクト構造
 
 ```
 nakamura-misaki/
-├── src/                          # ソースコード
-│   ├── simple_server.py         # メインHTTPサーバー
-│   ├── claude_agent_simple.py   # Claude統合エージェント
-│   ├── reminder_service.py      # リマインダーサービス
-│   └── schedule_parser.py       # スケジュール解析
-├── config/                      # 設定ファイル
-│   ├── config.yaml             # メイン設定
-│   └── users/                  # ユーザー別設定
-├── data/                       # データファイル
-│   └── schedules/              # スケジュールデータ
-├── logs/                       # ログファイル
-├── tests/                      # テストコード（将来）
-├── .env                        # 環境変数
-├── CLAUDE.md                   # プロジェクト指示書
-└── README.md                   # このファイル
+├── src/
+│   ├── adapters/              # アダプター層
+│   │   ├── primary/           # 入力（REST API, Slack Webhook）
+│   │   │   ├── api/           # FastAPI アプリケーション
+│   │   │   │   ├── routes/    # エンドポイント定義
+│   │   │   │   └── app.py     # Application Factory
+│   │   │   └── slack_event_handler.py
+│   │   └── secondary/         # 出力（DB, Slack API, Claude API）
+│   │       └── repositories/  # PostgreSQL リポジトリ
+│   ├── application/           # アプリケーション層
+│   │   ├── dto/               # Data Transfer Objects
+│   │   └── use_cases/         # ビジネスロジック
+│   ├── domain/                # ドメイン層
+│   │   ├── models/            # エンティティ
+│   │   └── repositories/      # リポジトリインターフェース
+│   └── infrastructure/        # インフラ層
+│       ├── database/          # DB接続・スキーマ
+│       └── di.py              # DI Container
+├── admin-ui/                  # Admin Dashboard（Next.js）
+├── alembic/                   # DBマイグレーション
+├── docs/                      # アーキテクチャドキュメント
+├── claudedocs/                # 開発計画・詳細資料
+├── CLAUDE.md                  # プロジェクト指示書
+└── README.md                  # このファイル
 ```
 
-## インストール・起動
+詳細なアーキテクチャ: [docs/ARCHITECTURE_V4.md](docs/ARCHITECTURE_V4.md)
 
-### システム要件
+---
+
+## 🚀 起動方法
+
+### 前提条件
 
 - NixOS環境
-- Python 3.12+
-- Slack API トークン
-- Claude Code CLI
+- PostgreSQL 16 (pgvector拡張有効)
+- Slack App設定済み（Events API, Bot Token）
+- Anthropic API Key
 
-### 環境設定
-
-1. 環境変数ファイル作成:
-```bash
-cp .env.template .env
-# .envファイルを編集してSlackトークンを設定
-```
-
-2. 必要ディレクトリ作成:
-```bash
-mkdir -p data/schedules logs config/users
-```
-
-### 起動方法
-
-#### NixOS サービス（推奨）
-```bash
-# 宣言的設定でサービス有効化
-sudo nixos-rebuild switch --flake ~/nixos-config
-```
-
-#### 直接起動（開発時）
-```bash
-cd /home/noguchilin/projects/nakamura-misaki
-python3 src/simple_server.py
-```
-
-### 動作確認
+### 環境変数
 
 ```bash
-# ヘルスチェック
-curl http://localhost:8010/
-
-# API動作確認
-curl http://localhost:8010/api/schedules
-
-# Slack連携確認（Tailscale Funnel使用）
-# https://[your-tailscale-hostname]:8010/webhook/slack
+# sops-nix経由で管理（平文での保存禁止）
+SLACK_BOT_TOKEN=xoxb-...
+SLACK_SIGNING_SECRET=...
+ANTHROPIC_API_KEY=sk-ant-...
+DATABASE_URL=postgresql+asyncpg://nakamura_misaki@localhost:5432/nakamura_misaki
 ```
 
-## API エンドポイント
-
-### 基本情報
-- `GET /` - サービス状態確認
-- `GET /health` - ヘルスチェック
-
-### スケジュール管理
-- `GET /api/schedules` - 全スケジュール取得
-- `GET /api/schedules/today` - 今日の予定
-- `GET /api/schedules/upcoming` - 今後の予定
-- `POST /api/schedules` - スケジュール追加
-
-### リマインダー操作
-- `POST /api/reminders/send` - 手動リマインダー送信
-- `POST /api/reminders/quick` - クイック送信
-- `POST /api/reminders/check` - 即時チェック
-
-### Claude統合
-- `POST /api/claude/chat` - Claude Code連携チャット
-
-### Webhook
-- `POST /webhook/slack` - Slack Webhook受信
-
-## 設定
-
-### メイン設定（config/config.yaml）
-```yaml
-service:
-  name: "Nakamura-Misaki"
-  port: 8010
-  debug: false
-
-slack:
-  webhook_url: "https://hooks.slack.com/..."
-  default_channel: "#general"
-
-schedule:
-  timezone: "Asia/Tokyo"
-  reminder_advance: 300  # 5分前
-```
-
-### ユーザー設定（config/users/[user_id].yaml）
-```yaml
-user_id: "U1234567890"
-name: "ユーザー名"
-timezone: "Asia/Tokyo"
-notification:
-  slack_channel: "#reminders"
-  advance_minutes: [10, 5]
-schedules:
-  - name: "定期ミーティング"
-    time: "10:00"
-    days: ["Monday", "Wednesday"]
-```
-
-## Slack連携
-
-### ボット設定
-
-1. Slack Appを作成
-2. 以下の権限を追加:
-   - `chat:write`
-   - `channels:read`
-   - `users:read`
-
-3. Webhook URLを設定:
-   ```
-   https://[your-tailscale-hostname]:8010/webhook/slack
-   ```
-
-### 対応コマンド
-
-- `こんにちは` - 基本応答
-- Claude Code連携コマンド - AI支援機能
-
-## 開発
-
-### コード規約
-
-- **命名規則**: snake_case（Python標準）
-- **型ヒント**: 可能な限り型アノテーション使用
-- **ドキュメント**: docstringで関数説明
-- **エラーハンドリング**: 適切な例外処理
-
-### 開発ガイドライン
-
-1. **設定駆動**: ハードコードを避ける
-2. **汎用性重視**: 特定ユーザー専用にしない
-3. **API ファースト**: REST APIを中心とした設計
-4. **拡張可能**: 新機能追加しやすい設計
-
-### テスト
+### ローカル開発
 
 ```bash
-# 基本テスト
-python3 src/reminder_service.py --test
+# プロジェクトルートで
+cd nakamura-misaki
 
-# サーバーテスト
-curl -X POST http://localhost:8010/api/reminders/check
+# 依存関係インストール
+uv sync
+
+# マイグレーション実行
+uv run alembic upgrade head
+
+# サーバー起動
+uv run uvicorn src.adapters.primary.api.app:app --reload --port 10000
 ```
 
-## 運用
+### 本番デプロイ
+
+```bash
+# mainブランチにpushで自動デプロイ
+git push origin main
+
+# デプロイ状況確認
+gh run watch
+```
+
+NixOS設定: [`nixos-config/modules/services/registry/nakamura-misaki-api.nix`](../nixos-config/modules/services/registry/nakamura-misaki-api.nix)
+
+---
+
+## 🌐 API エンドポイント
+
+### Slack Webhook
+
+| Method | Path | 説明 |
+|--------|------|------|
+| POST | `/webhook/slack` | Slack Events受信 |
+
+### REST API (Tasks)
+
+| Method | Path | 説明 |
+|--------|------|------|
+| POST | `/api/tasks` | タスク作成 |
+| GET | `/api/tasks` | タスク一覧（user_id, status指定可） |
+| PATCH | `/api/tasks/{id}` | タスク更新 |
+| POST | `/api/tasks/{id}/complete` | タスク完了 |
+
+### REST API (Handoffs)
+
+| Method | Path | 説明 |
+|--------|------|------|
+| POST | `/api/handoffs` | ハンドオフ作成 |
+| GET | `/api/handoffs` | ハンドオフ一覧 |
+| POST | `/api/handoffs/{id}/complete` | ハンドオフ完了 |
+
+### Health Check
+
+| Method | Path | 説明 |
+|--------|------|------|
+| GET | `/health` | サービス状態確認 |
+
+**OpenAPI Docs**: `http://localhost:10000/docs`
+
+---
+
+## 💬 Slackでの使い方（v4.0.0）
+
+### タスク操作コマンド
+
+| 操作 | コマンド例 |
+|-----|-----------|
+| **登録** | `「レポート作成」をやる` |
+| | `「会議資料」を明日までに実施` |
+| **一覧** | `今日のタスク` |
+| | `タスク一覧` |
+| | `進行中のタスクを見せて` |
+| **完了** | `タスク完了 <task-id>` |
+
+### ハンドオフコマンド
+
+| 操作 | コマンド例 |
+|-----|-----------|
+| **作成** | `<task-id>を<@U123456>に引き継ぎ「途中まで完了」` |
+| **一覧** | `引き継ぎ一覧` |
+| **完了** | `ハンドオフ完了 <handoff-id>` |
+
+**注意**: v4.0.0はパターンマッチング方式のため、正確なコマンド形式が必要です。
+v5.0.0では自然な会話でタスク操作が可能になる予定です。
+
+---
+
+## 📊 運用
 
 ### ログ確認
 
 ```bash
-# サービスログ
-sudo journalctl -u nakamura-misaki.service -f
-
-# アプリケーションログ
-tail -f logs/app.log
+# 本番サーバーで
+ssh home-lab-01
+journalctl -u nakamura-misaki-api.service -f
 ```
 
-### トラブルシューティング
+### サービス状態確認
 
-#### サービス起動しない
-1. 設定ファイル確認
-2. 環境変数確認
-3. ポート競合確認
+```bash
+systemctl status nakamura-misaki-api.service
+```
 
-#### Slack連携エラー
-1. トークン確認
-2. 権限確認
-3. Webhook URL確認
+### Tailscale公開状態
 
-#### Claude Code連携エラー
-1. Claude CLI設定確認
-2. PATH設定確認
-3. 認証状態確認
-
-## ロードマップ
-
-### v2.1 (計画中)
-- [ ] APScheduler本格統合
-- [ ] データベース連携（SQLite）
-- [ ] Web UI（Next.js）
-
-### v2.2 (将来)
-- [ ] Discord通知対応
-- [ ] Email通知対応
-- [ ] 認証システム
-- [ ] マルチテナント対応
-
-### v3.0 (構想)
-- [ ] 機械学習によるスケジュール最適化
-- [ ] カレンダー連携（Google Calendar, Outlook）
-- [ ] モバイルアプリ
-
-## ライセンス
-
-MIT License
-
-## 関連プロジェクト
-
-- **mementomoris**: 元となった個人向けプロジェクト
-- **dashboard**: 統合ダッシュボード（連携予定）
-
-## 貢献
-
-1. Issueを作成
-2. Feature branchを作成
-3. 変更を実装
-4. Pull Requestを作成
-
-## サポート
-
-- 技術的な質問: プロジェクトIssues
-- バグ報告: プロジェクトIssues
-- Claude Code統合: AI支援機能を活用
+```bash
+tailscale funnel status
+# Port 10000でFunnel公開中
+```
 
 ---
 
-*このプロジェクトはmementomorisから派生した汎用版として、Claude Code統合により開発効率を向上させています。*
+## 🧪 テスト
+
+### 手動テスト
+
+```bash
+# ヘルスチェック
+curl http://localhost:10000/health
+
+# タスク一覧（要user_id）
+curl "http://localhost:10000/api/tasks?user_id=U5D0CJKMH"
+
+# タスク作成
+curl -X POST http://localhost:10000/api/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"user_id":"U5D0CJKMH","title":"Test Task"}'
+```
+
+### 自動テスト（将来実装予定）
+
+```bash
+uv run pytest tests/
+```
+
+---
+
+## 🗺️ ロードマップ
+
+### v4.0.0（現行） ✅
+
+- [x] Hexagonal Architecture実装
+- [x] PostgreSQL + pgvector統合
+- [x] Slack Events API統合
+- [x] コマンドパーサー実装
+- [x] Admin UI（Next.js）
+- [x] 構造化ログ実装
+
+### v5.0.0（計画中） 🚧
+
+- [ ] Claude Agent SDK統合
+- [ ] 会話履歴管理
+- [ ] 自然言語タスク操作
+- [ ] 雑談対応
+- [ ] Tool Use実装
+
+詳細: [claudedocs/v5-migration-plan.md](claudedocs/v5-migration-plan.md)
+
+### v6.0.0（構想）
+
+- [ ] マルチチャネル対応（Discord, LINE等）
+- [ ] タスク自動優先度付け
+- [ ] スマート通知（最適なタイミング）
+- [ ] モバイルアプリ
+
+---
+
+## 📚 関連ドキュメント
+
+| ドキュメント | 内容 |
+|------------|------|
+| [CLAUDE.md](CLAUDE.md) | プロジェクト開発指針 |
+| [docs/ARCHITECTURE_V4.md](docs/ARCHITECTURE_V4.md) | v4.0.0アーキテクチャ詳細 |
+| [claudedocs/v5-migration-plan.md](claudedocs/v5-migration-plan.md) | v5.0.0移行計画 |
+| [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) | デプロイ手順 |
+
+---
+
+## 🤝 開発方針
+
+### コード規約
+
+- **命名**: snake_case（Python標準）
+- **型ヒント**: 必須（mypy検査）
+- **Docstring**: Google Style
+- **フォーマット**: Black + isort
+
+### アーキテクチャ原則
+
+- **Hexagonal Architecture**: ドメイン層の独立性維持
+- **DI Container**: 依存性注入パターン
+- **Repository Pattern**: データアクセス抽象化
+- **Use Case駆動**: ビジネスロジックの明確化
+
+---
+
+## 📄 ライセンス
+
+MIT License
+
+---
+
+## 🙏 謝辞
+
+- **mementomoris**: 元プロジェクト
+- **Claude Code**: AI開発支援
+- **Anthropic**: Claude API提供
+
+---
+
+Generated with [Claude Code](https://claude.com/claude-code)

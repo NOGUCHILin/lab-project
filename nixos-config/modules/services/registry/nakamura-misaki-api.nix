@@ -3,7 +3,7 @@
 {
   # nakamura-misaki API Service（Slack Events API）
   systemd.services.nakamura-misaki-api = {
-    description = "nakamura-misaki v4.0.0 API Server";
+    description = "nakamura-misaki v5.0.0 API Server (Claude Agent SDK)";
     after = [ "network-online.target" "postgresql.service" "nakamura-misaki-init-db.service" ];
     wants = [ "network-online.target" ];
     requires = [ "postgresql.service" ];
@@ -26,6 +26,9 @@
         export SLACK_SIGNING_SECRET=$(cat ${config.sops.secrets.slack_signing_secret.path})
         export ANTHROPIC_API_KEY=$(cat ${config.sops.secrets.anthropic_api_key.path})
         export DATABASE_URL="postgresql+asyncpg://nakamura_misaki@localhost:5432/nakamura_misaki"
+
+        # v5.0.0 configuration
+        export CONVERSATION_TTL_HOURS="24"  # Conversation history TTL
 
         # Logging configuration
         export LOG_LEVEL="INFO"  # Set to DEBUG for verbose logging

@@ -11,6 +11,7 @@ class AppConfig:
     port: int
     slack_bot_token: str
     nakamura_user_id: str
+    conversation_ttl_hours: int = 24
     debug: bool = False
 
     @classmethod
@@ -20,6 +21,7 @@ class AppConfig:
             port=int(os.getenv("PORT", "8010")),
             slack_bot_token=os.getenv("SLACK_BOT_TOKEN", ""),
             nakamura_user_id=os.getenv("NAKAMURA_USER_ID", ""),
+            conversation_ttl_hours=int(os.getenv("CONVERSATION_TTL_HOURS", "24")),
             debug=os.getenv("DEBUG", "false").lower() == "true",
         )
 
