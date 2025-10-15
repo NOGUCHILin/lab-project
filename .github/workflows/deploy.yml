@@ -31,9 +31,11 @@ jobs:
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.NIXOS_ROOT_SSH_KEY }}" > ~/.ssh/id_ed25519
+          echo "$NIXOS_ROOT_SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H home-lab-01 >> ~/.ssh/known_hosts
+        env:
+          NIXOS_ROOT_SSH_KEY: ${{ secrets.NIXOS_ROOT_SSH_KEY }}
 
       # Dashboard & Nakamura-Misakiコードを同期
       - name: Sync application code
