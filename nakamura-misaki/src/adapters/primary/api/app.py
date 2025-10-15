@@ -71,3 +71,7 @@ def create_app() -> FastAPI:
     app.include_router(admin.router, prefix="/admin", tags=["Admin UI"])
 
     return app
+
+
+# Create module-level app instance for uvicorn
+app = create_app()
