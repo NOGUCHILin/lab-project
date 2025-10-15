@@ -75,6 +75,7 @@ jobs:
           cd nixos-config
           nix run github:serokell/deploy-rs -- \
             --skip-checks \
+            --remote-build \
             --ssh-user root \
             --ssh-opts "-o StrictHostKeyChecking=accept-new" \
             .#home-lab-01
