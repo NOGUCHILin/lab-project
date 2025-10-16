@@ -5,7 +5,6 @@ Provides RESTful endpoints for CRUD operations on tasks.
 
 import logging
 from datetime import datetime
-from typing import Optional
 
 from anthropic import Anthropic
 from fastapi import APIRouter, Depends, HTTPException
@@ -29,17 +28,17 @@ class TaskCreate(BaseModel):
 
     user_id: str
     title: str
-    description: Optional[str] = None
-    due_at: Optional[datetime] = None
+    description: str | None = None
+    due_at: datetime | None = None
 
 
 class TaskUpdate(BaseModel):
     """タスク更新リクエスト"""
 
-    title: Optional[str] = None
-    description: Optional[str] = None
-    status: Optional[TaskStatus] = None
-    due_at: Optional[datetime] = None
+    title: str | None = None
+    description: str | None = None
+    status: TaskStatus | None = None
+    due_at: datetime | None = None
 
 
 class TaskResponse(BaseModel):
@@ -50,7 +49,7 @@ class TaskResponse(BaseModel):
     title: str
     description: str
     status: TaskStatus
-    due_at: Optional[datetime]
+    due_at: datetime | None
     created_at: datetime
     updated_at: datetime
 
@@ -110,7 +109,7 @@ async def get_task(task_id: str, session: AsyncSession = Depends(get_db_session)
 @router.get("", response_model=list[TaskResponse])
 async def list_tasks(
     user_id: str,
-    status: Optional[TaskStatus] = None,
+    status: TaskStatus | None = None,
     session: AsyncSession = Depends(get_db_session),
 ):
     """タスク一覧を取得

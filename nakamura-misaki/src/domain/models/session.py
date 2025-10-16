@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict
 
 
 @dataclass
@@ -30,7 +29,7 @@ class SessionInfo:
     title: str = ""
     message_count: int = 0
     workspace_path: str = ""
-    claude_options: Dict | None = None
+    claude_options: dict | None = None
     is_active: bool = True
     message_history: list[dict] | None = None  # Anthropic Context Compaction用
 
@@ -63,7 +62,7 @@ class SessionInfo:
         timeout = timedelta(hours=timeout_hours)
         return datetime.now() - self.last_active > timeout
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Convert to dictionary"""
         data = asdict(self)
         data["created_at"] = self.created_at.isoformat()
@@ -71,7 +70,7 @@ class SessionInfo:
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict) -> SessionInfo:
+    def from_dict(cls, data: dict) -> SessionInfo:
         """Restore from dictionary"""
         if isinstance(data["created_at"], str):
             data["created_at"] = datetime.fromisoformat(data["created_at"])

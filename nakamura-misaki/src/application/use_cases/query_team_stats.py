@@ -1,6 +1,5 @@
 """QueryTeamStatsUseCase - チーム統計取得"""
 
-from datetime import datetime, timedelta
 
 from src.domain.models.team_stats import TeamStats
 from src.domain.repositories.task_repository import TaskRepository

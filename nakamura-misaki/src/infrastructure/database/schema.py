@@ -3,21 +3,20 @@
 from datetime import datetime
 from uuid import uuid4
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
+    JSON,
     Column,
     DateTime,
     Enum,
     ForeignKey,
     Index,
-    JSON,
     String,
     Text,
-    text,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase
-from pgvector.sqlalchemy import Vector
 
 from ...domain.models.task import TaskStatus
 

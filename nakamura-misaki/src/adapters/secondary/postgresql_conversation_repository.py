@@ -1,6 +1,6 @@
 """PostgreSQL implementation of ConversationRepository."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import delete, select
@@ -88,7 +88,7 @@ class PostgreSQLConversationRepository(ConversationRepository):
 
     async def delete_expired(self, ttl_hours: int) -> int:
         """期限切れの会話履歴を削除."""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=ttl_hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=ttl_hours)
 
         stmt = delete(ConversationTable).where(
             ConversationTable.last_message_at < cutoff_time

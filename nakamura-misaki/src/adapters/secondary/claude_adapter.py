@@ -1,6 +1,5 @@
 """Claude Agent SDK adapter"""
 
-from typing import List
 
 try:
     from claude_agent_sdk import ClaudeAgentOptions, create_sdk_mcp_server, query
@@ -87,7 +86,7 @@ class ClaudeAgentAdapter(ClaudeService):
             mcp_servers=self.mcp_servers if self.mcp_servers else None,
         )
 
-        collected: List[str] = []
+        collected: list[str] = []
 
         try:
             async for reply in query(prompt=message, options=options):

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List
 
 from .session import WorkspaceLimits
 
@@ -16,7 +15,7 @@ class UserConfig:
     user_id: str
     display_name: str = ""
     workspace_limits: WorkspaceLimits | None = None
-    allowed_tools: List[str] | None = None
+    allowed_tools: list[str] | None = None
     auto_continue_session: bool = True
     created_at: datetime | None = None
 

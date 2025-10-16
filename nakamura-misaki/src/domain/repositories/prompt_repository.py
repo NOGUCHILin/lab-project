@@ -1,7 +1,6 @@
 """Prompt repository interface (Port)"""
 
 from abc import ABC, abstractmethod
-from typing import Optional
 
 from ..models.prompt_config import PromptConfig
 
@@ -10,7 +9,7 @@ class PromptRepository(ABC):
     """プロンプト設定リポジトリインターフェース"""
 
     @abstractmethod
-    async def get_by_name(self, name: str) -> Optional[PromptConfig]:
+    async def get_by_name(self, name: str) -> PromptConfig | None:
         """
         名前でプロンプト設定を取得
 

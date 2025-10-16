@@ -3,9 +3,9 @@
 Provides database sessions and other dependencies for API routes.
 """
 
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
-from fastapi import Depends, Request
+from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 
 
@@ -56,9 +56,9 @@ class Conversation:
     user_id: str
     channel_id: str
     messages: list[Message]
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_message_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_message_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def __post_init__(self) -> None:
         """Validate conversation."""
@@ -79,7 +79,7 @@ class Conversation:
             - Updates last_message_at timestamp
         """
         self.messages.append(message)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         self.updated_at = now
         self.last_message_at = now
 
@@ -92,7 +92,7 @@ class Conversation:
         Returns:
             bool: True if conversation is expired, False otherwise
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expiration_time = self.last_message_at + timedelta(hours=ttl_hours)
         return now > expiration_time
 

@@ -1,7 +1,6 @@
 """Session repository interface (port)"""
 
 from abc import ABC, abstractmethod
-from typing import Dict, Optional
 
 from ..models.session import SessionInfo
 
@@ -15,17 +14,17 @@ class SessionRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_by_id(self, user_id: str, session_id: str) -> Optional[SessionInfo]:
+    async def get_by_id(self, user_id: str, session_id: str) -> SessionInfo | None:
         """Get session by ID"""
         pass
 
     @abstractmethod
-    async def get_latest(self, user_id: str) -> Optional[SessionInfo]:
+    async def get_latest(self, user_id: str) -> SessionInfo | None:
         """Get latest active session"""
         pass
 
     @abstractmethod
-    async def get_all_for_user(self, user_id: str) -> Dict[str, SessionInfo]:
+    async def get_all_for_user(self, user_id: str) -> dict[str, SessionInfo]:
         """Get all sessions for user"""
         pass
 

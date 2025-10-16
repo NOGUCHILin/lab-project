@@ -1,7 +1,7 @@
 """Slack API adapter"""
 
 import json
-from typing import Any, Dict
+from typing import Any
 
 import requests
 
@@ -15,7 +15,7 @@ class SlackAdapter:
     def __init__(self, token: str) -> None:
         self.token = token.strip()
 
-    async def send_message(self, channel: str, text: str) -> Dict[str, Any]:
+    async def send_message(self, channel: str, text: str) -> dict[str, Any]:
         """Send message to channel or DM"""
         if not self.token:
             return {"ok": False, "error": "token_missing"}
@@ -39,7 +39,7 @@ class SlackAdapter:
 
         return data
 
-    async def end_dnd(self) -> Dict[str, Any]:
+    async def end_dnd(self) -> dict[str, Any]:
         """End Do Not Disturb mode"""
         if not self.token:
             return {"ok": False, "error": "token_missing"}

@@ -9,7 +9,6 @@ import hmac
 import logging
 import time
 
-from anthropic import Anthropic
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Request
 from slack_sdk.web.async_client import AsyncWebClient
 
@@ -184,7 +183,7 @@ def _verify_slack_signature(
         return False
 
     # 署名生成
-    sig_basestring = f"v0:{timestamp}:{body}".encode("utf-8")
+    sig_basestring = f"v0:{timestamp}:{body}".encode()
     my_signature = (
         "v0="
         + hmac.new(

@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-from typing import Dict, Optional
 
 from ...domain.models.session import SessionInfo
 from ...domain.repositories.session_repository import SessionRepository
@@ -38,12 +37,12 @@ class JsonSessionRepository(SessionRepository):
 
     async def get_by_id(
         self, user_id: str, session_id: str
-    ) -> Optional[SessionInfo]:
+    ) -> SessionInfo | None:
         """Get session by ID"""
         sessions = await self.get_all_for_user(user_id)
         return sessions.get(session_id)
 
-    async def get_latest(self, user_id: str) -> Optional[SessionInfo]:
+    async def get_latest(self, user_id: str) -> SessionInfo | None:
         """Get latest active session"""
         sessions = await self.get_all_for_user(user_id)
 
@@ -58,7 +57,7 @@ class JsonSessionRepository(SessionRepository):
 
         return max(active_sessions, key=lambda s: s.last_active)
 
-    async def get_all_for_user(self, user_id: str) -> Dict[str, SessionInfo]:
+    async def get_all_for_user(self, user_id: str) -> dict[str, SessionInfo]:
         """Get all sessions for user"""
         session_file = self._get_user_session_file(user_id)
 
@@ -66,7 +65,7 @@ class JsonSessionRepository(SessionRepository):
             return {}
 
         try:
-            with open(session_file, "r", encoding="utf-8") as f:
+            with open(session_file, encoding="utf-8") as f:
                 data = json.load(f)
                 return {sid: SessionInfo.from_dict(s) for sid, s in data.items()}
         except Exception as e:
@@ -79,7 +78,7 @@ class JsonSessionRepository(SessionRepository):
 
         for session_file in session_files:
             try:
-                with open(session_file, "r", encoding="utf-8") as f:
+                with open(session_file, encoding="utf-8") as f:
                     sessions_dict = json.load(f)
 
                 updated = False

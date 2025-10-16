@@ -1,6 +1,6 @@
 """DetectBottleneckUseCase - ボトルネック検出"""
 
-from src.domain.models.bottleneck import Bottleneck, BottleneckType, Severity
+from src.domain.models.bottleneck import Bottleneck
 from src.domain.repositories.task_repository import TaskRepository
 
 

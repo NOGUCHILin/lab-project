@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-from typing import Optional
 
 from src.domain.models.prompt_config import PromptConfig
 from src.domain.repositories.prompt_repository import PromptRepository
@@ -20,7 +19,7 @@ class JsonPromptRepository(PromptRepository):
         self._cache: dict[str, PromptConfig] = {}
         self._mtime: dict[str, float] = {}  # ファイル変更時刻を記録
 
-    async def get_by_name(self, name: str) -> Optional[PromptConfig]:
+    async def get_by_name(self, name: str) -> PromptConfig | None:
         """名前でプロンプト設定を取得（ファイル変更検知付き）"""
         file_path = self.prompts_dir / f"{name}.json"
         if not file_path.exists():
@@ -35,7 +34,7 @@ class JsonPromptRepository(PromptRepository):
                 return self._cache[name]
 
             # ファイルから読み込み（変更があった場合または初回）
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 data = json.load(f)
 
             prompt_config = PromptConfig.from_dict(data)
@@ -84,7 +83,7 @@ class JsonPromptRepository(PromptRepository):
 
         for file_path in self.prompts_dir.glob("*.json"):
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(file_path, encoding="utf-8") as f:
                     data = json.load(f)
                 prompts.append(PromptConfig.from_dict(data))
             except (json.JSONDecodeError, KeyError, OSError) as e:

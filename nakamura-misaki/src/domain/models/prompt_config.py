@@ -1,8 +1,6 @@
 """Prompt configuration domain model"""
 
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Dict
 
 
 @dataclass
@@ -13,10 +11,10 @@ class PromptConfig:
     system_prompt: str
     description: str = ""
     version: str = "1.0.0"
-    metadata: Dict = field(default_factory=dict)
+    metadata: dict = field(default_factory=dict)
 
     @classmethod
-    def from_dict(cls, data: Dict) -> "PromptConfig":
+    def from_dict(cls, data: dict) -> "PromptConfig":
         """辞書からPromptConfigを生成"""
         return cls(
             name=data["name"],
@@ -26,7 +24,7 @@ class PromptConfig:
             metadata=data.get("metadata", {}),
         )
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """PromptConfigを辞書に変換"""
         return {
             "name": self.name,

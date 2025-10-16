@@ -13,7 +13,6 @@ Reference: https://www.anthropic.com/engineering/effective-context-engineering-f
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 
 class NoteStore:
@@ -47,7 +46,7 @@ class NoteStore:
         self.notes_dir.mkdir(parents=True, exist_ok=True)
 
     async def save_note(
-        self, user_id: str, category: str, content: str, metadata: Optional[dict] = None
+        self, user_id: str, category: str, content: str, metadata: dict | None = None
     ) -> None:
         """
         構造化されたノートを保存
@@ -89,7 +88,7 @@ class NoteStore:
         print(f"📝 Note saved: {category} ({len(content)} chars)")
 
     async def retrieve_notes(
-        self, user_id: str, category: Optional[str] = None, limit: int = 10
+        self, user_id: str, category: str | None = None, limit: int = 10
     ) -> str:
         """
         ノートをXML形式で取得
@@ -260,7 +259,7 @@ class NoteStore:
         )
 
     async def auto_save_error(
-        self, user_id: str, error_message: str, solution: Optional[str] = None
+        self, user_id: str, error_message: str, solution: str | None = None
     ) -> None:
         """
         エラーと解決策を自動保存

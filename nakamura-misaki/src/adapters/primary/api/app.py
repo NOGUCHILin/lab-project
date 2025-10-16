@@ -7,13 +7,13 @@ v5.0.0: Uses SlackEventHandlerV5 with Claude Tool Use API
 import logging
 import os
 
-from anthropic import AsyncAnthropic
 from fastapi import FastAPI
 from slack_sdk.web.async_client import AsyncWebClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.infrastructure.di import DIContainer
+
 from .routes import admin, handoffs, slack, tasks, team
 
 logger = logging.getLogger(__name__)
@@ -91,7 +91,6 @@ def create_app() -> FastAPI:
             api_key = api_key.strip()
         # Temporary session for handler initialization (repositories will use request-scoped sessions)
         async with app.state.async_session_maker() as temp_session:
-            anthropic_client = AsyncAnthropic(api_key=api_key)
             slack_client = AsyncWebClient(token=app.state.slack_token)
 
             di_container = DIContainer(

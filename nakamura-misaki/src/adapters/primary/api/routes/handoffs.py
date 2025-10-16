@@ -5,7 +5,6 @@ Provides RESTful endpoints for handoff operations.
 
 import logging
 from datetime import datetime
-from typing import Optional
 
 from anthropic import Anthropic
 from fastapi import APIRouter, Depends
@@ -30,7 +29,7 @@ class HandoffCreate(BaseModel):
     from_user_id: str
     to_user_id: str
     progress_note: str
-    handoff_at: Optional[datetime] = None
+    handoff_at: datetime | None = None
 
 
 class HandoffResponse(BaseModel):
@@ -42,7 +41,7 @@ class HandoffResponse(BaseModel):
     to_user_id: str
     progress_note: str
     handoff_at: datetime
-    completed_at: Optional[datetime]
+    completed_at: datetime | None
     created_at: datetime
 
     class Config:

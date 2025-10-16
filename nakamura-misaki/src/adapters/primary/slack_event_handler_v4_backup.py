@@ -3,7 +3,6 @@
 Task management and Handoff management via Slack messages.
 """
 
-import os
 from typing import TYPE_CHECKING
 
 from anthropic import Anthropic
