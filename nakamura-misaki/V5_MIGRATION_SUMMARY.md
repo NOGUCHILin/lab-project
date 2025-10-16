@@ -188,43 +188,38 @@ CONVERSATION_TTL_HOURS=24  # Conversation履歴の有効期限（時間）
 
 ---
 
-## 🚀 次のステップ
+## 🚀 完了済み追加実装（2025-10-16）
 
-### 1. データベースマイグレーション
+### Alembic統合・自動マイグレーション ✅
+**実装内容**:
+- Alembic初期化 ([nakamura-misaki/alembic/](nakamura-misaki/alembic/))
+- 初期マイグレーション作成 (`001_initial_schema.py`)
+  - 全5テーブル: tasks, handoffs, conversations, notes, sessions
+  - pgvector extension, task_status enum, 全インデックス定義
+- NixOS統合 (`nakamura-misaki-api.nix`)
+  - ExecStartPre: `alembic upgrade head` 自動実行
+  - 依存関係: `alembic>=1.13.0` 追加
+- 既存スキーマ対応: `alembic stamp 001` で履歴管理開始
+
+**マイグレーションワークフロー**:
 ```bash
-# Conversationsテーブル作成
+# 新しいマイグレーション作成
 cd nakamura-misaki
-uv run alembic revision --autogenerate -m "Add conversations table"
+uv run alembic revision --autogenerate -m "Description"
+
+# ローカルで適用
 uv run alembic upgrade head
+
+# 本番環境（mainブランチへpushで自動実行）
+git add alembic/versions/*.py
+git commit -m "feat: Add database migration"
+git push origin main  # → GitHub Actions → NixOS rebuild → alembic upgrade head
 ```
 
-### 2. SlackEventHandler置き換え
-```python
-# src/adapters/primary/api/routes/slack.py
-from ...slack_event_handler_v5 import SlackEventHandlerV5
-
-# DIコンテナでSlackEventHandlerV5をビルド
-handler = SlackEventHandlerV5(...)
-```
-
-### 3. 旧コード削除
-```bash
-rm src/adapters/primary/task_command_parser.py
-rm src/adapters/primary/handoff_command_parser.py
-rm src/adapters/primary/task_response_formatter.py
-rm src/adapters/primary/handoff_response_formatter.py
-```
-
-### 4. 統合テスト実施
-Slackで実際のメッセージを送信して動作確認
-
-### 5. NixOSデプロイ
-```bash
-git add .
-git commit -m "feat(nakamura-misaki): Implement v5.0.0 with Claude Agent SDK"
-git push origin main
-# GitHub Actions自動デプロイ実行
-```
+**関連コミット**:
+- `cf2c5b6`: feat: Automate Alembic migrations on NixOS service startup
+- `8a1e44e`: fix: Add alembic to nakamura-misaki Nix package dependencies
+- `944aff5`: test: Verify Alembic migration automation works correctly
 
 ---
 
@@ -285,6 +280,6 @@ git push origin main
 
 ---
 
-**最終更新**: 2025-10-15
+**最終更新**: 2025-10-16（Alembic統合追加）
 **実装者**: Claude (Sonnet 4.5)
 **TDD Approach**: Red → Green → Refactor
