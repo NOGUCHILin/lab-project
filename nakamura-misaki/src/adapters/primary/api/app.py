@@ -109,7 +109,7 @@ def create_app() -> FastAPI:
 
         # Start conversation cleanup job
         logger.info("Starting conversation cleanup job")
-        conversation_repository = di_container.build_conversation_repository()
+        conversation_repository = di_container.conversation_repository
         app.state.cleanup_job = ConversationCleanupJob(
             conversation_repository=conversation_repository,
             ttl_hours=app.state.conversation_ttl_hours,
