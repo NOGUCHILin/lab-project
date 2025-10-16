@@ -2,7 +2,7 @@
 
 {
   # nakamura-misaki API Service（Slack Events API）
-  # Force restart on deploy (timestamp: 2025-10-16 12:22)
+  # Force restart on deploy (timestamp: 2025-10-16 12:39)
   systemd.services.nakamura-misaki-api = {
     description = "nakamura-misaki v5.0.0 API Server (Claude Agent SDK)";
     after = [ "network-online.target" "postgresql.service" "nakamura-misaki-init-db.service" ];
