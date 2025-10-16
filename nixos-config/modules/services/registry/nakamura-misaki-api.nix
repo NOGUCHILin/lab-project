@@ -2,7 +2,7 @@
 
 {
   # nakamura-misaki API Service（Slack Events API）
-  # Force restart on deploy (timestamp: 2025-10-15 17:59)
+  # Force restart on deploy (timestamp: 2025-10-16 12:22)
   systemd.services.nakamura-misaki-api = {
     description = "nakamura-misaki v5.0.0 API Server (Claude Agent SDK)";
     after = [ "network-online.target" "postgresql.service" "nakamura-misaki-init-db.service" ];
@@ -17,6 +17,18 @@
       WorkingDirectory = "/home/noguchilin/projects/lab-project/nakamura-misaki";
       Restart = "always";
       RestartSec = "6s";
+
+      # Run Alembic migrations before starting the server
+      ExecStartPre = pkgs.writeShellScript "run-alembic-migrations" ''
+        set -e
+        cd /home/noguchilin/projects/lab-project/nakamura-misaki
+
+        # Load database URL
+        export DATABASE_URL="postgresql+psycopg://nakamura_misaki@localhost:5432/nakamura_misaki"
+
+        # Run migrations (use psycopg for sync operations)
+        ${nakamura-misaki.python}/bin/alembic upgrade head
+      '';
 
       # API server起動（buildPythonApplicationパッケージから直接実行）
       ExecStart = pkgs.writeShellScript "start-nakamura-api" ''
