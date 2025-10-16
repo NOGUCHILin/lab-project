@@ -1,8 +1,8 @@
 # nakamura-misaki - Project Status
 
-**最終更新**: 2025-10-15
-**現在のバージョン**: v4.0.0 (Production)
-**次期バージョン**: v5.0.0 (Planning Phase)
+**最終更新**: 2025-10-16
+**現在のバージョン**: v5.0.0 (Production)
+**次期バージョン**: v6.0.0 (Planning Phase)
 
 ---
 
@@ -10,34 +10,41 @@
 
 **nakamura-misaki**は、Slackでの会話を通じてタスク管理を行うAIアシスタントです。
 
-### 現在の状態（v4.0.0）
+### 現在の状態（v5.0.0）
 
 - ✅ **本番稼働中**（NixOS環境、Tailscale Funnel経由で公開）
-- ✅ コマンド駆動型タスク管理（正規表現パターンマッチング）
+- ✅ 自然言語駆動型タスク管理（Claude Tool Use API）
+- ✅ 会話履歴管理（24時間TTL、PostgreSQL）
+- ✅ 雑談対応（タスク以外のメッセージにも応答）
 - ✅ Hexagonal Architecture実装
 - ✅ PostgreSQL + pgvector統合
 - ✅ Slack Events API統合
-- ✅ 構造化ログ実装（2025-10-15完了）
+- ✅ 構造化ログ実装
 
-### 次のステップ（v5.0.0）
+### 次のステップ（v6.0.0）
 
-- 🚧 **計画フェーズ**（実装前）
-- 🎯 Claude Agent SDKによる自然言語理解
-- 🎯 会話履歴管理（24時間TTL）
-- 🎯 雑談対応
+- 📋 **構想フェーズ**
+- 🎯 マルチチャネル対応（Discord, LINE等）
+- 🎯 タスク自動優先度付け
+- 🎯 スマート通知（最適なタイミング）
 
 ---
 
 ## 📊 実装状況
 
-### v4.0.0（現行バージョン）
+### v5.0.0（現行バージョン）
 
 | 機能 | ステータス | 最終更新 |
 |-----|----------|---------|
+| **Claude Tool Use API統合** | ✅ 完了 | 2025-10-16 |
+| **会話履歴管理** | ✅ 完了 | 2025-10-16 |
+| **自然言語タスク操作** | ✅ 完了 | 2025-10-16 |
+| **Task Tools（4個）** | ✅ 完了 | 2025-10-16 |
+| **Handoff Tools（3個）** | ✅ 完了 | 2025-10-16 |
 | **Domain Layer** | ✅ 完了 | 2025-10-14 |
 | **Application Layer** | ✅ 完了 | 2025-10-14 |
 | **PostgreSQL Repositories** | ✅ 完了 | 2025-10-14 |
-| **Slack Event Handler** | ✅ 完了 | 2025-10-14 |
+| **Slack Event Handler V5** | ✅ 完了 | 2025-10-16 |
 | **REST API (Tasks)** | ✅ 完了 | 2025-10-14 |
 | **REST API (Handoffs)** | ✅ 完了 | 2025-10-14 |
 | **構造化ログ** | ✅ 完了 | 2025-10-15 |
@@ -46,26 +53,23 @@
 
 **本番環境**: ✅ 稼働中
 - URL: `https://<tailscale-hostname>:10000/webhook/slack`
-- サービス: `nakamura-misaki-api.service`
+- サービス: `nakamura-misaki-api.service` (v5.0.0)
 - ログレベル: INFO
 
 ---
 
-### v5.0.0（計画中）
+### v6.0.0（構想段階）
 
-| Phase | 内容 | ステータス | 開始予定 |
-|-------|------|----------|---------|
-| **Phase 0** | 要件定義・計画策定 | ✅ 完了 | 2025-10-15 |
-| **Phase 1** | 基盤構築（会話履歴DB） | 📋 未着手 | - |
-| **Phase 2** | Tool実装 | 📋 未着手 | - |
-| **Phase 3** | Claude Agent Service | 📋 未着手 | - |
-| **Phase 4** | SlackEventHandler統合 | 📋 未着手 | - |
-| **Phase 5** | REST API見直し | 📋 未着手 | - |
-| **Phase 6** | 環境変数・設定更新 | 📋 未着手 | - |
-| **Phase 7** | ログ強化 | 📋 未着手 | - |
-| **Phase 8** | テスト・検証 | 📋 未着手 | - |
+今後の機能拡張候補：
 
-**詳細計画**: [`claudedocs/v5-migration-plan.md`](claudedocs/v5-migration-plan.md)
+- タスク依存関係管理
+- サブタスク機能
+- 定期タスク（Recurrence）
+- チームダッシュボード完成
+- マルチチャネル対応（Discord, LINE）
+- ベクトル検索活用（類似タスク提案）
+
+**詳細**: 今後策定予定
 
 ---
 
@@ -91,6 +95,24 @@
 
 ## 🚀 最近の変更履歴
 
+### 2025-10-16
+
+**v5.0.0本番リリース完了**
+
+- ✅ Claude Tool Use API統合（自然言語タスク操作）
+- ✅ 会話履歴管理実装（PostgreSQL、24時間TTL）
+- ✅ Task Tools実装（register, list, update, complete）
+- ✅ Handoff Tools実装（create, list, complete）
+- ✅ SlackEventHandlerV5統合
+- ✅ 本番環境デプロイ・動作確認完了
+- ✅ バックグラウンド処理実装（Slack retryバグ対策）
+- ✅ Bot自身のメッセージ無視（無限ループ対策）
+
+**主要コミット**:
+- `a6e3f06`: v5.0.0実装（Claude Tool Use API）
+- `bc2bb14`: Slackメッセージをバックグラウンド処理化
+- `12edd4a`: Bot自身のメッセージを無視
+
 ### 2025-10-15
 
 **構造化ログ実装完了**
@@ -98,22 +120,6 @@
 - ✅ 全APIルート（slack, tasks, handoffs）にログ追加
 - ✅ app.pyでログレベル設定（環境変数`LOG_LEVEL`）
 - ✅ NixOS設定に`PYTHONUNBUFFERED=1`追加
-- ✅ 本番デプロイ完了・動作確認
-
-**ログ出力例**:
-```
-2025-10-15 14:06:41,673 - src.adapters.primary.api.routes.slack - INFO - Received Slack webhook
-2025-10-15 14:06:41,673 - src.adapters.primary.api.routes.slack - INFO - Message event: user=U5D0CJKMH
-2025-10-15 14:06:41,703 - src.adapters.primary.api.routes.slack - INFO - Message handled, response_generated=False
-```
-
-**v5.0.0移行計画策定**
-
-- ✅ 詳細実装計画作成（8 Phases）
-- ✅ Tool定義設計
-- ✅ System Prompt設計
-- ✅ データモデル設計（conversationsテーブル）
-- ✅ ドキュメント矛盾修正（README.md, CLAUDE.md）
 
 ### 2025-10-14
 
@@ -122,9 +128,6 @@
 - ✅ Hexagonal Architecture実装
 - ✅ FastAPI Application Factory導入
 - ✅ routes/フォルダ分割（slack, tasks, handoffs, team, admin）
-- ✅ 本番デプロイ成功
-
-詳細: [docs/REFACTORING_SUMMARY_2025-10-15.md](docs/REFACTORING_SUMMARY_2025-10-15.md)
 
 ---
 
@@ -285,21 +288,17 @@ src/adapters/primary/handoff_response_formatter.py
 
 ### 新規セッション開始時のチェックリスト
 
-1. **現在のバージョン確認**: v4.0.0（本番稼働中）
-2. **次期バージョン**: v5.0.0（計画フェーズ、実装未着手）
-3. **実装中のフェーズ**: なし（Phase 0完了、Phase 1未着手）
-4. **最後のデプロイ**: 2025-10-15（構造化ログ実装）
+1. **現在のバージョン確認**: v5.0.0（本番稼働中）
+2. **次期バージョン**: v6.0.0（構想段階）
+3. **実装状況**: v5.0.0完了、本番環境で稼働中
+4. **最後のデプロイ**: 2025-10-16（v5.0.0本番リリース）
 
-### よくある誤解
+### 重要な実装詳細
 
-❌ **間違い**: 「v5.0.0は既に実装中」
-✅ **正しい**: 「v5.0.0は計画のみ完了、実装は未着手」
-
-❌ **間違い**: 「自然言語タスク管理が既に動作している」
-✅ **正しい**: 「v4.0.0はコマンドパターンマッチング方式、自然言語はv5.0.0で実装予定」
-
-❌ **間違い**: 「Claude Agent SDKが統合されている」
-✅ **正しい**: 「v4.0.0はClaude APIを直接使用、Agent SDK統合はv5.0.0で予定」
+✅ **自然言語タスク管理**: Claude Tool Use APIで実装済み
+✅ **会話履歴**: PostgreSQL conversationsテーブルで管理（24時間TTL）
+✅ **Tool定義**: Task Tools 4個 + Handoff Tools 3個
+✅ **Slack統合**: Events API経由、バックグラウンド処理対応
 
 ---
 
@@ -323,19 +322,23 @@ src/adapters/primary/handoff_response_formatter.py
 
 ---
 
-## 📝 次のアクション（v5.0.0開始時）
+## 📝 次のアクション（v6.0.0検討時）
 
-新規セッションでv5.0.0実装を開始する際の手順：
+今後の機能拡張を検討する際の手順：
 
-1. **このファイル（PROJECT_STATUS.md）を確認**
-2. **Phase 1の実装タスクを確認** → [`claudedocs/v5-migration-plan.md`](claudedocs/v5-migration-plan.md)
-3. **Alembicマイグレーション作成**:
-   ```bash
-   cd nakamura-misaki
-   uv run alembic revision --autogenerate -m "Add conversations table"
-   ```
-4. **Phase 1の各タスクを順次実装**
-5. **このファイル（PROJECT_STATUS.md）を更新** → Phase 1のステータスを「完了」に変更
+1. **ユーザーフィードバックの収集**
+   - 現在のv5.0.0の使用感をヒアリング
+   - 優先度の高い機能を特定
+
+2. **技術的負債の解消**
+   - Alembicマイグレーション導入
+   - 古いコード（src/main.py等）の削除
+   - ドキュメント整理
+
+3. **v6.0.0要件定義**
+   - 機能仕様策定
+   - アーキテクチャ設計
+   - 実装計画作成
 
 ---
 
