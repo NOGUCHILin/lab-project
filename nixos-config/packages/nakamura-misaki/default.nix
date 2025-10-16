@@ -16,6 +16,7 @@ let
     asyncpg  # required for postgresql+asyncpg:// connection
     psycopg  # psycopg[binary,pool]
     sqlalchemy
+    alembic  # database migrations
     pgvector
     pydantic
     pydantic-settings
@@ -46,6 +47,7 @@ let
       asyncpg
       psycopg
       sqlalchemy
+      alembic
       pgvector
       pydantic
       pydantic-settings
