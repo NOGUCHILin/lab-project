@@ -91,6 +91,12 @@ async def slack_events(
             logger.info(f"Message event: user={user_id}, channel={channel}, text_length={len(text)}")
             logger.debug(f"Message text: {text}")
 
+            # Ignore messages from the bot itself (User Token posts as user, not bot)
+            # Bot user ID: U09AHTB4X4H
+            if user_id == "U09AHTB4X4H":
+                logger.info("Ignoring message from bot itself")
+                return {"status": "ignored"}
+
             # Ignore empty or whitespace-only messages
             if not text:
                 logger.info("Ignoring empty or whitespace-only message")
