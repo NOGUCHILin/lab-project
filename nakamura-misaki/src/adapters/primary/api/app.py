@@ -16,7 +16,7 @@ from src.infrastructure.di import DIContainer
 from src.infrastructure.jobs import ConversationCleanupJob
 from src.infrastructure.metrics import get_metrics
 
-from .routes import admin, handoffs, slack, tasks, team
+from .routes import slack
 
 logger = logging.getLogger(__name__)
 
@@ -144,10 +144,6 @@ def create_app() -> FastAPI:
 
     # ルート登録
     app.include_router(slack.router, prefix="/webhook", tags=["Slack"])
-    app.include_router(tasks.router, prefix="/api/tasks", tags=["Tasks"])
-    app.include_router(handoffs.router, prefix="/api/handoffs", tags=["Handoffs"])
-    app.include_router(team.router, prefix="/api/team", tags=["Team"])
-    app.include_router(admin.router, prefix="/admin", tags=["Admin UI"])
 
     return app
 

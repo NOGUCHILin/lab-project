@@ -6,22 +6,14 @@ Natural language task management via Claude Agent SDK.
 from anthropic import AsyncAnthropic
 from slack_sdk.web.async_client import AsyncWebClient
 
-from ...adapters.primary.tools.handoff_tools import (
-    CompleteHandoffTool,
-    ListHandoffsTool,
-    RegisterHandoffTool,
-)
 from ...adapters.primary.tools.task_tools import (
     CompleteTaskTool,
     ListTasksTool,
     RegisterTaskTool,
     UpdateTaskTool,
 )
-from ...application.use_cases.complete_handoff import CompleteHandoffUseCase
 from ...application.use_cases.complete_task import CompleteTaskUseCase
-from ...application.use_cases.query_handoffs_by_user import QueryHandoffsByUserUseCase
 from ...application.use_cases.query_user_tasks import QueryUserTasksUseCase
-from ...application.use_cases.register_handoff import RegisterHandoffUseCase
 from ...application.use_cases.register_task import RegisterTaskUseCase
 from ...application.use_cases.update_task import UpdateTaskUseCase
 from ...domain.repositories.conversation_repository import ConversationRepository
@@ -42,9 +34,6 @@ class SlackEventHandlerV5:
         query_user_tasks_use_case: QueryUserTasksUseCase,
         complete_task_use_case: CompleteTaskUseCase,
         update_task_use_case: UpdateTaskUseCase,
-        register_handoff_use_case: RegisterHandoffUseCase,
-        query_handoffs_use_case: QueryHandoffsByUserUseCase,
-        complete_handoff_use_case: CompleteHandoffUseCase,
         conversation_ttl_hours: int = 24,
     ):
         """Initialize SlackEventHandlerV5.
@@ -57,9 +46,6 @@ class SlackEventHandlerV5:
             query_user_tasks_use_case: QueryUserTasksUseCase instance
             complete_task_use_case: CompleteTaskUseCase instance
             update_task_use_case: UpdateTaskUseCase instance
-            register_handoff_use_case: RegisterHandoffUseCase instance
-            query_handoffs_use_case: QueryHandoffsByUserUseCase instance
-            complete_handoff_use_case: CompleteHandoffUseCase instance
             conversation_ttl_hours: Conversation TTL in hours (default 24)
         """
         self._anthropic_client = anthropic_client
@@ -70,9 +56,6 @@ class SlackEventHandlerV5:
         self._query_user_tasks_use_case = query_user_tasks_use_case
         self._complete_task_use_case = complete_task_use_case
         self._update_task_use_case = update_task_use_case
-        self._register_handoff_use_case = register_handoff_use_case
-        self._query_handoffs_use_case = query_handoffs_use_case
-        self._complete_handoff_use_case = complete_handoff_use_case
 
         # Conversation Manager
         self._conversation_manager = ConversationManager(
@@ -147,19 +130,6 @@ class SlackEventHandlerV5:
             ),
             UpdateTaskTool(
                 update_task_use_case=self._update_task_use_case,
-                user_id=user_id,
-            ),
-            # Handoff Tools
-            RegisterHandoffTool(
-                register_handoff_use_case=self._register_handoff_use_case,
-                user_id=user_id,
-            ),
-            ListHandoffsTool(
-                query_handoffs_use_case=self._query_handoffs_use_case,
-                user_id=user_id,
-            ),
-            CompleteHandoffTool(
-                complete_handoff_use_case=self._complete_handoff_use_case,
                 user_id=user_id,
             ),
         ]

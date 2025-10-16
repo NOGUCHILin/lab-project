@@ -1,14 +1,45 @@
-# nakamura-misaki v5.0.0 実装サマリー
+# nakamura-misaki v5.1.0 実装サマリー
 
 **実装日**: 2025-10-16
 **ステータス**: ✅ 完了・本番稼働中
-**主要コミット**: `a6e3f06 feat(nakamura-misaki): Implement v5.0.0 with Claude Tool Use API`
+**主要コミット**:
+- `a6e3f06`: v5.0.0 feat(nakamura-misaki): Implement with Claude Tool Use API
+- **v5.1.0**: Phase 1 Simplification - Core domain focus
 **アプローチ**: Test-Driven Development (TDD)
-**最終更新**: 2025-10-16（実態に合わせてドキュメント更新）
+**最終更新**: 2025-10-16（Phase 1 Simplification完了）
 
 ---
 
-## 🎯 v5.0.0の主要変更
+## 🎯 v5.1.0の主要変更（Phase 1 Simplification）
+
+### 設計哲学の転換
+- **コアドメインに集中**: 「自然言語会話によるタスク管理」
+- **過剰設計の排除**: handoffs専用テーブル、notes、sessions等の実験的機能を削除
+- **業界標準パターン**: タスク引き継ぎは`update_task`で`assignee_user_id`変更
+
+### 削除された機能（Phase 1）
+- ❌ Handoffs（専用テーブル、3 Tools、REST API）
+- ❌ Notes（構造化ノート、pgvector統合）
+- ❌ Sessions（ワークスペース管理）
+- ❌ Bottleneck/TeamStats（未実装モデル）
+- ❌ Admin UI（全REST APIルート）
+
+### Tool数の削減
+- **Before**: 7 Tools (Task 4個 + Handoff 3個)
+- **After**: 4 Tools (Task専用)
+  - register_task
+  - list_tasks
+  - complete_task
+  - update_task（assignee_user_id対応）
+
+### トークン消費の改善
+- **Before**: ~2773 tokens (System prompt 300 + 7 Tools 2200 + History 200)
+- **After**: ~1800 tokens (System prompt 300 + 4 Tools 1200 + History 200)
+- **削減率**: 35%削減
+
+---
+
+## 🎯 v5.0.0の主要変更（オリジナル）
 
 ### アーキテクチャ移行
 - **v4.0.0**: コマンドパーサー + フォーマッター（パターンマッチング）
@@ -24,7 +55,6 @@
 - ✅ Conversation履歴管理（24時間TTL）
 - ✅ Claude Tool Use API統合
 - ✅ 自然言語タスク管理
-- ✅ 7つのTool実装（Task 4個 + Handoff 3個）
 
 ---
 

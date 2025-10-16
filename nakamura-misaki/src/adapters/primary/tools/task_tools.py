@@ -357,7 +357,7 @@ class UpdateTaskTool(BaseTool):
 
     @property
     def description(self) -> str:
-        return "タスクを更新する（タイトル、説明、ステータス、期限）"
+        return "タスクを更新する（タイトル、説明、ステータス、期限、担当者）"
 
     @property
     def input_schema(self) -> dict[str, Any]:
@@ -386,6 +386,10 @@ class UpdateTaskTool(BaseTool):
                     "format": "date-time",
                     "description": "新しい期限（ISO 8601形式、任意）",
                 },
+                "assignee_user_id": {
+                    "type": "string",
+                    "description": "新しい担当者のSlack User ID（任意）。タスクを他のユーザーに引き継ぐ場合に指定する。",
+                },
             },
             "required": ["task_id"],
         }
@@ -399,6 +403,7 @@ class UpdateTaskTool(BaseTool):
             description: 新しい説明（任意）
             status: 新しいステータス（任意）
             due_date: 新しい期限（ISO 8601形式、任意）
+            assignee_user_id: 新しい担当者のSlack User ID（任意）
 
         Returns:
             dict: {"success": True, "data": {...}} or {"success": False, "error": "..."}
@@ -428,6 +433,7 @@ class UpdateTaskTool(BaseTool):
                 description=kwargs.get("description"),
                 status=kwargs.get("status"),
                 due_at=due_at,
+                assignee_user_id=kwargs.get("assignee_user_id"),
             )
 
             # Execute use case
