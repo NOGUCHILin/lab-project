@@ -3,13 +3,14 @@
 Handles Slack Event Subscriptions with signature verification.
 """
 
+import asyncio
 import hashlib
 import hmac
 import logging
 import time
 
 from anthropic import Anthropic
-from fastapi import APIRouter, Header, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Request
 from slack_sdk.web.async_client import AsyncWebClient
 
 from src.adapters.primary.slack_event_handler import SlackEventHandlerV5
@@ -17,10 +18,15 @@ from src.adapters.primary.slack_event_handler import SlackEventHandlerV5
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+# In-memory set to track recently processed event IDs (prevent duplicate processing)
+_processed_events: set[str] = set()
+_processed_events_lock = asyncio.Lock()
+
 
 @router.post("/slack")
 async def slack_events(
     request: Request,
+    background_tasks: BackgroundTasks,
     x_slack_signature: str = Header(...),
     x_slack_request_timestamp: str = Header(...),
 ):
@@ -90,30 +96,67 @@ async def slack_events(
                 logger.info("Ignoring empty or whitespace-only message")
                 return {"status": "ignored"}
 
-            # v5.0.0: SlackEventHandlerV5を使用
+            # Check for duplicate events (Slack retry logic)
+            event_id = event_data.get("event_id")
+            if event_id:
+                async with _processed_events_lock:
+                    if event_id in _processed_events:
+                        logger.info(f"Ignoring duplicate event: {event_id}")
+                        return {"status": "ignored"}
+                    _processed_events.add(event_id)
+                    # Keep only last 1000 event IDs to prevent memory leak
+                    if len(_processed_events) > 1000:
+                        _processed_events.pop()
+
+            # Process message in background to return 200 immediately
+            # (Slack expects 200 within 3 seconds or will retry)
             handler = request.app.state.slack_event_handler
             slack_token = request.app.state.slack_token
-
-            try:
-                response_text = await handler.handle_message(user_id, text, channel)
-                logger.info(f"Message handled, response_generated={bool(response_text)}")
-
-                # 応答がある場合はSlackに返信
-                if response_text:
-                    slack_client = AsyncWebClient(token=slack_token)
-                    await slack_client.chat_postMessage(
-                        channel=channel,
-                        text=response_text,
-                        unfurl_links=False,
-                        unfurl_media=False,
-                    )
-                    logger.info(f"Response sent to Slack channel={channel}")
-            except Exception as e:
-                logger.error(f"Error handling message: {e}", exc_info=True)
-                raise
+            background_tasks.add_task(
+                _process_message_async,
+                handler,
+                slack_token,
+                user_id,
+                text,
+                channel,
+            )
 
     logger.info("Webhook processed successfully")
     return {"status": "ok"}
+
+
+async def _process_message_async(
+    handler: SlackEventHandlerV5,
+    slack_token: str,
+    user_id: str,
+    text: str,
+    channel: str,
+) -> None:
+    """Process Slack message in background.
+
+    Args:
+        handler: SlackEventHandlerV5 instance
+        slack_token: Slack bot token
+        user_id: User ID
+        text: Message text
+        channel: Channel ID
+    """
+    try:
+        response_text = await handler.handle_message(user_id, text, channel)
+        logger.info(f"Message handled, response_generated={bool(response_text)}")
+
+        # 応答がある場合はSlackに返信
+        if response_text:
+            slack_client = AsyncWebClient(token=slack_token)
+            await slack_client.chat_postMessage(
+                channel=channel,
+                text=response_text,
+                unfurl_links=False,
+                unfurl_media=False,
+            )
+            logger.info(f"Response sent to Slack channel={channel}")
+    except Exception as e:
+        logger.error(f"Error handling message: {e}", exc_info=True)
 
 
 def _verify_slack_signature(
