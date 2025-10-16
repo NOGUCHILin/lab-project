@@ -79,11 +79,16 @@ async def slack_events(
         # メッセージイベント処理
         if event_subtype == "message":
             user_id = event.get("user")
-            text = event.get("text", "")
+            text = event.get("text", "").strip()
             channel = event.get("channel")
 
             logger.info(f"Message event: user={user_id}, channel={channel}, text_length={len(text)}")
             logger.debug(f"Message text: {text}")
+
+            # Ignore empty or whitespace-only messages
+            if not text:
+                logger.info("Ignoring empty or whitespace-only message")
+                return {"status": "ignored"}
 
             # v5.0.0: SlackEventHandlerV5を使用
             handler = request.app.state.slack_event_handler
