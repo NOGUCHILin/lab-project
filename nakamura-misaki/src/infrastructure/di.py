@@ -11,13 +11,16 @@ from src.adapters.primary.slack_event_handler import SlackEventHandlerV5
 from src.adapters.secondary.postgresql_conversation_repository import (
     PostgreSQLConversationRepository,
 )
-from src.adapters.secondary.postgresql_task_repository import (
-    PostgreSQLTaskRepository,
+# New Personal Tasks context repositories
+from src.contexts.personal_tasks.infrastructure.repositories.postgresql_task_repository import (
+    PostgreSQLTaskRepository as NewPostgreSQLTaskRepository,
 )
-from src.application.use_cases.complete_task import CompleteTaskUseCase
-from src.application.use_cases.query_user_tasks import QueryUserTasksUseCase
-from src.application.use_cases.register_task import RegisterTaskUseCase
-from src.application.use_cases.update_task import UpdateTaskUseCase
+# New Personal Tasks context use cases
+from src.contexts.personal_tasks.application.use_cases.complete_task import CompleteTaskUseCase
+from src.contexts.personal_tasks.application.use_cases.query_user_tasks import QueryUserTasksUseCase
+from src.contexts.personal_tasks.application.use_cases.query_due_tasks import QueryDueTasksUseCase
+from src.contexts.personal_tasks.application.use_cases.register_task import RegisterTaskUseCase
+from src.contexts.personal_tasks.application.use_cases.update_task import UpdateTaskUseCase
 
 
 class DIContainer:
@@ -41,9 +44,9 @@ class DIContainer:
 
     @property
     def task_repository(self):
-        """Get TaskRepository"""
+        """Get TaskRepository (Personal Tasks context)"""
         if self._task_repository is None:
-            self._task_repository = PostgreSQLTaskRepository(self._session)
+            self._task_repository = NewPostgreSQLTaskRepository(self._session)
         return self._task_repository
 
     @property
@@ -70,6 +73,10 @@ class DIContainer:
     def build_update_task_use_case(self) -> UpdateTaskUseCase:
         """Build UpdateTaskUseCase"""
         return UpdateTaskUseCase(self.task_repository)
+
+    def build_query_due_tasks_use_case(self) -> QueryDueTasksUseCase:
+        """Build QueryDueTasksUseCase"""
+        return QueryDueTasksUseCase(self.task_repository)
 
     # SlackEventHandler v5.0.0
 
