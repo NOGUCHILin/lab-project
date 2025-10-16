@@ -106,3 +106,150 @@ class TestTaskEquality:
         task2 = Task.create("Task 2", "U123", "U123")
 
         assert task1 != task2
+
+
+class TestTaskComplete:
+    """Test suite for Task.complete() method"""
+
+    def test_complete_task_success(self):
+        """Test completing a pending task"""
+        task = Task.create("Task 1", "U123", "U123")
+        original_updated_at = task.updated_at
+
+        task.complete()
+
+        assert task.status == TaskStatus.COMPLETED
+        assert task.completed_at is not None
+        assert isinstance(task.completed_at, datetime)
+        assert task.updated_at > original_updated_at
+
+    def test_complete_already_completed_task_raises_error(self):
+        """Test that completing an already completed task raises ValueError"""
+        task = Task.create("Task 1", "U123", "U123")
+        task.complete()
+
+        with pytest.raises(ValueError, match="Task is already completed"):
+            task.complete()
+
+    def test_complete_sets_correct_timestamps(self):
+        """Test that complete() sets completed_at and updates updated_at"""
+        task = Task.create("Task 1", "U123", "U123")
+        before_complete = datetime.now(UTC)
+
+        task.complete()
+
+        assert task.completed_at >= before_complete
+        assert task.updated_at >= before_complete
+        assert task.completed_at == task.updated_at  # Should be set at the same time
+
+
+class TestTaskUpdate:
+    """Test suite for Task.update() method"""
+
+    def test_update_task_title(self):
+        """Test updating task title"""
+        task = Task.create("Original Title", "U123", "U123")
+        original_updated_at = task.updated_at
+
+        task.update(title="Updated Title")
+
+        assert task.title == "Updated Title"
+        assert task.updated_at > original_updated_at
+
+    def test_update_task_description(self):
+        """Test updating task description"""
+        task = Task.create("Task 1", "U123", "U123")
+
+        task.update(description="New description")
+
+        assert task.description == "New description"
+
+    def test_update_task_status(self):
+        """Test updating task status"""
+        task = Task.create("Task 1", "U123", "U123")
+
+        task.update(status=TaskStatus.IN_PROGRESS)
+
+        assert task.status == TaskStatus.IN_PROGRESS
+
+    def test_update_task_due_date(self):
+        """Test updating task due date"""
+        task = Task.create("Task 1", "U123", "U123")
+        new_due_date = datetime.now(UTC) + timedelta(days=2)
+
+        task.update(due_at=new_due_date)
+
+        assert task.due_at == new_due_date
+
+    def test_update_task_multiple_fields(self):
+        """Test updating multiple fields at once"""
+        task = Task.create("Task 1", "U123", "U123")
+        new_due_date = datetime.now(UTC) + timedelta(days=3)
+
+        task.update(
+            title="Updated Task",
+            description="Updated description",
+            status=TaskStatus.IN_PROGRESS,
+            due_at=new_due_date
+        )
+
+        assert task.title == "Updated Task"
+        assert task.description == "Updated description"
+        assert task.status == TaskStatus.IN_PROGRESS
+        assert task.due_at == new_due_date
+
+    def test_update_with_empty_title_raises_error(self):
+        """Test that updating to empty title raises ValueError"""
+        task = Task.create("Task 1", "U123", "U123")
+
+        with pytest.raises(ValueError, match="Task title cannot be empty"):
+            task.update(title="")
+
+    def test_update_with_no_changes_still_updates_timestamp(self):
+        """Test that update() with no changes still updates updated_at"""
+        task = Task.create("Task 1", "U123", "U123")
+        original_updated_at = task.updated_at
+
+        task.update()
+
+        assert task.updated_at > original_updated_at
+
+    def test_update_strips_whitespace_from_title(self):
+        """Test that update() strips whitespace from title"""
+        task = Task.create("Task 1", "U123", "U123")
+
+        task.update(title="  Updated Title  ")
+
+        assert task.title == "Updated Title"
+
+
+class TestTaskIsOverdue:
+    """Test suite for Task.is_overdue() method"""
+
+    def test_task_without_due_date_is_not_overdue(self):
+        """Test that task with no due_at is not overdue"""
+        task = Task.create("Task 1", "U123", "U123")
+
+        assert task.is_overdue() is False
+
+    def test_task_with_future_due_date_is_not_overdue(self):
+        """Test that task with future due_at is not overdue"""
+        future_date = datetime.now(UTC) + timedelta(days=1)
+        task = Task.create("Task 1", "U123", "U123", due_at=future_date)
+
+        assert task.is_overdue() is False
+
+    def test_task_with_past_due_date_is_overdue(self):
+        """Test that task with past due_at is overdue"""
+        past_date = datetime.now(UTC) - timedelta(days=1)
+        task = Task.create("Task 1", "U123", "U123", due_at=past_date)
+
+        assert task.is_overdue() is True
+
+    def test_completed_task_is_not_overdue(self):
+        """Test that completed task is never overdue"""
+        past_date = datetime.now(UTC) - timedelta(days=1)
+        task = Task.create("Task 1", "U123", "U123", due_at=past_date)
+        task.complete()
+
+        assert task.is_overdue() is False

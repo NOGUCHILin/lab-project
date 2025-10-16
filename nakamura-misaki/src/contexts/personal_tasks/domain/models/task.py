@@ -97,3 +97,75 @@ class Task:
     def __hash__(self) -> int:
         """Hash based on ID for use in sets/dicts"""
         return hash(self.id)
+
+    def complete(self) -> None:
+        """Mark task as completed
+
+        Sets status to COMPLETED and records completion timestamp.
+
+        Raises:
+            ValueError: If task is already completed
+        """
+        if self.status == TaskStatus.COMPLETED:
+            raise ValueError("Task is already completed")
+
+        now = datetime.now(UTC)
+        self.status = TaskStatus.COMPLETED
+        self.completed_at = now
+        self.updated_at = now
+
+    def update(
+        self,
+        title: str | None = None,
+        description: str | None = None,
+        status: TaskStatus | None = None,
+        due_at: datetime | None = None
+    ) -> None:
+        """Update task fields
+
+        Args:
+            title: New title (optional, cannot be empty if provided)
+            description: New description (optional)
+            status: New status (optional)
+            due_at: New due date (optional)
+
+        Raises:
+            ValueError: If title is provided but empty
+        """
+        # Validate title if provided
+        if title is not None:
+            if not title or not title.strip():
+                raise ValueError("Task title cannot be empty")
+            self.title = title.strip()
+
+        # Update other fields if provided
+        if description is not None:
+            self.description = description
+
+        if status is not None:
+            self.status = status
+
+        if due_at is not None:
+            self.due_at = due_at
+
+        # Always update the timestamp
+        self.updated_at = datetime.now(UTC)
+
+    def is_overdue(self) -> bool:
+        """Check if task is overdue
+
+        A task is overdue if:
+        - It has a due_at date
+        - The due_at date is in the past
+        - The task is not completed
+
+        Returns:
+            True if task is overdue, False otherwise
+        """
+        if self.due_at is None:
+            return False
+
+        if self.status == TaskStatus.COMPLETED:
+            return False
+
+        return datetime.now(UTC) > self.due_at
