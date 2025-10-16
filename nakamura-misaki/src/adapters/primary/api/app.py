@@ -13,6 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.infrastructure.di import DIContainer
+from src.infrastructure.jobs import ConversationCleanupJob
+from src.infrastructure.metrics import get_metrics
 
 from .routes import admin, handoffs, slack, tasks, team
 
@@ -38,6 +40,7 @@ def create_app() -> FastAPI:
     app.state.anthropic_api_key = None
     app.state.conversation_ttl_hours = None
     app.state.async_session_maker = None
+    app.state.cleanup_job = None
     app.state.slack_event_handler = None
 
     @app.on_event("startup")
@@ -104,12 +107,40 @@ def create_app() -> FastAPI:
             )
         logger.info("SlackEventHandlerV5 initialized")
 
+        # Start conversation cleanup job
+        logger.info("Starting conversation cleanup job")
+        conversation_repository = di_container.build_conversation_repository()
+        app.state.cleanup_job = ConversationCleanupJob(
+            conversation_repository=conversation_repository,
+            ttl_hours=app.state.conversation_ttl_hours,
+            cleanup_interval_minutes=60,
+        )
+        await app.state.cleanup_job.start()
+        logger.info("Conversation cleanup job started")
+
         logger.info("✅ nakamura-misaki API server v5.0.0 started successfully")
+
+    @app.on_event("shutdown")
+    async def shutdown():
+        """シャットダウン処理"""
+        logger.info("Shutting down nakamura-misaki API server")
+
+        # Stop cleanup job
+        if app.state.cleanup_job:
+            logger.info("Stopping conversation cleanup job")
+            await app.state.cleanup_job.stop()
+
+        logger.info("Shutdown complete")
 
     @app.get("/health")
     async def health():
         """ヘルスチェック"""
         return {"status": "ok", "service": "nakamura-misaki", "version": "5.0.0"}
+
+    @app.get("/metrics")
+    async def metrics_endpoint():
+        """メトリクスエンドポイント"""
+        return get_metrics().get_metrics()
 
     # ルート登録
     app.include_router(slack.router, prefix="/webhook", tags=["Slack"])

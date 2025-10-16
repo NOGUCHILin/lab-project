@@ -4,6 +4,8 @@ This service acts as the orchestrator for Claude Tool Use API integration,
 managing conversation flow and tool execution.
 """
 
+import logging
+import time
 from datetime import datetime
 from typing import Any
 
@@ -11,7 +13,11 @@ from anthropic import AsyncAnthropic
 from anthropic.types import Message as AnthropicMessage
 
 from ...adapters.primary.tools.base_tool import BaseTool
+from ...infrastructure.metrics import get_metrics
 from ..models.conversation import Conversation, Message, MessageRole
+
+logger = logging.getLogger(__name__)
+metrics = get_metrics()
 
 SYSTEM_PROMPT_TEMPLATE = """
 あなたは中村美咲というタスク管理AIアシスタントです。草薙素子のような冷静で効率的な性格で、ユーザーのタスク管理をサポートします。
@@ -98,6 +104,7 @@ class ClaudeAgentService:
         system_prompt = self._build_system_prompt()
 
         # Call Claude API
+        start_time = time.time()
         response = await self._client.messages.create(
             model=self.model,
             max_tokens=self._max_tokens,
@@ -105,6 +112,26 @@ class ClaudeAgentService:
             messages=messages,
             tools=tool_definitions,
         )
+        elapsed_ms = int((time.time() - start_time) * 1000)
+
+        # Log Claude API call
+        logger.info(
+            "Claude API call completed",
+            extra={
+                "model": self.model,
+                "stop_reason": response.stop_reason,
+                "input_tokens": response.usage.input_tokens,
+                "output_tokens": response.usage.output_tokens,
+                "response_time_ms": elapsed_ms,
+                "tool_count": len(tool_definitions),
+            },
+        )
+
+        # Record metrics
+        metrics.increment("claude_api_calls")
+        metrics.increment("claude_input_tokens", response.usage.input_tokens)
+        metrics.increment("claude_output_tokens", response.usage.output_tokens)
+        metrics.record_time("claude_api_response_time", elapsed_ms)
 
         # Handle tool use if present
         if response.stop_reason == "tool_use":
@@ -145,11 +172,32 @@ class ClaudeAgentService:
             tool_id = tool_use.id
 
             # Execute tool
+            tool_start = time.time()
             tool = self._tool_map.get(tool_name)
             if tool:
                 result = await tool.execute(**tool_input)
+                success = True
             else:
                 result = {"success": False, "error": f"Unknown tool: {tool_name}"}
+                success = False
+            tool_elapsed_ms = int((time.time() - tool_start) * 1000)
+
+            # Log tool execution
+            logger.info(
+                f"Tool executed: {tool_name}",
+                extra={
+                    "tool_name": tool_name,
+                    "tool_id": tool_id,
+                    "success": success,
+                    "execution_time_ms": tool_elapsed_ms,
+                },
+            )
+
+            # Record metrics
+            metrics.increment(f"tool_executions.{tool_name}")
+            metrics.record_time(f"tool_execution_time.{tool_name}", tool_elapsed_ms)
+            if not success:
+                metrics.record_error(f"tool_error.{tool_name}")
 
             tool_results.append(
                 {
