@@ -183,10 +183,11 @@ class ClaudeAgentService:
         # Extract final text response
         response_text = self._extract_text_from_response(final_response)
 
-        # Add assistant response to conversation
-        conversation.add_message(
-            Message(role=MessageRole.ASSISTANT, content=response_text)
-        )
+        # Add assistant response to conversation (skip if empty)
+        if response_text:
+            conversation.add_message(
+                Message(role=MessageRole.ASSISTANT, content=response_text)
+            )
 
         return response_text
 
