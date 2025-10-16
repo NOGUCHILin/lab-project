@@ -1,0 +1,54 @@
+# Pre-commit configuration for nakamura-misaki v6.0.0
+# TDD + UDD development workflow
+
+repos:
+  # Ruff - Python linter and formatter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.0
+    hooks:
+      # Run linter
+      - id: ruff
+        args: [--fix]
+      # Run formatter
+      - id: ruff-format
+
+  # MyPy - Static type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-python-dateutil
+        args: [--ignore-missing-imports, --no-strict-optional]
+
+  # Pytest - Run unit tests before commit
+  - repo: local
+    hooks:
+      - id: pytest-unit
+        name: pytest-unit
+        entry: bash -c 'cd nakamura-misaki && uv run pytest tests/ -m "not integration and not e2e" -v --tb=short'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
+
+  # Pytest - Run integration tests if adapter/infrastructure files changed
+  - repo: local
+    hooks:
+      - id: pytest-integration
+        name: pytest-integration (conditional)
+        entry: bash -c 'if git diff --cached --name-only | grep -qE "(adapters/secondary|infrastructure/)"; then cd nakamura-misaki && uv run pytest tests/ -m integration -v --tb=short; else echo "No integration tests needed"; fi'
+        language: system
+        pass_filenames: false
+        stages: [commit]
+
+  # Pre-push hook - Run all tests including E2E
+  - repo: local
+    hooks:
+      - id: pytest-all
+        name: pytest-all (before push)
+        entry: bash -c 'cd nakamura-misaki && uv run pytest tests/ -v'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [push]
