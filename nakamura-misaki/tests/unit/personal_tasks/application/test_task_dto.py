@@ -1,15 +1,8 @@
 """Unit tests for Task DTOs"""
 
-from datetime import datetime, timedelta, UTC
-from uuid import uuid4
+from datetime import UTC, datetime, timedelta
 
-import pytest
-
-from src.contexts.personal_tasks.application.dto.task_dto import (
-    CreateTaskDTO,
-    TaskDTO,
-    UpdateTaskDTO
-)
+from src.contexts.personal_tasks.application.dto.task_dto import CreateTaskDTO, TaskDTO, UpdateTaskDTO
 from src.contexts.personal_tasks.domain.models.task import Task
 from src.shared_kernel.domain.value_objects.task_status import TaskStatus
 

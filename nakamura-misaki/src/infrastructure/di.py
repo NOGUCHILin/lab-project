@@ -11,16 +11,18 @@ from src.adapters.primary.slack_event_handler import SlackEventHandlerV5
 from src.adapters.secondary.postgresql_conversation_repository import (
     PostgreSQLConversationRepository,
 )
+
+# New Personal Tasks context use cases
+from src.contexts.personal_tasks.application.use_cases.complete_task import CompleteTaskUseCase
+from src.contexts.personal_tasks.application.use_cases.query_due_tasks import QueryDueTasksUseCase
+from src.contexts.personal_tasks.application.use_cases.query_user_tasks import QueryUserTasksUseCase
+from src.contexts.personal_tasks.application.use_cases.register_task import RegisterTaskUseCase
+from src.contexts.personal_tasks.application.use_cases.update_task import UpdateTaskUseCase
+
 # New Personal Tasks context repositories
 from src.contexts.personal_tasks.infrastructure.repositories.postgresql_task_repository import (
     PostgreSQLTaskRepository as NewPostgreSQLTaskRepository,
 )
-# New Personal Tasks context use cases
-from src.contexts.personal_tasks.application.use_cases.complete_task import CompleteTaskUseCase
-from src.contexts.personal_tasks.application.use_cases.query_user_tasks import QueryUserTasksUseCase
-from src.contexts.personal_tasks.application.use_cases.query_due_tasks import QueryDueTasksUseCase
-from src.contexts.personal_tasks.application.use_cases.register_task import RegisterTaskUseCase
-from src.contexts.personal_tasks.application.use_cases.update_task import UpdateTaskUseCase
 
 
 class DIContainer:

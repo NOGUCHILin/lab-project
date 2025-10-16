@@ -1,8 +1,9 @@
 """Unit tests for Task domain model"""
 
-import pytest
 from datetime import datetime, timedelta
 from uuid import UUID
+
+import pytest
 
 from src.domain.models.task import Task, TaskStatus
 

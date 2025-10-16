@@ -4,8 +4,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from ...domain.models.task import Task
 from src.shared_kernel.domain.value_objects.task_status import TaskStatus
+
+from ...domain.models.task import Task
 
 
 @dataclass

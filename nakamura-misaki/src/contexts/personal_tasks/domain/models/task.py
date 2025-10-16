@@ -1,7 +1,7 @@
 """Task domain model - Personal Tasks Context"""
 
 from dataclasses import dataclass
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from src.shared_kernel.domain.value_objects.task_status import TaskStatus

@@ -2,8 +2,8 @@
 
 from uuid import UUID
 
-from ..dto.task_dto import UpdateTaskDTO, TaskDTO
 from ...domain.repositories.task_repository import TaskRepository
+from ..dto.task_dto import TaskDTO, UpdateTaskDTO
 
 
 class UpdateTaskUseCase:

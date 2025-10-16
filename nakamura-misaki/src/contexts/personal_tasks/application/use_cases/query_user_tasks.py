@@ -1,8 +1,9 @@
 """QueryUserTasks Use Case - Application layer"""
 
-from ..dto.task_dto import TaskDTO
-from ...domain.repositories.task_repository import TaskRepository
 from src.shared_kernel.domain.value_objects.task_status import TaskStatus
+
+from ...domain.repositories.task_repository import TaskRepository
+from ..dto.task_dto import TaskDTO
 
 
 class QueryUserTasksUseCase:

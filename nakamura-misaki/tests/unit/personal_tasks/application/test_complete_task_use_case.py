@@ -4,10 +4,10 @@ from uuid import uuid4
 
 import pytest
 
-from src.contexts.personal_tasks.application.use_cases.complete_task import CompleteTaskUseCase
 from src.contexts.personal_tasks.application.dto.task_dto import TaskDTO
-from src.contexts.personal_tasks.domain.repositories.task_repository import TaskRepository
+from src.contexts.personal_tasks.application.use_cases.complete_task import CompleteTaskUseCase
 from src.contexts.personal_tasks.domain.models.task import Task
+from src.contexts.personal_tasks.domain.repositories.task_repository import TaskRepository
 from src.shared_kernel.domain.value_objects.task_status import TaskStatus
 
 

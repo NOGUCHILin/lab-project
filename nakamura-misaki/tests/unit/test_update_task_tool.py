@@ -11,7 +11,6 @@ from uuid import uuid4
 import pytest
 
 from src.adapters.primary.tools.task_tools import UpdateTaskTool
-from src.domain.models.task import Task, TaskStatus
 
 
 @pytest.fixture

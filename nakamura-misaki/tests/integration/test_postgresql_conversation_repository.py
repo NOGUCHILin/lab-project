@@ -3,7 +3,7 @@
 Following TDD: Red -> Green -> Refactor
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
@@ -193,7 +193,7 @@ async def test_delete(repository, async_session):
 async def test_delete_expired(repository, async_session):
     """Should delete conversations older than TTL."""
     # Create old conversation (25 hours ago)
-    old_time = datetime.now(timezone.utc) - timedelta(hours=25)
+    old_time = datetime.now(UTC) - timedelta(hours=25)
     old_conversation = Conversation(
         conversation_id=uuid4(),
         user_id="U5D0CJKMH",

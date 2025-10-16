@@ -1,14 +1,14 @@
 """Unit tests for Repository interfaces"""
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from uuid import UUID
 
 import pytest
 
-from src.contexts.personal_tasks.domain.models.task import Task
 from src.contexts.personal_tasks.domain.models.conversation import Conversation
-from src.contexts.personal_tasks.domain.repositories.task_repository import TaskRepository
+from src.contexts.personal_tasks.domain.models.task import Task
 from src.contexts.personal_tasks.domain.repositories.conversation_repository import ConversationRepository
+from src.contexts.personal_tasks.domain.repositories.task_repository import TaskRepository
 from src.shared_kernel.domain.value_objects.task_status import TaskStatus
 
 

@@ -3,8 +3,8 @@
 import pytest
 
 from src.contexts.personal_tasks.application.use_cases.query_user_tasks import QueryUserTasksUseCase
-from src.contexts.personal_tasks.domain.repositories.task_repository import TaskRepository
 from src.contexts.personal_tasks.domain.models.task import Task
+from src.contexts.personal_tasks.domain.repositories.task_repository import TaskRepository
 from src.shared_kernel.domain.value_objects.task_status import TaskStatus
 
 

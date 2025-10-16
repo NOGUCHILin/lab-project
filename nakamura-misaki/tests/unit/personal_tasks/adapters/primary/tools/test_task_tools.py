@@ -1,25 +1,24 @@
 """Unit tests for Task Tools (MCP tools adapter)"""
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
 
 from src.contexts.personal_tasks.adapters.primary.tools.task_tools import (
-    TaskTools,
-    RegisterTaskParams,
     CompleteTaskParams,
-    UpdateTaskParams,
     QueryUserTasksParams,
+    RegisterTaskParams,
+    TaskTools,
+    UpdateTaskParams,
 )
-from src.contexts.personal_tasks.application.use_cases.register_task import RegisterTaskUseCase
 from src.contexts.personal_tasks.application.use_cases.complete_task import CompleteTaskUseCase
-from src.contexts.personal_tasks.application.use_cases.update_task import UpdateTaskUseCase
-from src.contexts.personal_tasks.application.use_cases.query_user_tasks import QueryUserTasksUseCase
 from src.contexts.personal_tasks.application.use_cases.query_due_tasks import QueryDueTasksUseCase
-from src.contexts.personal_tasks.domain.repositories.task_repository import TaskRepository
+from src.contexts.personal_tasks.application.use_cases.query_user_tasks import QueryUserTasksUseCase
+from src.contexts.personal_tasks.application.use_cases.register_task import RegisterTaskUseCase
+from src.contexts.personal_tasks.application.use_cases.update_task import UpdateTaskUseCase
 from src.contexts.personal_tasks.domain.models.task import Task
-from src.shared_kernel.domain.value_objects.task_status import TaskStatus
+from src.contexts.personal_tasks.domain.repositories.task_repository import TaskRepository
 
 
 class FakeTaskRepository(TaskRepository):

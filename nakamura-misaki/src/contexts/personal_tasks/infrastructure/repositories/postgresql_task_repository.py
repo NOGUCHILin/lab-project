@@ -1,15 +1,16 @@
 """PostgreSQL Task Repository implementation"""
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import select, delete as sql_delete, String, DateTime, Enum as SQLEnum
+from sqlalchemy import DateTime, String, select
+from sqlalchemy import delete as sql_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-from ...domain.repositories.task_repository import TaskRepository
-from ...domain.models.task import Task
 from .....shared_kernel.domain.value_objects.task_status import TaskStatus
+from ...domain.models.task import Task
+from ...domain.repositories.task_repository import TaskRepository
 
 
 class Base(DeclarativeBase):

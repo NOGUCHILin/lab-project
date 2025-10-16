@@ -1,6 +1,6 @@
 """Unit tests for ClaudeClient interface"""
 
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
 import pytest
 

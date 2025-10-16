@@ -1,20 +1,20 @@
 """Unit tests for Task API routes"""
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
 from fastapi import FastAPI
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
 
 from src.contexts.personal_tasks.adapters.primary.api.routes.tasks import create_task_router
-from src.contexts.personal_tasks.application.use_cases.register_task import RegisterTaskUseCase
 from src.contexts.personal_tasks.application.use_cases.complete_task import CompleteTaskUseCase
-from src.contexts.personal_tasks.application.use_cases.update_task import UpdateTaskUseCase
-from src.contexts.personal_tasks.application.use_cases.query_user_tasks import QueryUserTasksUseCase
 from src.contexts.personal_tasks.application.use_cases.query_due_tasks import QueryDueTasksUseCase
-from src.contexts.personal_tasks.domain.repositories.task_repository import TaskRepository
+from src.contexts.personal_tasks.application.use_cases.query_user_tasks import QueryUserTasksUseCase
+from src.contexts.personal_tasks.application.use_cases.register_task import RegisterTaskUseCase
+from src.contexts.personal_tasks.application.use_cases.update_task import UpdateTaskUseCase
 from src.contexts.personal_tasks.domain.models.task import Task
+from src.contexts.personal_tasks.domain.repositories.task_repository import TaskRepository
 
 
 class FakeTaskRepository(TaskRepository):

@@ -1,7 +1,7 @@
 """Conversation domain model - Personal Tasks Context"""
 
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, UTC
+from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 

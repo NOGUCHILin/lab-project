@@ -1,6 +1,6 @@
 """Unit tests for Task domain model - Part 1: Basic structure"""
 
-from datetime import datetime, timedelta, UTC
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import pytest

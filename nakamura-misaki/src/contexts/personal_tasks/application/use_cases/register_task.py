@@ -1,8 +1,8 @@
 """RegisterTask Use Case - Application layer"""
 
-from ..dto.task_dto import CreateTaskDTO, TaskDTO
 from ...domain.models.task import Task
 from ...domain.repositories.task_repository import TaskRepository
+from ..dto.task_dto import CreateTaskDTO, TaskDTO
 
 
 class RegisterTaskUseCase:

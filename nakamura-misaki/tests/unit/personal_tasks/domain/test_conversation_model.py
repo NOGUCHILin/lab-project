@@ -1,9 +1,7 @@
 """Unit tests for Conversation domain model"""
 
-from datetime import datetime, timedelta, UTC
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
-
-import pytest
 
 from src.contexts.personal_tasks.domain.models.conversation import Conversation, Message
 

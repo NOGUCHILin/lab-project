@@ -6,13 +6,13 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from .....application.use_cases.register_task import RegisterTaskUseCase
-from .....application.use_cases.complete_task import CompleteTaskUseCase
-from .....application.use_cases.update_task import UpdateTaskUseCase
-from .....application.use_cases.query_user_tasks import QueryUserTasksUseCase
-from .....application.use_cases.query_due_tasks import QueryDueTasksUseCase
-from .....application.dto.task_dto import CreateTaskDTO, UpdateTaskDTO
 from .......shared_kernel.domain.value_objects.task_status import TaskStatus
+from .....application.dto.task_dto import CreateTaskDTO, UpdateTaskDTO
+from .....application.use_cases.complete_task import CompleteTaskUseCase
+from .....application.use_cases.query_due_tasks import QueryDueTasksUseCase
+from .....application.use_cases.query_user_tasks import QueryUserTasksUseCase
+from .....application.use_cases.register_task import RegisterTaskUseCase
+from .....application.use_cases.update_task import UpdateTaskUseCase
 
 
 # Request/Response Models

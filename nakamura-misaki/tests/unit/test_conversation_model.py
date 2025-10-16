@@ -5,7 +5,7 @@ Tests the domain model for conversation history management.
 Following TDD: Red -> Green -> Refactor
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
@@ -104,7 +104,7 @@ class TestConversation:
 
     def test_is_expired_expired(self):
         """Should return True if conversation exceeds TTL."""
-        past_time = datetime.now(timezone.utc) - timedelta(hours=25)
+        past_time = datetime.now(UTC) - timedelta(hours=25)
 
         conversation = Conversation(
             conversation_id=uuid4(),

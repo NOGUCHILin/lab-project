@@ -3,8 +3,9 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from ..models.task import Task
 from src.shared_kernel.domain.value_objects.task_status import TaskStatus
+
+from ..models.task import Task
 
 
 class TaskRepository(ABC):

@@ -1,14 +1,14 @@
 """Unit tests for UpdateTaskUseCase"""
 
-from datetime import datetime, timedelta, UTC
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
 
+from src.contexts.personal_tasks.application.dto.task_dto import UpdateTaskDTO
 from src.contexts.personal_tasks.application.use_cases.update_task import UpdateTaskUseCase
-from src.contexts.personal_tasks.application.dto.task_dto import UpdateTaskDTO, TaskDTO
-from src.contexts.personal_tasks.domain.repositories.task_repository import TaskRepository
 from src.contexts.personal_tasks.domain.models.task import Task
+from src.contexts.personal_tasks.domain.repositories.task_repository import TaskRepository
 from src.shared_kernel.domain.value_objects.task_status import TaskStatus
 
 

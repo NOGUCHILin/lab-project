@@ -1,17 +1,16 @@
 """Unit tests for PostgreSQL Task Repository"""
 
-from datetime import datetime, UTC, timedelta
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import select, delete
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from src.contexts.personal_tasks.domain.models.task import Task
 from src.contexts.personal_tasks.infrastructure.repositories.postgresql_task_repository import (
     PostgreSQLTaskRepository,
     TaskModel,
 )
-from src.contexts.personal_tasks.domain.models.task import Task
 from src.shared_kernel.domain.value_objects.task_status import TaskStatus
 
 

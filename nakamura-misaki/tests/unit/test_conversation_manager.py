@@ -4,7 +4,7 @@ Unit tests for ConversationManager domain service.
 Following TDD: Red -> Green -> Refactor
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, Mock
 from uuid import uuid4
 
@@ -91,7 +91,7 @@ async def test_get_or_create_existing_expired(conversation_manager, mock_reposit
     channel_id = "C1234567890"
 
     # Expired conversation (25 hours old)
-    old_time = datetime.now(timezone.utc) - timedelta(hours=25)
+    old_time = datetime.now(UTC) - timedelta(hours=25)
     expired_conversation = Conversation(
         conversation_id=uuid4(),
         user_id=user_id,

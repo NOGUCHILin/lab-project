@@ -1,13 +1,13 @@
 """Unit tests for QueryDueTasksUseCase"""
 
-from datetime import datetime, timedelta, UTC
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from src.contexts.personal_tasks.application.use_cases.query_due_tasks import QueryDueTasksUseCase
 from src.contexts.personal_tasks.application.dto.task_dto import TaskDTO
-from src.contexts.personal_tasks.domain.repositories.task_repository import TaskRepository
+from src.contexts.personal_tasks.application.use_cases.query_due_tasks import QueryDueTasksUseCase
 from src.contexts.personal_tasks.domain.models.task import Task
+from src.contexts.personal_tasks.domain.repositories.task_repository import TaskRepository
 
 
 class FakeTaskRepository(TaskRepository):

@@ -1,7 +1,7 @@
 """QueryDueTasks Use Case - Application layer"""
 
-from ..dto.task_dto import TaskDTO
 from ...domain.repositories.task_repository import TaskRepository
+from ..dto.task_dto import TaskDTO
 
 
 class QueryDueTasksUseCase:
