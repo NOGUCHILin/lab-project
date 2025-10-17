@@ -6,7 +6,7 @@ Periodically removes expired conversations based on TTL.
 import asyncio
 import logging
 
-from ...domain.repositories.conversation_repository import ConversationRepository
+from ...contexts.personal_tasks.domain.repositories.conversation_repository import ConversationRepository
 
 logger = logging.getLogger(__name__)
 
