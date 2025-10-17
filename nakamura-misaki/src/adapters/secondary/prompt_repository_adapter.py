@@ -7,7 +7,6 @@ import json
 from pathlib import Path
 
 from src.domain.models.prompt_config import PromptConfig
-
 from src.domain.repositories.prompt_repository import PromptRepository
 
 

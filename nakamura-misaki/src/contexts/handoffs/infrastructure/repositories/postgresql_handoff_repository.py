@@ -4,8 +4,6 @@ from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from src.contexts.personal_tasks.domain.value_objects.task_id import TaskId
-from src.infrastructure.database.models import HandoffModel
 
 from src.contexts.handoffs.domain.entities.handoff import Handoff
 from src.contexts.handoffs.domain.repositories.handoff_repository import HandoffRepository
@@ -15,6 +13,8 @@ from src.contexts.handoffs.domain.value_objects.handoff_status import (
     HandoffState,
     HandoffStatus,
 )
+from src.contexts.personal_tasks.domain.value_objects.task_id import TaskId
+from src.infrastructure.database.models import HandoffModel
 from src.shared_kernel.domain.value_objects.user_id import UserId
 
 

@@ -3,11 +3,10 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from src.contexts.personal_tasks.domain.value_objects.task_id import TaskId
-
 from src.contexts.handoffs.domain.entities.handoff import Handoff
 from src.contexts.handoffs.domain.repositories.handoff_repository import HandoffRepository
 from src.contexts.handoffs.domain.value_objects.handoff_content import HandoffContent
+from src.contexts.personal_tasks.domain.value_objects.task_id import TaskId
 from src.shared_kernel.domain.value_objects.user_id import UserId
 
 
