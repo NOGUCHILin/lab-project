@@ -13,7 +13,7 @@ from src.contexts.handoffs.domain.value_objects.handoff_status import (
     HandoffState,
     HandoffStatus,
 )
-from src.infrastructure.database.models import HandoffModel
+from src.infrastructure.database.schema import HandoffModel
 from src.shared_kernel.domain.value_objects.user_id import UserId
 
 
