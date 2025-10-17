@@ -1,9 +1,10 @@
-"""Domain repositories (interfaces)"""
+"""Domain repositories (interfaces)
 
-from .conversation_repository import ConversationRepository
-from .task_repository import TaskRepository
+Note: Repository interfaces have been migrated to DDD bounded contexts.
+See:
+- src.contexts.personal_tasks.domain.repositories
+- src.contexts.handoffs.domain.repositories
+- src.contexts.conversations.domain.repositories
+"""
 
-__all__ = [
-    "ConversationRepository",
-    "TaskRepository",
-]
+__all__ = []

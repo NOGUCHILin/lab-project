@@ -1,12 +1,10 @@
-"""Domain models for Nakamura-Misaki"""
+"""Domain models for Nakamura-Misaki
 
-from .conversation import Conversation, Message, MessageRole
-from .task import Task, TaskStatus
+Note: Domain models have been migrated to DDD bounded contexts.
+See:
+- src.contexts.personal_tasks.domain.models
+- src.contexts.handoffs.domain.entities
+- src.contexts.conversations.domain.models
+"""
 
-__all__ = [
-    "Conversation",
-    "Message",
-    "MessageRole",
-    "Task",
-    "TaskStatus",
-]
+__all__ = []
