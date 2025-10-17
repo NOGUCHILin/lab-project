@@ -6,8 +6,8 @@ Handles conversation lifecycle: creation, message addition, history retrieval.
 
 from uuid import uuid4
 
-from ..models.conversation import Conversation, Message, MessageRole
-from ..repositories.conversation_repository import ConversationRepository
+from ...contexts.personal_tasks.domain.models.conversation import Conversation, Message, MessageRole
+from ...contexts.personal_tasks.domain.repositories.conversation_repository import ConversationRepository
 
 
 class ConversationManager:
