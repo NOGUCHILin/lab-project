@@ -142,3 +142,33 @@ class EmployeeSkillTable(Base):
         Index("idx_employee_skills_employee", "employee_id"),
         Index("idx_employee_skills_skill", "skill_id"),
     )
+
+
+# Handoffs table - temporarily kept for backward compatibility
+# TODO: Remove handoffs feature entirely in Phase 2
+class HandoffTable(Base):
+    """Handoffs table for task handoff management (deprecated)"""
+
+    __tablename__ = "handoffs"
+
+    handoff_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    task_id = Column(UUID(as_uuid=True), nullable=True)
+    from_user_id = Column(String(100), nullable=False)
+    to_user_id = Column(String(100), nullable=False)
+    progress_note = Column(Text, nullable=False)
+    next_steps = Column(Text, nullable=False)
+    status = Column(String(20), nullable=False, default="pending")
+    handoff_at = Column(DateTime, nullable=False)
+    accepted_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.now)
+
+    __table_args__ = (
+        Index("idx_handoffs_from_user", "from_user_id"),
+        Index("idx_handoffs_to_user", "to_user_id"),
+        Index("idx_handoffs_status", "status"),
+    )
+
+
+# Alias for backward compatibility
+HandoffModel = HandoffTable
