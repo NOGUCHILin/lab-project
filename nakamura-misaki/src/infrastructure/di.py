@@ -8,7 +8,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.adapters.primary.slack_event_handler import SlackEventHandlerV5
-from src.adapters.secondary.postgresql_conversation_repository import (
+from src.contexts.personal_tasks.infrastructure.repositories.postgresql_conversation_repository import (
     PostgreSQLConversationRepository,
 )
 
