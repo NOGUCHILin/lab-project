@@ -1,9 +1,13 @@
-"""JSON file-based prompt repository adapter"""
+"""JSON file-based prompt repository adapter
+
+Repository implementation for loading prompt configurations from JSON files.
+"""
 
 import json
 from pathlib import Path
 
 from src.domain.models.prompt_config import PromptConfig
+
 from src.domain.repositories.prompt_repository import PromptRepository
 
 
