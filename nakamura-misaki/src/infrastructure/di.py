@@ -77,8 +77,8 @@ class DIContainer:
     def __init__(
         self,
         session: AsyncSession,
-        claude_client: Anthropic,
         slack_client: AsyncWebClient,
+        claude_client: Anthropic | None = None,
     ):
         self._session = session
         self._claude_client = claude_client
@@ -235,3 +235,42 @@ class DIContainer:
             suggest_assignees_use_case=self.build_suggest_assignees_use_case(),
             conversation_ttl_hours=conversation_ttl_hours,
         )
+
+
+# Global DI container instance
+_di_container_instance: DIContainer | None = None
+
+
+def get_di_container() -> DIContainer:
+    """Get global DI container instance
+    
+    Returns:
+        DIContainer: Global DI container instance
+    
+    Raises:
+        RuntimeError: If DI container has not been initialized
+    """
+    if _di_container_instance is None:
+        raise RuntimeError(
+            "DI container has not been initialized. "
+            "Call initialize_di_container() first."
+        )
+    return _di_container_instance
+
+
+def initialize_di_container(
+    session: AsyncSession,
+    slack_client: AsyncWebClient,
+) -> DIContainer:
+    """Initialize global DI container
+    
+    Args:
+        session: SQLAlchemy async session
+        slack_client: Slack async web client
+    
+    Returns:
+        DIContainer: Initialized DI container
+    """
+    global _di_container_instance
+    _di_container_instance = DIContainer(session, slack_client)
+    return _di_container_instance
