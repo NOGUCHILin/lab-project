@@ -25,10 +25,10 @@ class AddMessageUseCase:
     def __init__(self, conversation_repository: ConversationRepository):
         self._conversation_repository = conversation_repository
 
-    def execute(self, command: AddMessageCommand) -> Conversation:
+    async def execute(self, command: AddMessageCommand) -> Conversation:
         """Execute add message use case"""
         conversation_id = ConversationId.from_string(command.conversation_id)
-        conversation = self._conversation_repository.find_by_id(conversation_id)
+        conversation = await self._conversation_repository.find_by_id(conversation_id)
 
         if not conversation:
             raise ValueError(f"Conversation not found: {command.conversation_id}")
@@ -45,6 +45,6 @@ class AddMessageUseCase:
         conversation.add_message(message)
 
         # Save conversation
-        self._conversation_repository.save(conversation)
+        await self._conversation_repository.save(conversation)
 
         return conversation

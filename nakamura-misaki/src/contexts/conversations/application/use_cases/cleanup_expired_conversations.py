@@ -11,10 +11,10 @@ class CleanupExpiredConversationsUseCase:
     def __init__(self, conversation_repository: ConversationRepository):
         self._conversation_repository = conversation_repository
 
-    def execute(self) -> int:
+    async def execute(self) -> int:
         """Execute cleanup expired conversations use case
 
         Returns:
             Number of conversations deleted
         """
-        return self._conversation_repository.delete_expired()
+        return await self._conversation_repository.delete_expired()

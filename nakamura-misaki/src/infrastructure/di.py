@@ -12,6 +12,20 @@ from src.adapters.secondary.postgresql_conversation_repository import (
     PostgreSQLConversationRepository,
 )
 
+# Conversations context use cases
+from src.contexts.conversations.application.use_cases.add_message import AddMessageUseCase
+from src.contexts.conversations.application.use_cases.cleanup_expired_conversations import (
+    CleanupExpiredConversationsUseCase,
+)
+from src.contexts.conversations.application.use_cases.get_or_create_conversation import (
+    GetOrCreateConversationUseCase,
+)
+
+# Conversations context repositories
+from src.contexts.conversations.infrastructure.repositories.postgresql_conversation_repository import (
+    PostgreSQLConversationRepository as NewPostgreSQLConversationRepository,
+)
+
 # Handoffs context use cases
 from src.contexts.handoffs.application.use_cases.accept_handoff import AcceptHandoffUseCase
 from src.contexts.handoffs.application.use_cases.complete_handoff import (
@@ -61,7 +75,8 @@ class DIContainer:
 
         # リポジトリ
         self._task_repository = None
-        self._conversation_repository = None
+        self._conversation_repository = None  # Old version
+        self._new_conversation_repository = None  # New Conversations Context
         self._handoff_repository = None
 
     # Repository Getters
@@ -86,6 +101,13 @@ class DIContainer:
         if self._handoff_repository is None:
             self._handoff_repository = PostgreSQLHandoffRepository(self._session)
         return self._handoff_repository
+
+    @property
+    def new_conversation_repository(self):
+        """Get ConversationRepository (Conversations context - new version)"""
+        if self._new_conversation_repository is None:
+            self._new_conversation_repository = NewPostgreSQLConversationRepository(self._session)
+        return self._new_conversation_repository
 
     # Use Case Builders - Task
 
@@ -134,6 +156,22 @@ class DIContainer:
     def build_send_overdue_reminders_use_case(self) -> SendOverdueRemindersUseCase:
         """Build SendOverdueRemindersUseCase"""
         return SendOverdueRemindersUseCase(self.handoff_repository)
+
+    # Use Case Builders - Conversation (new Conversations Context)
+
+    def build_get_or_create_conversation_use_case(self) -> GetOrCreateConversationUseCase:
+        """Build GetOrCreateConversationUseCase"""
+        return GetOrCreateConversationUseCase(self.new_conversation_repository)
+
+    def build_add_message_use_case(self) -> AddMessageUseCase:
+        """Build AddMessageUseCase"""
+        return AddMessageUseCase(self.new_conversation_repository)
+
+    def build_cleanup_expired_conversations_use_case(
+        self,
+    ) -> CleanupExpiredConversationsUseCase:
+        """Build CleanupExpiredConversationsUseCase"""
+        return CleanupExpiredConversationsUseCase(self.new_conversation_repository)
 
     # SlackEventHandler v5.0.0
 

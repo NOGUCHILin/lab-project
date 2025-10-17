@@ -24,12 +24,12 @@ class GetOrCreateConversationUseCase:
     def __init__(self, conversation_repository: ConversationRepository):
         self._conversation_repository = conversation_repository
 
-    def execute(self, command: GetOrCreateConversationCommand) -> Conversation:
+    async def execute(self, command: GetOrCreateConversationCommand) -> Conversation:
         """Execute get or create conversation use case"""
         user_id = UserId(value=command.user_id)
 
         # Try to find existing conversation
-        conversation = self._conversation_repository.find_by_user_and_channel(
+        conversation = await self._conversation_repository.find_by_user_and_channel(
             user_id, command.channel_id
         )
 
@@ -39,7 +39,7 @@ class GetOrCreateConversationUseCase:
 
         # If expired, delete it
         if conversation and conversation.is_expired():
-            self._conversation_repository.delete(conversation.id)
+            await self._conversation_repository.delete(conversation.id)
 
         # Create new conversation
         new_conversation = Conversation.create(
@@ -48,5 +48,5 @@ class GetOrCreateConversationUseCase:
             ttl_hours=command.ttl_hours,
         )
 
-        self._conversation_repository.save(new_conversation)
+        await self._conversation_repository.save(new_conversation)
         return new_conversation

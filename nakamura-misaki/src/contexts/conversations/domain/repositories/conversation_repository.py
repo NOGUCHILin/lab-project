@@ -20,7 +20,7 @@ class ConversationRepository(ABC):
     """
 
     @abstractmethod
-    def save(self, conversation: Conversation) -> None:
+    async def save(self, conversation: Conversation) -> None:
         """Save a conversation (create or update)
 
         Args:
@@ -29,7 +29,7 @@ class ConversationRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_id(self, conversation_id: ConversationId) -> Conversation | None:
+    async def find_by_id(self, conversation_id: ConversationId) -> Conversation | None:
         """Get conversation by ID
 
         Args:
@@ -41,7 +41,7 @@ class ConversationRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_user_and_channel(
+    async def find_by_user_and_channel(
         self, user_id: UserId, channel_id: str
     ) -> Conversation | None:
         """Get active conversation for user in channel
@@ -56,7 +56,7 @@ class ConversationRepository(ABC):
         pass
 
     @abstractmethod
-    def delete(self, conversation_id: ConversationId) -> None:
+    async def delete(self, conversation_id: ConversationId) -> None:
         """Delete a conversation
 
         Args:
@@ -65,7 +65,7 @@ class ConversationRepository(ABC):
         pass
 
     @abstractmethod
-    def delete_expired(self) -> int:
+    async def delete_expired(self) -> int:
         """Delete all expired conversations
 
         Returns:
