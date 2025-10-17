@@ -16,7 +16,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase
 
-from ...domain.models.task import TaskStatus
+from src.shared_kernel.domain.value_objects.task_status import TaskStatus
 
 
 class Base(AsyncAttrs, DeclarativeBase):
