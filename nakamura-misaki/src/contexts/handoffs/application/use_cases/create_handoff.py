@@ -2,11 +2,11 @@
 
 from dataclasses import dataclass
 from datetime import datetime
+from uuid import UUID
 
 from src.contexts.handoffs.domain.entities.handoff import Handoff
 from src.contexts.handoffs.domain.repositories.handoff_repository import HandoffRepository
 from src.contexts.handoffs.domain.value_objects.handoff_content import HandoffContent
-from src.contexts.personal_tasks.domain.value_objects.task_id import TaskId
 from src.shared_kernel.domain.value_objects.user_id import UserId
 
 
@@ -37,7 +37,7 @@ class CreateHandoffUseCase:
             progress_note=command.progress_note,
             next_steps=command.next_steps,
         )
-        task_id = TaskId.from_string(command.task_id) if command.task_id else None
+        task_id = UUID(command.task_id) if command.task_id else None
 
         # Create handoff entity
         handoff = Handoff.create(

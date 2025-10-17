@@ -13,7 +13,6 @@ from src.contexts.handoffs.domain.value_objects.handoff_status import (
     HandoffState,
     HandoffStatus,
 )
-from src.contexts.personal_tasks.domain.value_objects.task_id import TaskId
 from src.infrastructure.database.models import HandoffModel
 from src.shared_kernel.domain.value_objects.user_id import UserId
 
@@ -99,7 +98,7 @@ class PostgreSQLHandoffRepository(HandoffRepository):
 
         return Handoff(
             id=HandoffId(value=model.id),
-            task_id=TaskId(value=model.task_id) if model.task_id else None,
+            task_id=model.task_id,
             from_user_id=UserId(value=model.from_user_id),
             to_user_id=UserId(value=model.to_user_id),
             content=HandoffContent(
@@ -119,7 +118,7 @@ class PostgreSQLHandoffRepository(HandoffRepository):
         """Convert entity to model"""
         return HandoffModel(
             id=handoff.id.value,
-            task_id=handoff.task_id.value if handoff.task_id else None,
+            task_id=handoff.task_id,
             from_user_id=handoff.from_user_id.value,
             to_user_id=handoff.to_user_id.value,
             progress_note=handoff.content.progress_note,
@@ -132,7 +131,7 @@ class PostgreSQLHandoffRepository(HandoffRepository):
 
     def _update_model(self, model: HandoffModel, handoff: Handoff) -> None:
         """Update existing model with entity data"""
-        model.task_id = handoff.task_id.value if handoff.task_id else None
+        model.task_id = handoff.task_id
         model.from_user_id = handoff.from_user_id.value
         model.to_user_id = handoff.to_user_id.value
         model.progress_note = handoff.content.progress_note
