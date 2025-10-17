@@ -12,6 +12,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
+from src.contexts.handoffs.adapters.primary.api.routes import handoffs
 from src.infrastructure.di import DIContainer
 from src.infrastructure.jobs import ConversationCleanupJob
 from src.infrastructure.metrics import get_metrics
@@ -144,6 +145,7 @@ def create_app() -> FastAPI:
 
     # ルート登録
     app.include_router(slack.router, prefix="/webhook", tags=["Slack"])
+    app.include_router(handoffs.router, prefix="/api", tags=["Handoffs"])
 
     return app
 

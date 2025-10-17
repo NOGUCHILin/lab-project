@@ -12,6 +12,27 @@ from src.adapters.secondary.postgresql_conversation_repository import (
     PostgreSQLConversationRepository,
 )
 
+# Handoffs context use cases
+from src.contexts.handoffs.application.use_cases.accept_handoff import AcceptHandoffUseCase
+from src.contexts.handoffs.application.use_cases.complete_handoff import (
+    CompleteHandoffUseCase,
+)
+from src.contexts.handoffs.application.use_cases.create_handoff import CreateHandoffUseCase
+from src.contexts.handoffs.application.use_cases.query_pending_handoffs import (
+    QueryPendingHandoffsUseCase,
+)
+from src.contexts.handoffs.application.use_cases.query_user_handoffs import (
+    QueryUserHandoffsUseCase,
+)
+from src.contexts.handoffs.application.use_cases.send_overdue_reminders import (
+    SendOverdueRemindersUseCase,
+)
+
+# Handoffs context repositories
+from src.contexts.handoffs.infrastructure.repositories.postgresql_handoff_repository import (
+    PostgreSQLHandoffRepository,
+)
+
 # New Personal Tasks context use cases
 from src.contexts.personal_tasks.application.use_cases.complete_task import CompleteTaskUseCase
 from src.contexts.personal_tasks.application.use_cases.query_due_tasks import QueryDueTasksUseCase
@@ -41,6 +62,7 @@ class DIContainer:
         # リポジトリ
         self._task_repository = None
         self._conversation_repository = None
+        self._handoff_repository = None
 
     # Repository Getters
 
@@ -57,6 +79,13 @@ class DIContainer:
         if self._conversation_repository is None:
             self._conversation_repository = PostgreSQLConversationRepository(self._session)
         return self._conversation_repository
+
+    @property
+    def handoff_repository(self):
+        """Get HandoffRepository (Handoffs context)"""
+        if self._handoff_repository is None:
+            self._handoff_repository = PostgreSQLHandoffRepository(self._session)
+        return self._handoff_repository
 
     # Use Case Builders - Task
 
@@ -79,6 +108,32 @@ class DIContainer:
     def build_query_due_tasks_use_case(self) -> QueryDueTasksUseCase:
         """Build QueryDueTasksUseCase"""
         return QueryDueTasksUseCase(self.task_repository)
+
+    # Use Case Builders - Handoff
+
+    def build_create_handoff_use_case(self) -> CreateHandoffUseCase:
+        """Build CreateHandoffUseCase"""
+        return CreateHandoffUseCase(self.handoff_repository)
+
+    def build_accept_handoff_use_case(self) -> AcceptHandoffUseCase:
+        """Build AcceptHandoffUseCase"""
+        return AcceptHandoffUseCase(self.handoff_repository)
+
+    def build_complete_handoff_use_case(self) -> CompleteHandoffUseCase:
+        """Build CompleteHandoffUseCase"""
+        return CompleteHandoffUseCase(self.handoff_repository)
+
+    def build_query_pending_handoffs_use_case(self) -> QueryPendingHandoffsUseCase:
+        """Build QueryPendingHandoffsUseCase"""
+        return QueryPendingHandoffsUseCase(self.handoff_repository)
+
+    def build_query_user_handoffs_use_case(self) -> QueryUserHandoffsUseCase:
+        """Build QueryUserHandoffsUseCase"""
+        return QueryUserHandoffsUseCase(self.handoff_repository)
+
+    def build_send_overdue_reminders_use_case(self) -> SendOverdueRemindersUseCase:
+        """Build SendOverdueRemindersUseCase"""
+        return SendOverdueRemindersUseCase(self.handoff_repository)
 
     # SlackEventHandler v5.0.0
 
