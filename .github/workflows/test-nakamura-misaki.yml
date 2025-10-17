@@ -72,7 +72,7 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://nakamura_misaki:test_password@localhost:5432/nakamura_misaki_test
 
       - name: Run integration tests
-        if: false  # 統合テストは新しいDDDコンテキストに移行中のため一時的にスキップ
+        if: false  # 新しいDDDコンテキスト用の統合テストは未作成のため一時的にスキップ
         run: |
           uv run pytest tests/integration/ -v
         env:
