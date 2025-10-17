@@ -21,7 +21,7 @@
 
     # nakamura-misakiソースコード（親ディレクトリから相対パス参照）
     nakamura-misaki-src = {
-      url = "path:../nakamura-misaki";
+      url = "path:../projects/nakamura-misaki";
       flake = false;  # Flakeではなく、ソースディレクトリとして扱う
     };
   };

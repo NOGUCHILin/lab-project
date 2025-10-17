@@ -4,12 +4,12 @@ on:
   push:
     branches: [main]
     paths:
-      - 'nakamura-misaki/**'
+      - 'projects/nakamura-misaki/**'
       - '.github/workflows/test-nakamura-misaki.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'nakamura-misaki/**'
+      - 'projects/nakamura-misaki/**'
   workflow_dispatch:
 
 jobs:
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: nakamura-misaki
+        working-directory: projects/nakamura-misaki
 
     services:
       postgres:
@@ -85,7 +85,7 @@ jobs:
         if: always()
         uses: codecov/codecov-action@v4
         with:
-          files: ./nakamura-misaki/coverage.xml
+          files: ./projects/nakamura-misaki/coverage.xml
           flags: unittests
           name: nakamura-misaki-coverage
 
