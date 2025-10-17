@@ -17,15 +17,15 @@ from src.adapters.primary.tools.workforce_tools import (
     GetEmployeeSkillsTool,
     SuggestAssigneesTool,
 )
+from src.contexts.conversations.domain.repositories.conversation_repository import ConversationRepository
+from src.contexts.conversations.domain.services.claude_agent_service import ClaudeAgentService
+from src.contexts.conversations.domain.services.conversation_manager import ConversationManager
 from src.contexts.personal_tasks.application.use_cases.complete_task import CompleteTaskUseCase
 from src.contexts.personal_tasks.application.use_cases.query_user_tasks import QueryUserTasksUseCase
 from src.contexts.personal_tasks.application.use_cases.register_task import RegisterTaskUseCase
 from src.contexts.personal_tasks.application.use_cases.update_task import UpdateTaskUseCase
 from src.contexts.workforce_management.application.use_cases.suggest_assignees import SuggestAssigneesUseCase
 from src.contexts.workforce_management.domain.repositories.skill_repository import SkillRepository
-from src.domain.repositories.conversation_repository import ConversationRepository
-from src.domain.services.claude_agent_service import ClaudeAgentService
-from src.domain.services.conversation_manager import ConversationManager
 
 
 class SlackEventHandlerV5:
