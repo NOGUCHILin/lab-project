@@ -5,17 +5,22 @@ from uuid import uuid4
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     Column,
     DateTime,
     Enum,
+    ForeignKey,
     Index,
+    Integer,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase
 
+from src.contexts.workforce_management.domain.value_objects.skill_category import SkillCategory
 from src.shared_kernel.domain.value_objects.task_status import TaskStatus
 
 
@@ -73,4 +78,67 @@ class ConversationTable(Base):
     __table_args__ = (
         Index("idx_conversations_user_channel", "user_id", "channel_id"),
         Index("idx_conversations_last_message", "last_message_at"),
+    )
+
+
+class EmployeeTable(Base):
+    """Employees table for workforce management"""
+
+    __tablename__ = "employees"
+
+    employee_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    name = Column(String(100), nullable=False, unique=True)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.now)
+    updated_at = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
+
+    __table_args__ = (Index("idx_employees_active", "is_active"),)
+
+
+class BusinessSkillTable(Base):
+    """Business skills table for workforce management"""
+
+    __tablename__ = "business_skills"
+
+    skill_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    skill_name = Column(String(100), nullable=False, unique=True)
+    category = Column(
+        Enum(SkillCategory, name="skill_category"),
+        nullable=False,
+    )
+    display_order = Column(Integer, nullable=False, default=0)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.now)
+    updated_at = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
+
+    __table_args__ = (
+        Index("idx_skills_active", "is_active"),
+        Index("idx_skills_category", "category"),
+    )
+
+
+class EmployeeSkillTable(Base):
+    """Employee skills association table"""
+
+    __tablename__ = "employee_skills"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    employee_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("employees.employee_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    skill_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("business_skills.skill_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    acquired_at = Column(DateTime, nullable=False, default=datetime.now)
+    created_at = Column(DateTime, nullable=False, default=datetime.now)
+    updated_at = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
+
+    __table_args__ = (
+        UniqueConstraint("employee_id", "skill_id", name="uq_employee_skill"),
+        Index("idx_employee_skills_employee", "employee_id"),
+        Index("idx_employee_skills_skill", "skill_id"),
     )

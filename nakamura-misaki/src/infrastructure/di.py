@@ -59,6 +59,17 @@ from src.contexts.personal_tasks.infrastructure.repositories.postgresql_task_rep
     PostgreSQLTaskRepository as NewPostgreSQLTaskRepository,
 )
 
+# Workforce Management context
+from src.contexts.workforce_management.application.use_cases.suggest_assignees import (
+    SuggestAssigneesUseCase,
+)
+from src.contexts.workforce_management.infrastructure.repositories.postgresql_employee_repository import (
+    PostgreSQLEmployeeRepository,
+)
+from src.contexts.workforce_management.infrastructure.repositories.postgresql_skill_repository import (
+    PostgreSQLSkillRepository,
+)
+
 
 class DIContainer:
     """DI Container"""
@@ -78,6 +89,8 @@ class DIContainer:
         self._conversation_repository = None  # Old version
         self._new_conversation_repository = None  # New Conversations Context
         self._handoff_repository = None
+        self._employee_repository = None  # Workforce Management
+        self._skill_repository = None  # Workforce Management
 
     # Repository Getters
 
@@ -108,6 +121,20 @@ class DIContainer:
         if self._new_conversation_repository is None:
             self._new_conversation_repository = NewPostgreSQLConversationRepository(self._session)
         return self._new_conversation_repository
+
+    @property
+    def employee_repository(self):
+        """Get EmployeeRepository (Workforce Management context)"""
+        if self._employee_repository is None:
+            self._employee_repository = PostgreSQLEmployeeRepository(self._session)
+        return self._employee_repository
+
+    @property
+    def skill_repository(self):
+        """Get SkillRepository (Workforce Management context)"""
+        if self._skill_repository is None:
+            self._skill_repository = PostgreSQLSkillRepository(self._session)
+        return self._skill_repository
 
     # Use Case Builders - Task
 
@@ -173,6 +200,12 @@ class DIContainer:
         """Build CleanupExpiredConversationsUseCase"""
         return CleanupExpiredConversationsUseCase(self.new_conversation_repository)
 
+    # Use Case Builders - Workforce Management
+
+    def build_suggest_assignees_use_case(self) -> SuggestAssigneesUseCase:
+        """Build SuggestAssigneesUseCase"""
+        return SuggestAssigneesUseCase(self.skill_repository)
+
     # SlackEventHandler v5.0.0
 
     def build_slack_event_handler(
@@ -198,5 +231,7 @@ class DIContainer:
             query_user_tasks_use_case=self.build_query_user_tasks_use_case(),
             complete_task_use_case=self.build_complete_task_use_case(),
             update_task_use_case=self.build_update_task_use_case(),
+            skill_repository=self.skill_repository,
+            suggest_assignees_use_case=self.build_suggest_assignees_use_case(),
             conversation_ttl_hours=conversation_ttl_hours,
         )

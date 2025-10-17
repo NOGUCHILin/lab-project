@@ -12,10 +12,17 @@ from src.adapters.primary.tools.task_tools import (
     RegisterTaskTool,
     UpdateTaskTool,
 )
+from src.adapters.primary.tools.workforce_tools import (
+    FindEmployeesWithSkillTool,
+    GetEmployeeSkillsTool,
+    SuggestAssigneesTool,
+)
 from src.contexts.personal_tasks.application.use_cases.complete_task import CompleteTaskUseCase
 from src.contexts.personal_tasks.application.use_cases.query_user_tasks import QueryUserTasksUseCase
 from src.contexts.personal_tasks.application.use_cases.register_task import RegisterTaskUseCase
 from src.contexts.personal_tasks.application.use_cases.update_task import UpdateTaskUseCase
+from src.contexts.workforce_management.application.use_cases.suggest_assignees import SuggestAssigneesUseCase
+from src.contexts.workforce_management.domain.repositories.skill_repository import SkillRepository
 from src.domain.repositories.conversation_repository import ConversationRepository
 from src.domain.services.claude_agent_service import ClaudeAgentService
 from src.domain.services.conversation_manager import ConversationManager
@@ -34,6 +41,9 @@ class SlackEventHandlerV5:
         query_user_tasks_use_case: QueryUserTasksUseCase,
         complete_task_use_case: CompleteTaskUseCase,
         update_task_use_case: UpdateTaskUseCase,
+        # Workforce Management
+        skill_repository: SkillRepository,
+        suggest_assignees_use_case: SuggestAssigneesUseCase,
         conversation_ttl_hours: int = 24,
     ):
         """Initialize SlackEventHandlerV5.
@@ -56,6 +66,10 @@ class SlackEventHandlerV5:
         self._query_user_tasks_use_case = query_user_tasks_use_case
         self._complete_task_use_case = complete_task_use_case
         self._update_task_use_case = update_task_use_case
+
+        # Workforce Management
+        self._skill_repository = skill_repository
+        self._suggest_assignees_use_case = suggest_assignees_use_case
 
         # Conversation Manager
         self._conversation_manager = ConversationManager(
@@ -131,5 +145,15 @@ class SlackEventHandlerV5:
             UpdateTaskTool(
                 update_task_use_case=self._update_task_use_case,
                 user_id=user_id,
+            ),
+            # Workforce Management Tools
+            FindEmployeesWithSkillTool(
+                skill_repository=self._skill_repository,
+            ),
+            GetEmployeeSkillsTool(
+                skill_repository=self._skill_repository,
+            ),
+            SuggestAssigneesTool(
+                suggest_assignees_use_case=self._suggest_assignees_use_case,
             ),
         ]
