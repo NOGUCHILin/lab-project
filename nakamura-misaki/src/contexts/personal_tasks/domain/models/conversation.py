@@ -2,7 +2,14 @@
 
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from enum import Enum
 from uuid import UUID, uuid4
+
+
+class MessageRole(str, Enum):
+    """Message role enum for backward compatibility with old services"""
+    USER = "user"
+    ASSISTANT = "assistant"
 
 
 @dataclass(frozen=True)

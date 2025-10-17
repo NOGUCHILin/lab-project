@@ -17,7 +17,7 @@ from src.adapters.primary.tools.workforce_tools import (
     GetEmployeeSkillsTool,
     SuggestAssigneesTool,
 )
-from src.contexts.conversations.domain.repositories.conversation_repository import ConversationRepository
+from src.contexts.personal_tasks.domain.repositories.conversation_repository import ConversationRepository
 from src.domain.services.claude_agent_service import ClaudeAgentService
 from src.domain.services.conversation_manager import ConversationManager
 from src.contexts.personal_tasks.application.use_cases.complete_task import CompleteTaskUseCase
