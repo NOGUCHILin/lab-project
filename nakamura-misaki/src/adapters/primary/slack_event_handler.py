@@ -6,19 +6,19 @@ Natural language task management via Claude Agent SDK.
 from anthropic import AsyncAnthropic
 from slack_sdk.web.async_client import AsyncWebClient
 
-from ...adapters.primary.tools.task_tools import (
+from src.adapters.primary.tools.task_tools import (
     CompleteTaskTool,
     ListTasksTool,
     RegisterTaskTool,
     UpdateTaskTool,
 )
-from ...application.use_cases.complete_task import CompleteTaskUseCase
-from ...application.use_cases.query_user_tasks import QueryUserTasksUseCase
-from ...application.use_cases.register_task import RegisterTaskUseCase
-from ...application.use_cases.update_task import UpdateTaskUseCase
-from ...domain.repositories.conversation_repository import ConversationRepository
-from ...domain.services.claude_agent_service import ClaudeAgentService
-from ...domain.services.conversation_manager import ConversationManager
+from src.contexts.personal_tasks.application.use_cases.complete_task import CompleteTaskUseCase
+from src.contexts.personal_tasks.application.use_cases.query_user_tasks import QueryUserTasksUseCase
+from src.contexts.personal_tasks.application.use_cases.register_task import RegisterTaskUseCase
+from src.contexts.personal_tasks.application.use_cases.update_task import UpdateTaskUseCase
+from src.domain.repositories.conversation_repository import ConversationRepository
+from src.domain.services.claude_agent_service import ClaudeAgentService
+from src.domain.services.conversation_manager import ConversationManager
 
 
 class SlackEventHandlerV5:

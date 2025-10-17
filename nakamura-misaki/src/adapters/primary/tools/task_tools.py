@@ -1,15 +1,16 @@
-"""Task management tools for Claude Tool Use."""
+"""Task management tools for Claude Tool Use (v6.0.0 DDD)."""
 
 from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from ....application.dto.task_dto import TaskDTO, UpdateTaskDTO
-from ....application.use_cases.complete_task import CompleteTaskUseCase
-from ....application.use_cases.query_user_tasks import QueryUserTasksUseCase
-from ....application.use_cases.register_task import RegisterTaskUseCase
-from ....application.use_cases.update_task import UpdateTaskUseCase
-from ....domain.models.task import Task
+from src.contexts.personal_tasks.application.dto.task_dto import CreateTaskDTO, TaskDTO, UpdateTaskDTO
+from src.contexts.personal_tasks.application.use_cases.complete_task import CompleteTaskUseCase
+from src.contexts.personal_tasks.application.use_cases.query_user_tasks import QueryUserTasksUseCase
+from src.contexts.personal_tasks.application.use_cases.register_task import RegisterTaskUseCase
+from src.contexts.personal_tasks.application.use_cases.update_task import UpdateTaskUseCase
+from src.shared_kernel.domain.value_objects.task_status import TaskStatus
+
 from .base_tool import BaseTool
 
 
@@ -80,18 +81,21 @@ class RegisterTaskTool(BaseTool):
             if due_date_str:
                 due_at = datetime.fromisoformat(due_date_str)
 
-            # Create task via use case
-            task = await self._register_task_use_case.execute(
+            # Create DTO
+            dto = CreateTaskDTO(
+                title=title,
                 assignee_user_id=self._user_id,
                 creator_user_id=self._user_id,
-                title=title,
                 description=description,
                 due_at=due_at,
             )
 
+            # Create task via use case
+            task_dto = await self._register_task_use_case.execute(dto)
+
             return {
                 "success": True,
-                "data": self._task_to_dict(task),
+                "data": self._task_dto_to_dict(task_dto),
             }
 
         except Exception as e:
@@ -100,22 +104,26 @@ class RegisterTaskTool(BaseTool):
                 "error": str(e),
             }
 
-    def _task_to_dict(self, task: Task) -> dict[str, Any]:
-        """Convert Task to dict for JSON serialization.
+    def _task_dto_to_dict(self, task_dto: TaskDTO) -> dict[str, Any]:
+        """Convert TaskDTO to dict for JSON serialization.
 
         Args:
-            task: Task entity
+            task_dto: TaskDTO
 
         Returns:
             dict: JSON-serializable task data
         """
         return {
-            "id": str(task.id),
-            "title": task.title,
-            "description": task.description,
-            "status": task.status.value,
-            "due_at": task.due_at.isoformat() if task.due_at else None,
-            "created_at": task.created_at.isoformat(),
+            "id": str(task_dto.id),
+            "title": task_dto.title,
+            "description": task_dto.description,
+            "status": task_dto.status,
+            "assignee_user_id": task_dto.assignee_user_id,
+            "creator_user_id": task_dto.creator_user_id,
+            "due_at": task_dto.due_at.isoformat() if task_dto.due_at else None,
+            "completed_at": task_dto.completed_at.isoformat() if task_dto.completed_at else None,
+            "created_at": task_dto.created_at.isoformat(),
+            "updated_at": task_dto.updated_at.isoformat(),
         }
 
 
@@ -153,11 +161,6 @@ class ListTasksTool(BaseTool):
                     "enum": ["pending", "in_progress", "completed"],
                     "description": "フィルタするステータス（任意）",
                 },
-                "date_filter": {
-                    "type": "string",
-                    "enum": ["today", "week", "all"],
-                    "description": "日付フィルタ（任意）",
-                },
             },
         }
 
@@ -166,13 +169,13 @@ class ListTasksTool(BaseTool):
 
         Args:
             status: ステータスフィルタ（任意）
-            date_filter: 日付フィルタ（任意、現在未使用）
 
         Returns:
             dict: {"success": True, "data": {"tasks": [...], "count": N}}
         """
         try:
-            status = kwargs.get("status")
+            status_str = kwargs.get("status")
+            status = TaskStatus(status_str) if status_str else None
 
             tasks = await self._query_user_tasks_use_case.execute(
                 user_id=self._user_id,
@@ -207,9 +210,12 @@ class ListTasksTool(BaseTool):
             "title": task_dto.title,
             "description": task_dto.description,
             "status": task_dto.status,
+            "assignee_user_id": task_dto.assignee_user_id,
+            "creator_user_id": task_dto.creator_user_id,
             "due_at": task_dto.due_at.isoformat() if task_dto.due_at else None,
             "completed_at": task_dto.completed_at.isoformat() if task_dto.completed_at else None,
             "created_at": task_dto.created_at.isoformat(),
+            "updated_at": task_dto.updated_at.isoformat(),
         }
 
 
@@ -285,11 +291,11 @@ class CompleteTaskTool(BaseTool):
                 }
 
             # Complete task
-            task = await self._complete_task_use_case.execute(task_id=task_id)
+            task_dto = await self._complete_task_use_case.execute(task_id=task_id)
 
             return {
                 "success": True,
-                "data": self._task_to_dict(task),
+                "data": self._task_dto_to_dict(task_dto),
             }
 
         except Exception as e:
@@ -311,27 +317,30 @@ class CompleteTaskTool(BaseTool):
 
         for task in tasks:
             if title_part.lower() in task.title.lower():
-                # task.id is already UUID type in TaskDTO
                 return task.id
 
         return None
 
-    def _task_to_dict(self, task: Task) -> dict[str, Any]:
-        """Convert Task to dict.
+    def _task_dto_to_dict(self, task_dto: TaskDTO) -> dict[str, Any]:
+        """Convert TaskDTO to dict.
 
         Args:
-            task: Task entity
+            task_dto: TaskDTO
 
         Returns:
             dict: JSON-serializable task data
         """
         return {
-            "id": str(task.id),
-            "title": task.title,
-            "description": task.description,
-            "status": task.status.value,
-            "due_at": task.due_at.isoformat() if task.due_at else None,
-            "created_at": task.created_at.isoformat(),
+            "id": str(task_dto.id),
+            "title": task_dto.title,
+            "description": task_dto.description,
+            "status": task_dto.status,
+            "assignee_user_id": task_dto.assignee_user_id,
+            "creator_user_id": task_dto.creator_user_id,
+            "due_at": task_dto.due_at.isoformat() if task_dto.due_at else None,
+            "completed_at": task_dto.completed_at.isoformat() if task_dto.completed_at else None,
+            "created_at": task_dto.created_at.isoformat(),
+            "updated_at": task_dto.updated_at.isoformat(),
         }
 
 
@@ -357,7 +366,7 @@ class UpdateTaskTool(BaseTool):
 
     @property
     def description(self) -> str:
-        return "タスクを更新する（タイトル、説明、ステータス、期限、担当者）"
+        return "タスクを更新する（タイトル、説明、ステータス、期限）"
 
     @property
     def input_schema(self) -> dict[str, Any]:
@@ -386,10 +395,6 @@ class UpdateTaskTool(BaseTool):
                     "format": "date-time",
                     "description": "新しい期限（ISO 8601形式、任意）",
                 },
-                "assignee_user_id": {
-                    "type": "string",
-                    "description": "新しい担当者のSlack User ID（任意）。タスクを他のユーザーに引き継ぐ場合に指定する。",
-                },
             },
             "required": ["task_id"],
         }
@@ -403,7 +408,6 @@ class UpdateTaskTool(BaseTool):
             description: 新しい説明（任意）
             status: 新しいステータス（任意）
             due_date: 新しい期限（ISO 8601形式、任意）
-            assignee_user_id: 新しい担当者のSlack User ID（任意）
 
         Returns:
             dict: {"success": True, "data": {...}} or {"success": False, "error": "..."}
@@ -426,18 +430,22 @@ class UpdateTaskTool(BaseTool):
             if due_date_str:
                 due_at = datetime.fromisoformat(due_date_str)
 
+            # Parse optional status
+            status = None
+            status_str = kwargs.get("status")
+            if status_str:
+                status = TaskStatus(status_str)
+
             # Create UpdateTaskDTO
             dto = UpdateTaskDTO(
-                task_id=task_id,
                 title=kwargs.get("title"),
                 description=kwargs.get("description"),
-                status=kwargs.get("status"),
+                status=status,
                 due_at=due_at,
-                assignee_user_id=kwargs.get("assignee_user_id"),
             )
 
             # Execute use case
-            task_dto = await self._update_task_use_case.execute(dto)
+            task_dto = await self._update_task_use_case.execute(task_id, dto)
 
             return {
                 "success": True,
@@ -464,7 +472,10 @@ class UpdateTaskTool(BaseTool):
             "title": task_dto.title,
             "description": task_dto.description,
             "status": task_dto.status,
+            "assignee_user_id": task_dto.assignee_user_id,
+            "creator_user_id": task_dto.creator_user_id,
             "due_at": task_dto.due_at.isoformat() if task_dto.due_at else None,
             "completed_at": task_dto.completed_at.isoformat() if task_dto.completed_at else None,
             "created_at": task_dto.created_at.isoformat(),
+            "updated_at": task_dto.updated_at.isoformat(),
         }
