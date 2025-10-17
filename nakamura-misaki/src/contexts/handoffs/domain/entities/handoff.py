@@ -2,11 +2,11 @@
 
 from dataclasses import dataclass, replace
 from datetime import datetime
+from uuid import UUID
 
 from src.contexts.handoffs.domain.value_objects.handoff_content import HandoffContent
 from src.contexts.handoffs.domain.value_objects.handoff_id import HandoffId
 from src.contexts.handoffs.domain.value_objects.handoff_status import HandoffStatus
-from src.contexts.personal_tasks.domain.value_objects.task_id import TaskId
 from src.shared_kernel.domain.value_objects.user_id import UserId
 
 
@@ -25,7 +25,7 @@ class Handoff:
     """
 
     id: HandoffId
-    task_id: TaskId | None
+    task_id: UUID | None
     from_user_id: UserId
     to_user_id: UserId
     content: HandoffContent
@@ -40,7 +40,7 @@ class Handoff:
         to_user_id: UserId,
         content: HandoffContent,
         handoff_at: datetime,
-        task_id: TaskId | None = None,
+        task_id: UUID | None = None,
     ) -> "Handoff":
         """Create a new handoff"""
         if from_user_id == to_user_id:
