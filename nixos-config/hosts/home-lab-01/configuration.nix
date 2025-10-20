@@ -35,10 +35,7 @@
       ../../modules/services/registry/mumuko.nix              # Mumuko Service (registry-based)
       ../../modules/services/registry/nats.nix               # NATS Event-Driven Messaging (monitoring via registry)
       ../../modules/services/registry/unified-dashboard.nix       # 統合ダッシュボード
-      ../../modules/services/registry/nakamura-misaki.nix         # Nakamura-Misaki Claude Agent
-      ../../modules/services/registry/nakamura-misaki-db.nix      # Nakamura-Misaki v4.0.0 Database (PostgreSQL + pgvector)
-      ../../modules/services/registry/nakamura-misaki-api.nix     # Nakamura-Misaki v4.0.0 API Server (Slack Events API)
-      ../../modules/services/registry/nakamura-misaki-reminder.nix # Nakamura-Misaki v4.0.0 Handoff Reminder Scheduler
+      # nakamura-misakiはflakeのNixOSモジュールから提供（flake.nixで自動import）
       ../../modules/services/registry/applebuyers-site.nix        # AppleBuyers Public Site (dev server)
       ../../modules/services/registry/code-server-applebuyers.nix     # Code Server for AppleBuyers (Writers)
       ../../modules/services/registry/code-server-applebuyers-dev.nix # Code Server for AppleBuyers (Engineers)
@@ -124,10 +121,16 @@
     enable = true;
     enforceDeclarative = false;  # Allow manual restart for testing
     ports = {
-      api = 10000;  # Changed to 10000 for Tailscale Funnel compatibility
+      api = 10000;  # Tailscale Funnel compatibility
       adminUI = 3002;
       webhook = 10000;  # Deprecated, using api port instead
     };
+
+    # Secrets from sops-nix (read at runtime via ExecStartPre)
+    # Note: We can't directly pass secrets here, they're loaded in the service script
+    slackToken = "";  # Loaded from ${config.sops.secrets.slack_bot_token.path}
+    anthropicApiKey = "";  # Loaded from ${config.sops.secrets.anthropic_api_key.path}
+    databaseUrl = "postgresql+asyncpg://nakamura_misaki@localhost:5432/nakamura_misaki";
   };
 
   # AppleBuyers Configuration

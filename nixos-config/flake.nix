@@ -19,22 +19,20 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # nakamura-misakiソースコード（親ディレクトリから相対パス参照）
-    nakamura-misaki-src = {
+    # nakamura-misakiのflake参照
+    nakamura-misaki = {
       url = "path:../projects/nakamura-misaki";
-      flake = false;  # Flakeではなく、ソースディレクトリとして扱う
+      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, sops-nix, deploy-rs, nakamura-misaki-src, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, sops-nix, deploy-rs, nakamura-misaki, ... }@inputs:
   let
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
   in {
-    # nakamura-misaki package (Flake inputのソースを使用)
-    packages.${system}.nakamura-misaki = pkgs.callPackage ./packages/nakamura-misaki {
-      src = nakamura-misaki-src;
-    };
+    # nakamura-misakiパッケージをre-export
+    packages.${system}.nakamura-misaki = nakamura-misaki.packages.${system}.default;
 
     # Developer experience: formatter, devShells, and basic checks
     formatter.${system} = pkgs.alejandra;
@@ -69,11 +67,15 @@
       home-lab-01 = nixpkgs.lib.nixosSystem {
         system = system;
         specialArgs = {
-          # nakamura-misakiパッケージをモジュールに渡す
-          nakamura-misaki = self.packages.${system}.nakamura-misaki;
+          # nakamura-misakiのflakeモジュールとパッケージを渡す
+          nakamura-misaki-flake = nakamura-misaki;
+          nakamura-misaki-package = self.packages.${system}.nakamura-misaki;
         };
         modules = [
           ./hosts/home-lab-01/configuration.nix
+
+          # nakamura-misakiのNixOSモジュールをインポート
+          nakamura-misaki.nixosModules.default
 
           # sops-nix module for secrets management
           sops-nix.nixosModules.sops

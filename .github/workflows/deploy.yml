@@ -37,8 +37,8 @@ jobs:
         env:
           NIXOS_ROOT_SSH_KEY: ${{ secrets.NIXOS_ROOT_SSH_KEY }}
 
-      # Dashboard & Nakamura-Misakiコードを同期
-      - name: Sync application code
+      # Dashboardコードを同期（dashboardのみ、nakamura-misakiはNixパッケージ化済み）
+      - name: Sync Dashboard code
         run: |
           ssh root@home-lab-01 '
             # lab-projectコード取得（GitHubから）
@@ -47,7 +47,7 @@ jobs:
             git clone --filter=blob:none --no-checkout --depth 1 https://github.com/NOGUCHILin/lab-project.git lab-project-temp
             cd lab-project-temp
             git sparse-checkout init --cone
-            git sparse-checkout set projects/dashboard projects/nakamura-misaki
+            git sparse-checkout set projects/dashboard
             git checkout main
 
             # ~/projects/dashboard/ に同期
@@ -55,15 +55,6 @@ jobs:
               --exclude="node_modules" \
               --exclude=".next" \
               projects/dashboard/ /home/noguchilin/projects/dashboard/
-
-            # ~/projects/lab-project/nakamura-misaki/ に同期
-            mkdir -p /home/noguchilin/projects/lab-project
-            rsync -av --delete \
-              --exclude=".venv" \
-              --exclude="node_modules" \
-              --exclude="workspaces/user_*" \
-              --exclude="workspaces/sessions/*.json" \
-              projects/nakamura-misaki/ /home/noguchilin/projects/lab-project/nakamura-misaki/
 
             # 一時ディレクトリ削除
             rm -rf /tmp/lab-project-temp
@@ -86,9 +77,9 @@ jobs:
           ssh root@home-lab-01 '
             echo "📊 Service status:"
             systemctl status dashboard.service --no-pager || true
-            systemctl status nakamura-misaki-api.service --no-pager || true
+            systemctl status nakamura-misaki.service --no-pager || true
 
             echo ""
             echo "🔍 Recent logs (last 20 lines):"
-            journalctl -u nakamura-misaki-api.service -n 20 --no-pager || true
+            journalctl -u nakamura-misaki.service -n 20 --no-pager || true
           '
