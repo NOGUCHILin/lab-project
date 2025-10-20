@@ -67,7 +67,7 @@ def main():
     """Run the application"""
     uvicorn.run(
         "src.main:app",
-        host="127.0.0.1",
+        host="0.0.0.0",  # Listen on all interfaces for deployment
         port=config.port,
         reload=config.debug,
         log_level="debug" if config.debug else "info",

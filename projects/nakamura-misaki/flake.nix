@@ -1,146 +1,126 @@
 {
-  description = "Nakamura-Misaki - Multi-User Claude Code Agent Service (Pure Nix)";
+  description = "Nakamura-Misaki - Multi-User Claude Code Agent Service (uv2nix)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+    pyproject-nix = {
+      url = "github:pyproject-nix/pyproject.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    uv2nix = {
+      url = "github:pyproject-nix/uv2nix";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    pyproject-build-systems = {
+      url = "github:pyproject-nix/build-system-pkgs";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.uv2nix.follows = "uv2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs }:
+  outputs = { self, nixpkgs, uv2nix, pyproject-nix, pyproject-build-systems }:
   let
-    system = "x86_64-linux";
-    pkgs = import nixpkgs { inherit system; };
+    inherit (nixpkgs) lib;
 
-    # カスタムPythonパッケージの定義
-    customPythonPackages = {
-      # claude-agent-sdk (PyPI: claude-agent-sdk 0.1.4)
-      claude-agent-sdk = pkgs.python312Packages.buildPythonPackage rec {
-        pname = "claude-agent-sdk";
-        version = "0.1.4";
+    # Define systems to build for
+    forAllSystems = lib.genAttrs [
+      "x86_64-linux"
+      "aarch64-linux"
+      "x86_64-darwin"
+      "aarch64-darwin"
+    ];
 
-        src = pkgs.fetchPypi {
-          inherit pname version;
-          sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Will get real hash from build error
-        };
+    # Load workspace from uv.lock
+    workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
 
-        propagatedBuildInputs = with pkgs.python312Packages; [
-          anthropic
-          httpx
-        ];
-
-        doCheck = false;
-      };
-
-      # pgvector (PyPI: pgvector 0.4.1)
-      pgvector = pkgs.python312Packages.buildPythonPackage rec {
-        pname = "pgvector";
-        version = "0.4.1";
-
-        src = pkgs.fetchPypi {
-          inherit pname version;
-          sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Will get real hash from build error
-        };
-
-        propagatedBuildInputs = with pkgs.python312Packages; [
-          numpy
-        ];
-
-        doCheck = false;
-      };
+    # Create overlay from uv2nix workspace
+    overlay = workspace.mkPyprojectOverlay {
+      sourcePreference = "wheel";  # Prefer wheels for faster builds
     };
 
-    # Python環境を構築（すべての依存関係を含む）
-    pythonEnv = pkgs.python312.withPackages (ps: with ps; [
-      # Core dependencies
-      fastapi
-      uvicorn
-      pydantic
-      pydantic-settings
+    # Python sets per system
+    pythonSets = forAllSystems (system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        inherit (pkgs) python312;
 
-      # Slack SDK
-      slack-bolt
-      slack-sdk
+        # Extend Python package set with uv2nix overlay
+        pythonSet = (pkgs.callPackage pyproject-nix.build.packages {
+          inherit python312;
+        }).overrideScope (lib.composeManyExtensions [
+          pyproject-build-systems.overlays.default
+          overlay
+        ]);
+      in
+        pythonSet
+    );
 
-      # Anthropic
-      anthropic
+    # Application package per system
+    nakamuraMisakiPkgs = forAllSystems (system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        pythonSet = pythonSets.${system};
 
-      # HTTP client
-      aiohttp
+        # Create virtual environment with all dependencies
+        venv = pythonSet.mkVirtualEnv "nakamura-misaki-env" workspace.deps.default;
 
-      # Database
-      sqlalchemy
-      asyncpg
-      psycopg3
-      alembic
-
-      # Python utilities
-      python-dateutil
-
-      # Custom packages
-      customPythonPackages.claude-agent-sdk
-      customPythonPackages.pgvector
-    ]);
-
-    # アプリケーションパッケージ
-    nakamura-misaki = pkgs.stdenv.mkDerivation rec {
-      pname = "nakamura-misaki";
-      version = "6.0.0";
-
-      src = ./.;
-
-      nativeBuildInputs = [ pkgs.makeWrapper ];
-
-      dontBuild = true;
-
-      installPhase = ''
-        mkdir -p $out/opt/nakamura-misaki
-        cp -r src $out/opt/nakamura-misaki/
-
-        mkdir -p $out/bin
-        makeWrapper ${pythonEnv}/bin/python $out/bin/nakamura-misaki \
-          --add-flags "-m src.main" \
-          --set PYTHONPATH "$out/opt/nakamura-misaki" \
-          --chdir "$out/opt/nakamura-misaki"
-      '';
-
-      meta = with pkgs.lib; {
-        description = "DDD + Clean Architecture based task management AI assistant";
-        homepage = "https://github.com/NOGUCHILin/lab-project";
-        license = licenses.mit;
-      };
-    };
+        # Build application derivation
+        inherit (pkgs.callPackage pyproject-nix.build.util { }) mkApplication;
+      in
+        mkApplication {
+          inherit venv;
+          package = pythonSet.nakamura-misaki;
+        }
+    );
 
   in {
-    # パッケージをエクスポート
-    packages.${system} = {
-      default = nakamura-misaki;
-      nakamura-misaki = nakamura-misaki;
-    };
+    # Export packages
+    packages = forAllSystems (system: {
+      default = nakamuraMisakiPkgs.${system};
+      nakamura-misaki = nakamuraMisakiPkgs.${system};
 
-    # 開発環境（direnv用）
-    devShells.${system}.default = pkgs.mkShell {
-      name = "nakamura-misaki-dev";
+      # Also export the virtual environment for debugging
+      venv = pythonSets.${system}.mkVirtualEnv "nakamura-misaki-env" workspace.deps.default;
+    });
 
-      buildInputs = with pkgs; [
-        python312
-        python312Packages.pip
-        python312Packages.virtualenv
-        git
-        jq
-      ];
+    # Development shells
+    devShells = forAllSystems (system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        pythonSet = pythonSets.${system};
+        venv = pythonSet.mkVirtualEnv "nakamura-misaki-dev-env" workspace.deps.all;
+      in {
+        default = pkgs.mkShell {
+          name = "nakamura-misaki-dev";
 
-      shellHook = ''
-        echo "🤖 Nakamura-Misaki 開発環境"
-        echo "🐍 Python: $(python --version)"
-        echo ""
-        echo "💡 開発時はuvまたはpip installで依存関係を管理してください"
-      '';
-    };
+          packages = [
+            pkgs.uv
+            venv
+          ];
 
-    # NixOSモジュール（本番デプロイ用）
+          shellHook = ''
+            echo "🤖 Nakamura-Misaki 開発環境 (uv2nix)"
+            echo "🐍 Python: ${pkgs.python312.version}"
+            echo ""
+            echo "💡 uv コマンドで依存関係を管理してください"
+            echo "   uv lock       - 依存関係をロック"
+            echo "   uv sync       - 依存関係を同期"
+          '';
+        };
+      }
+    );
+
+    # NixOS module for deployment
     nixosModules.default = { config, lib, pkgs, ... }:
     let
       cfg = config.services.nakamura-misaki;
-      package = self.packages.${system}.nakamura-misaki;
+      # Use the package built for the current system
+      package = self.packages.${pkgs.system}.default;
     in {
       options.services.nakamura-misaki = {
         enable = lib.mkEnableOption "Nakamura-Misaki Claude Agent Service";
@@ -203,7 +183,7 @@
       };
 
       config = lib.mkIf cfg.enable {
-        # Main service - Pure Nix (no venv)
+        # Main service - uv2nix approach
         systemd.services.nakamura-misaki = {
           description = "Nakamura-Misaki Multi-User Claude Code Agent";
           wantedBy = [ "multi-user.target" ];
@@ -222,14 +202,14 @@
             User = "noguchilin";
             Group = "users";
 
-            # Pure Nixアプローチ: すべての依存関係がNixパッケージに含まれる
+            # uv2nix approach: execute from Nix store
             ExecStart = pkgs.writeShellScript "nakamura-start" ''
               # Load secrets from sops-nix
               export SLACK_BOT_TOKEN=$(cat ${config.sops.secrets.slack_bot_token.path})
               export SLACK_SIGNING_SECRET=$(cat ${config.sops.secrets.slack_signing_secret.path})
               export ANTHROPIC_API_KEY=$(cat ${config.sops.secrets.anthropic_api_key.path})
 
-              # Nixパッケージから直接実行
+              # Execute from Nix package
               exec ${package}/bin/nakamura-misaki
             '';
 

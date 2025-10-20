@@ -21,6 +21,9 @@ dependencies = [
     "alembic>=1.13.0",
 ]
 
+[project.scripts]
+nakamura-misaki = "src.main:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
