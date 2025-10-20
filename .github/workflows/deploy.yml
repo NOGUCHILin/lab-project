@@ -37,6 +37,21 @@ jobs:
         env:
           NIXOS_ROOT_SSH_KEY: ${{ secrets.NIXOS_ROOT_SSH_KEY }}
 
+      # nakamura-misaki User Tokenを更新
+      - name: Update nakamura-misaki User Token in sops
+        run: |
+          ssh root@home-lab-01 "
+            cd /etc/nixos
+            # sops-nixで暗号化ファイルを更新
+            export SOPS_AGE_KEY_FILE=/etc/nixos/age-key.txt
+            echo 'slack_bot_token: ${{ secrets.NAKAMURA_MISAKI_USER_TOKEN }}' | \
+              sops --input-type yaml --output-type yaml \
+              --set '.[\"slack_bot_token\"]' \
+              secrets/nakamura-misaki.yaml
+
+            echo '✅ nakamura-misaki User Token updated in sops'
+          "
+
       # Dashboardコードを同期（dashboardのみ、nakamura-misakiはNixパッケージ化済み）
       - name: Sync Dashboard code
         run: |
