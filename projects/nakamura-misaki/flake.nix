@@ -10,8 +10,8 @@
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
 
-    # Pythonパッケージとして定義（uvプロジェクトをそのまま使用）
-    # uvが依存関係を管理し、Nixはランタイム環境のみ提供
+    # Pythonパッケージとして定義（ソースのみ、依存関係は実行時にvenvから）
+    # Nixはソースコードを/nix/store/に配置し、実行時に外部venvを参照
     nakamura-misaki = pkgs.stdenv.mkDerivation rec {
       pname = "nakamura-misaki";
       version = "6.0.0";
@@ -19,7 +19,6 @@
       src = ./.;
 
       nativeBuildInputs = with pkgs; [
-        python312Packages.uv
         makeWrapper
       ];
 
@@ -27,24 +26,24 @@
         python312
       ];
 
-      # uvで依存関係をインストール
-      buildPhase = ''
-        export HOME=$TMPDIR
-        uv sync --frozen
-      '';
+      # ビルド不要、ソースをそのままコピー
+      dontBuild = true;
 
-      # インストール：srcと.venvをコピー
+      # インストール：srcをコピーして起動スクリプトを作成
       installPhase = ''
         mkdir -p $out/opt/nakamura-misaki
-        cp -r . $out/opt/nakamura-misaki/
+
+        # ソースコードをコピー（.venvは除外）
+        cp -r src $out/opt/nakamura-misaki/
+        cp pyproject.toml uv.lock README.md $out/opt/nakamura-misaki/ || true
 
         # 起動スクリプトを作成
+        # 実行時に /home/noguchilin/projects/lab-project/nakamura-misaki/.venv を使用
         mkdir -p $out/bin
         makeWrapper ${pkgs.python312}/bin/python $out/bin/nakamura-misaki \
           --add-flags "-m src.main" \
-          --set PYTHONPATH "$out/opt/nakamura-misaki/src:$out/opt/nakamura-misaki" \
-          --chdir "$out/opt/nakamura-misaki" \
-          --prefix PATH : "$out/opt/nakamura-misaki/.venv/bin"
+          --set PYTHONPATH "$out/opt/nakamura-misaki:$out/opt/nakamura-misaki/src" \
+          --chdir "$out/opt/nakamura-misaki"
       '';
 
       meta = with pkgs.lib; {
@@ -186,7 +185,32 @@
             Type = "simple";
             User = "noguchilin";
             Group = "users";
-            WorkingDirectory = "${package}/opt/nakamura-misaki";
+            WorkingDirectory = "/home/noguchilin/projects/lab-project/nakamura-misaki";
+
+            # venvの準備と依存関係のインストール
+            ExecStartPre = pkgs.writeShellScript "nakamura-pre-start" ''
+              set -e
+
+              # ソースコードを同期（Nixパッケージから）
+              ${pkgs.rsync}/bin/rsync -a --delete \
+                --exclude=".venv" \
+                --exclude="node_modules" \
+                --exclude="workspaces/user_*" \
+                --exclude="workspaces/sessions/*.json" \
+                ${package}/opt/nakamura-misaki/ /home/noguchilin/projects/lab-project/nakamura-misaki/
+
+              cd /home/noguchilin/projects/lab-project/nakamura-misaki
+
+              # venv作成（なければ）
+              if [ ! -d .venv ]; then
+                ${pkgs.python312}/bin/python -m venv .venv
+              fi
+
+              # 依存関係をインストール/更新
+              .venv/bin/pip install -q --upgrade pip
+              .venv/bin/pip install -q -r ${package}/opt/nakamura-misaki/requirements.txt || true
+              .venv/bin/pip install -q claude-agent-sdk pgvector || true
+            '';
 
             # sops secretsを環境変数として読み込んでから起動
             ExecStart = pkgs.writeShellScript "nakamura-start" ''
@@ -195,8 +219,9 @@
               export SLACK_SIGNING_SECRET=$(cat ${config.sops.secrets.slack_signing_secret.path})
               export ANTHROPIC_API_KEY=$(cat ${config.sops.secrets.anthropic_api_key.path})
 
-              # Launch the service
-              exec ${package}/bin/nakamura-misaki
+              # Launch the service from venv
+              cd /home/noguchilin/projects/lab-project/nakamura-misaki
+              exec .venv/bin/python -m src.main
             '';
 
             Restart = "always";
@@ -209,7 +234,10 @@
             PrivateTmp = true;
             ProtectSystem = "strict";
             ProtectHome = false;  # Claude CLIアクセス許可
-            ReadWritePaths = [ "/home/noguchilin/.claude" ];  # Claude CLI config
+            ReadWritePaths = [
+              "/home/noguchilin/.claude"
+              "/home/noguchilin/projects/lab-project/nakamura-misaki"
+            ];
           };
         };
 

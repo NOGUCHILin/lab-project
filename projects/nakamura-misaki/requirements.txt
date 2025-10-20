@@ -1,24 +1,27 @@
 # Core dependencies
-fastapi
-uvicorn[standard]
-pydantic
-pydantic-settings
+fastapi>=0.115.0
+uvicorn>=0.30.0
+pydantic>=2.9.0
+pydantic-settings>=2.5.0
 
 # Slack SDK
-slack-sdk
-slack-bolt
+slack-bolt>=1.18.0
+slack-sdk>=3.31.0
 
-# Claude Agent SDK
-claude-agent-sdk
-
-# Message Queue (Phase 1)
-redis
-rq
+# Anthropic
+anthropic>=0.37.0
 
 # HTTP client
-httpx
+aiohttp>=3.10.0
 
-# Database (Phase 4 - v4.0.0)
-sqlalchemy[asyncio]
-asyncpg
-pgvector
+# Database
+sqlalchemy>=2.0.0
+asyncpg>=0.30.0
+psycopg[binary,pool]>=3.2.0
+alembic>=1.13.0
+
+# Python utilities
+python-dateutil>=2.8.0
+
+# Note: claude-agent-sdk and pgvector are installed separately
+# as they may not be in standard PyPI or have special requirements
