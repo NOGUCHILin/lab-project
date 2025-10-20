@@ -28,6 +28,12 @@ async def lifespan(app: FastAPI):
     print(f"📖 Docs: http://localhost:{config.port}/docs")
     print("")
 
+    # Initialize app.state with configuration
+    app.state.slack_signing_secret = config.slack_signing_secret
+    app.state.slack_token = config.slack_bot_token
+    app.state.anthropic_api_key = config.anthropic_api_key
+    app.state.database_url = config.database_url
+
     # End DND mode on startup
     slack = get_slack_adapter()
     dnd_result = await slack.end_dnd()
