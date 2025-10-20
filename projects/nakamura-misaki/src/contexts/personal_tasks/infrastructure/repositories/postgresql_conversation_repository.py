@@ -1,7 +1,7 @@
 """PostgreSQL Conversation Repository for Personal Tasks Context"""
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import delete, select
@@ -45,9 +45,9 @@ class PostgreSQLConversationRepository(ConversationRepository):
             existing.channel_id = conversation.channel_id
             existing.messages = messages_json
             existing.updated_at = conversation.updated_at
-            existing.expires_at = conversation.expires_at
+            # Note: expires_at is not stored in DB, calculated from created_at
         else:
-            # Insert
+            # Insert (note: expires_at not stored in DB, calculated from created_at)
             new_conv = ConversationTable(
                 conversation_id=conversation.id,
                 user_id=conversation.user_id,
@@ -55,7 +55,6 @@ class PostgreSQLConversationRepository(ConversationRepository):
                 messages=messages_json,
                 created_at=conversation.created_at,
                 updated_at=conversation.updated_at,
-                expires_at=conversation.expires_at,
             )
             self._session.add(new_conv)
 
@@ -83,6 +82,9 @@ class PostgreSQLConversationRepository(ConversationRepository):
             for msg in messages_data
         ]
 
+        # Calculate expires_at as created_at + 24 hours (default TTL)
+        expires_at = model.created_at + timedelta(hours=24)
+
         return Conversation(
             id=model.conversation_id,
             user_id=model.user_id,
@@ -90,7 +92,7 @@ class PostgreSQLConversationRepository(ConversationRepository):
             messages=messages,
             created_at=model.created_at,
             updated_at=model.updated_at,
-            expires_at=model.expires_at,
+            expires_at=expires_at,
         )
 
     async def get_by_user_and_channel(
@@ -118,6 +120,9 @@ class PostgreSQLConversationRepository(ConversationRepository):
             for msg in messages_data
         ]
 
+        # Calculate expires_at as created_at + 24 hours (default TTL)
+        expires_at = model.created_at + timedelta(hours=24)
+
         return Conversation(
             id=model.conversation_id,
             user_id=model.user_id,
@@ -125,7 +130,7 @@ class PostgreSQLConversationRepository(ConversationRepository):
             messages=messages,
             created_at=model.created_at,
             updated_at=model.updated_at,
-            expires_at=model.expires_at,
+            expires_at=expires_at,
         )
 
     async def delete(self, conversation_id: UUID) -> None:
@@ -137,10 +142,13 @@ class PostgreSQLConversationRepository(ConversationRepository):
         await self._session.flush()
 
     async def delete_expired(self) -> int:
-        """Delete expired conversations"""
+        """Delete expired conversations (older than 24 hours)"""
         current_time = datetime.now(UTC)
+        expiry_threshold = current_time - timedelta(hours=24)
+
+        # Delete conversations where created_at is older than 24 hours
         stmt = delete(ConversationTable).where(
-            ConversationTable.expires_at <= current_time
+            ConversationTable.created_at <= expiry_threshold
         )
         result = await self._session.execute(stmt)
         await self._session.flush()

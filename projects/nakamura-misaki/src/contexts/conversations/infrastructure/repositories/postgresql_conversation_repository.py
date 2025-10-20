@@ -1,6 +1,6 @@
 """PostgreSQL Conversation Repository Implementation"""
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -117,6 +117,9 @@ class PostgreSQLConversationRepository(ConversationRepository):
             for msg in conversation_table.messages
         ]
 
+        # Calculate expires_at as created_at + 24 hours (default TTL)
+        expires_at = conversation_table.created_at + timedelta(hours=24)
+
         return Conversation(
             id=ConversationId(value=conversation_table.conversation_id),
             user_id=UserId(value=conversation_table.user_id),
@@ -124,7 +127,7 @@ class PostgreSQLConversationRepository(ConversationRepository):
             messages=messages,
             created_at=conversation_table.created_at,
             updated_at=conversation_table.updated_at,
-            expires_at=conversation_table.created_at,  # Will be set properly from entity
+            expires_at=expires_at,
         )
 
     def _message_to_dict(self, message: Message) -> dict:
