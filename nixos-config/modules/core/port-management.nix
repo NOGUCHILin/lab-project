@@ -10,7 +10,7 @@ let
   # Centralized port definitions
   defaultPorts = {
     codeServer = 8889;
-    unifiedDashboard = 3005;
+    unifiedDashboard = 3000;
     openaiRealtime = 9000;
     nakamuraMisaki = {
       api = 10000;
