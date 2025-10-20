@@ -4,8 +4,6 @@ Manages conversation sessions with TTL-based expiration.
 Handles conversation lifecycle: creation, message addition, history retrieval.
 """
 
-from uuid import uuid4
-
 from ...contexts.personal_tasks.domain.models.conversation import Conversation, Message, MessageRole
 from ...contexts.personal_tasks.domain.repositories.conversation_repository import ConversationRepository
 
@@ -49,7 +47,7 @@ class ConversationManager:
         # Try to get existing conversation
         existing = await self._repository.get_by_user_and_channel(user_id, channel_id)
 
-        if existing and not existing.is_expired(self._ttl_hours):
+        if existing and not existing.is_expired():
             return existing
 
         # Create new conversation
@@ -57,10 +55,10 @@ class ConversationManager:
         if initial_message:
             messages = [Message(role=MessageRole.USER, content=initial_message)]
 
-        conversation = Conversation(
-            conversation_id=uuid4(),
+        conversation = Conversation.create(
             user_id=user_id,
             channel_id=channel_id,
+            ttl_hours=self._ttl_hours,
             messages=messages,
         )
 
@@ -150,4 +148,4 @@ class ConversationManager:
         Returns:
             int: 削除された会話の数
         """
-        return await self._repository.delete_expired(ttl_hours=self._ttl_hours)
+        return await self._repository.delete_expired()

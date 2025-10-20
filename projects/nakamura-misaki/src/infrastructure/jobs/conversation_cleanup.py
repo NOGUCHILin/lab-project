@@ -75,9 +75,9 @@ class ConversationCleanupJob:
     async def _cleanup_expired_conversations(self) -> None:
         """Remove expired conversations"""
         try:
-            deleted_count = await self._repository.delete_expired(self._ttl_hours)
+            deleted_count = await self._repository.delete_expired()
             if deleted_count > 0:
-                logger.info(f"Cleaned up {deleted_count} expired conversations (TTL: {self._ttl_hours}h)")
+                logger.info(f"Cleaned up {deleted_count} expired conversations")
         except Exception as e:
             logger.error(f"Failed to clean up conversations: {e}", exc_info=True)
             raise

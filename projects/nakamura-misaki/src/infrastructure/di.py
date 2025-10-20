@@ -8,9 +8,6 @@ from slack_sdk.web.async_client import AsyncWebClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.adapters.primary.slack_event_handler import SlackEventHandlerV5
-from src.contexts.personal_tasks.infrastructure.repositories.postgresql_conversation_repository import (
-    PostgreSQLConversationRepository,
-)
 
 # Conversations context use cases
 from src.contexts.conversations.application.use_cases.add_message import AddMessageUseCase
@@ -53,6 +50,9 @@ from src.contexts.personal_tasks.application.use_cases.query_due_tasks import Qu
 from src.contexts.personal_tasks.application.use_cases.query_user_tasks import QueryUserTasksUseCase
 from src.contexts.personal_tasks.application.use_cases.register_task import RegisterTaskUseCase
 from src.contexts.personal_tasks.application.use_cases.update_task import UpdateTaskUseCase
+from src.contexts.personal_tasks.infrastructure.repositories.postgresql_conversation_repository import (
+    PostgreSQLConversationRepository,
+)
 
 # New Personal Tasks context repositories
 from src.contexts.personal_tasks.infrastructure.repositories.postgresql_task_repository import (
@@ -243,10 +243,10 @@ _di_container_instance: DIContainer | None = None
 
 def get_di_container() -> DIContainer:
     """Get global DI container instance
-    
+
     Returns:
         DIContainer: Global DI container instance
-    
+
     Raises:
         RuntimeError: If DI container has not been initialized
     """
@@ -263,11 +263,11 @@ def initialize_di_container(
     slack_client: AsyncWebClient,
 ) -> DIContainer:
     """Initialize global DI container
-    
+
     Args:
         session: SQLAlchemy async session
         slack_client: Slack async web client
-    
+
     Returns:
         DIContainer: Initialized DI container
     """
