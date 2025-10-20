@@ -189,51 +189,35 @@
 
             # venvの準備と依存関係のインストール（noguchilinユーザーで実行）
             # nix-ldが有効なのでvenvでネイティブライブラリが正しくリンクされる
+            # 戦略: .venvを毎回削除して再作成（権限問題を完全回避）
             ExecStartPre = pkgs.writeShellScript "nakamura-pre-start" ''
               set -e
 
               TARGET_DIR="/home/noguchilin/projects/lab-project/nakamura-misaki"
 
-              # 権限エラー回避: 既存ディレクトリに書き込めない場合は退避して再作成
-              if [ -d "$TARGET_DIR" ] && [ ! -w "$TARGET_DIR" ]; then
-                echo "Target directory not writable, moving to backup..."
-                BACKUP_DIR="$TARGET_DIR.backup.$(date +%s)"
-                mv "$TARGET_DIR" "$BACKUP_DIR" || {
-                  echo "Cannot move directory, attempting to work around permission issues..."
-                  # 最悪の場合、書き込み可能な新しいディレクトリを使う
-                  TARGET_DIR="/home/noguchilin/projects/lab-project/nakamura-misaki.new"
-                }
-              fi
-
-              # ディレクトリ作成（存在しない場合）
+              # ディレクトリ作成
               mkdir -p "$TARGET_DIR"
 
-              # ソースコードのみ更新（.venvと__pycache__は保持）
+              # ソースコードを同期（.venvは完全無視）
               ${pkgs.rsync}/bin/rsync -a --delete \
                 --exclude=".venv" \
                 --exclude="__pycache__" \
                 --exclude="*.pyc" \
                 --exclude="node_modules" \
                 --exclude="workspaces" \
-                ${package}/opt/nakamura-misaki/ "$TARGET_DIR/" || {
-                  echo "rsync failed, retrying without --delete..."
-                  ${pkgs.rsync}/bin/rsync -a \
-                    --exclude=".venv" \
-                    --exclude="__pycache__" \
-                    --exclude="*.pyc" \
-                    ${package}/opt/nakamura-misaki/ "$TARGET_DIR/"
-                }
+                ${package}/opt/nakamura-misaki/ "$TARGET_DIR/"
 
-              # venv準備（初回のみ作成）
+              # 古い.venvを削除（権限問題がある場合はスキップ）
               cd "$TARGET_DIR"
-              if [ ! -d .venv ]; then
-                ${pkgs.python312}/bin/python -m venv .venv
-              fi
+              rm -rf .venv 2>/dev/null || true
 
-              # 依存関係をインストール/更新
+              # venvを新規作成
+              ${pkgs.python312}/bin/python -m venv .venv
+
+              # 依存関係をインストール
               .venv/bin/pip install -q --upgrade pip
-              .venv/bin/pip install -q -r requirements.txt || true
-              .venv/bin/pip install -q claude-agent-sdk pgvector || true
+              .venv/bin/pip install -q -r requirements.txt
+              .venv/bin/pip install -q claude-agent-sdk pgvector
             '';
 
             # sops secretsを環境変数として読み込んでから起動
