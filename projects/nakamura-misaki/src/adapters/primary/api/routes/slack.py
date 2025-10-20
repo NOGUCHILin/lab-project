@@ -115,12 +115,18 @@ async def slack_events(
 
             # Process message in background to return 200 immediately
             # (Slack expects 200 within 3 seconds or will retry)
-            handler = request.app.state.slack_event_handler
-            slack_token = request.app.state.slack_token
+            # Create handler with new DB session for this request
+            db_manager = request.app.state.db_manager
+            slack_client = request.app.state.slack_client
+            anthropic_api_key = request.app.state.anthropic_api_key
+            conversation_ttl_hours = request.app.state.conversation_ttl_hours
+
             background_tasks.add_task(
-                _process_message_async,
-                handler,
-                slack_token,
+                _process_message_with_handler,
+                db_manager,
+                slack_client,
+                anthropic_api_key,
+                conversation_ttl_hours,
                 user_id,
                 text,
                 channel,
@@ -130,6 +136,56 @@ async def slack_events(
     return {"status": "ok"}
 
 
+async def _process_message_with_handler(
+    db_manager,
+    slack_client,
+    anthropic_api_key: str,
+    conversation_ttl_hours: int,
+    user_id: str,
+    text: str,
+    channel: str,
+) -> None:
+    """Process Slack message in background with new DB session.
+
+    Args:
+        db_manager: DatabaseManager instance
+        slack_client: AsyncWebClient instance
+        anthropic_api_key: Anthropic API key
+        conversation_ttl_hours: Conversation TTL hours
+        user_id: User ID
+        text: Message text
+        channel: Channel ID
+    """
+    try:
+        # Create new DB session for this background task
+        async with db_manager.session() as session:
+            # Build DI container with this session
+            from src.infrastructure.di import DIContainer
+            di_container = DIContainer(session=session, slack_client=slack_client)
+
+            # Build event handler
+            handler = di_container.build_slack_event_handler(
+                anthropic_api_key=anthropic_api_key,
+                conversation_ttl_hours=conversation_ttl_hours
+            )
+
+            # Handle message
+            response_text = await handler.handle_message(user_id, text, channel)
+            logger.info(f"Message handled, response_generated={bool(response_text)}")
+
+            # 応答がある場合はSlackに返信
+            if response_text:
+                await slack_client.chat_postMessage(
+                    channel=channel,
+                    text=response_text,
+                    unfurl_links=False,
+                    unfurl_media=False,
+                )
+                logger.info(f"Response sent to Slack channel={channel}")
+    except Exception as e:
+        logger.error(f"Error handling message: {e}", exc_info=True)
+
+
 async def _process_message_async(
     handler: SlackEventHandlerV5,
     slack_token: str,
@@ -137,7 +193,7 @@ async def _process_message_async(
     text: str,
     channel: str,
 ) -> None:
-    """Process Slack message in background.
+    """Process Slack message in background (deprecated - use _process_message_with_handler).
 
     Args:
         handler: SlackEventHandlerV5 instance

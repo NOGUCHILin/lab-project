@@ -1,6 +1,7 @@
 """FastAPI application entry point - Nakamura-Misaki v2.0
 
 Fixed: Initialize app.state with Slack configuration for signature verification.
+Fixed: Initialize slack_event_handler from DI container for message processing.
 """
 
 from contextlib import asynccontextmanager
@@ -8,10 +9,12 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slack_sdk.web.async_client import AsyncWebClient
 
 from .adapters.primary.api.routes import router
 from .adapters.primary.dependencies import get_slack_adapter
 from .infrastructure.config import AppConfig
+from .infrastructure.database.manager import DatabaseManager
 from .infrastructure.logging import setup_logging
 
 # Load configuration
@@ -31,11 +34,23 @@ async def lifespan(app: FastAPI):
     print(f"📖 Docs: http://localhost:{config.port}/docs")
     print("")
 
-    # Initialize app.state with configuration
+    # Initialize database
+    print("🗄️  Initializing database connection...")
+    db_manager = DatabaseManager(config.database_url, echo=config.debug)
+    app.state.db_manager = db_manager
+
+    # Initialize Slack client
+    slack_client = AsyncWebClient(token=config.slack_bot_token)
+    app.state.slack_client = slack_client
+
+    # Initialize app.state with configuration (for routes)
     app.state.slack_signing_secret = config.slack_signing_secret
     app.state.slack_token = config.slack_bot_token
     app.state.anthropic_api_key = config.anthropic_api_key
     app.state.database_url = config.database_url
+    app.state.conversation_ttl_hours = config.conversation_ttl_hours
+
+    print("✅ Application state initialized")
 
     # End DND mode on startup
     slack = get_slack_adapter()
@@ -47,8 +62,9 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    # Shutdown (if needed)
+    # Shutdown
     print("👋 Shutting down Nakamura-Misaki...")
+    await db_manager.close()
 
 
 # Create FastAPI app
