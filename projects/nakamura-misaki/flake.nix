@@ -191,12 +191,17 @@
             ExecStartPre = pkgs.writeShellScript "nakamura-pre-start" ''
               set -e
 
+              # ディレクトリ作成
+              mkdir -p /home/noguchilin/projects/lab-project/nakamura-misaki
+
+              # 既存srcを削除（権限問題回避）
+              rm -rf /home/noguchilin/projects/lab-project/nakamura-misaki/src
+
               # ソースコードを同期（Nixパッケージから）
-              ${pkgs.rsync}/bin/rsync -a --delete \
+              ${pkgs.rsync}/bin/rsync -a \
                 --exclude=".venv" \
                 --exclude="node_modules" \
-                --exclude="workspaces/user_*" \
-                --exclude="workspaces/sessions/*.json" \
+                --exclude="workspaces" \
                 ${package}/opt/nakamura-misaki/ /home/noguchilin/projects/lab-project/nakamura-misaki/
 
               cd /home/noguchilin/projects/lab-project/nakamura-misaki
@@ -208,7 +213,7 @@
 
               # 依存関係をインストール/更新
               .venv/bin/pip install -q --upgrade pip
-              .venv/bin/pip install -q -r ${package}/opt/nakamura-misaki/requirements.txt || true
+              .venv/bin/pip install -q -r requirements.txt || true
               .venv/bin/pip install -q claude-agent-sdk pgvector || true
             '';
 
