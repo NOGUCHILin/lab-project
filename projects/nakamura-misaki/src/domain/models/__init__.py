@@ -9,6 +9,7 @@ New code should use models from:
     src.contexts.<context>/domain/value_objects/
 """
 
+from .prompt_config import PromptConfig
 from .session import SessionInfo
 
-__all__ = ["SessionInfo"]
+__all__ = ["SessionInfo", "PromptConfig"]
