@@ -36,7 +36,7 @@
       ../../modules/services/registry/nats.nix               # NATS Event-Driven Messaging (monitoring via registry)
       ../../modules/services/registry/unified-dashboard.nix       # 統合ダッシュボード
       # nakamura-misakiはflakeのNixOSモジュールから提供（flake.nixで自動import）
-      ../../modules/services/registry/nakamura-misaki-db.nix      # nakamura-misaki PostgreSQL database
+      # nakamura-misaki-db.nixもflake.nixでspecialArgs経由でimport（venv依存のため）
       ../../modules/services/registry/applebuyers-site.nix        # AppleBuyers Public Site (dev server)
       ../../modules/services/registry/code-server-applebuyers.nix     # Code Server for AppleBuyers (Writers)
       ../../modules/services/registry/code-server-applebuyers-dev.nix # Code Server for AppleBuyers (Engineers)

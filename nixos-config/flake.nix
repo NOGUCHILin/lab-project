@@ -78,6 +78,11 @@
           # nakamura-misakiのNixOSモジュールをインポート
           nakamura-misaki.nixosModules.default
 
+          # nakamura-misaki-db module with specialArgs
+          ({ config, lib, pkgs, nakamura-misaki-venv, ... }: import ./modules/services/registry/nakamura-misaki-db.nix {
+            inherit config lib pkgs nakamura-misaki-venv;
+          })
+
           # sops-nix module for secrets management
           sops-nix.nixosModules.sops
 
