@@ -11,28 +11,40 @@ NixOS統合環境 - 全プロジェクト・NixOS設定を統合管理する統�
 ## 🗂️ ディレクトリ構成
 
 ```
-lab-project/
-├── projects/                  # 全サービス統一管理
-│   ├── dashboard/             # Next.js 22 統合ダッシュボード
-│   ├── nakamura-misaki/       # Claude Agent (FastAPI + Next.js)
-│   ├── code-server/           # ブラウザ版VSCode
-│   ├── filebrowser/           # Webファイル管理
-│   └── nats/                  # NATS messaging
+lab-project/                     # リポジトリルート
+├── nixos-config/                # NixOS設定（flake.nixはここ）
+│   ├── flake.nix               # NixOS設定のエントリーポイント
+│   ├── hosts/home-lab-01/      # ホスト固有設定
+│   │   └── configuration.nix
+│   ├── modules/                # 再利用可能なモジュール
+│   │   ├── core/               # 基盤設定（ポート管理、SSH等）
+│   │   ├── networking/         # Tailscale VPN
+│   │   └── services/           # サービス定義
+│   │       ├── registry/       # Service Registry（各サービス定義）
+│   │       └── tailscale-direct.nix
+│   ├── packages/               # カスタムパッケージ
+│   ├── secrets/                # sops-nix暗号化シークレット
+│   ├── users/                  # ユーザー設定
+│   └── docs/                   # NixOS固有ドキュメント
 │
-├── nixos-config/              # NixOS設定
-│   ├── flake.nix              # 各projects/*/service.nixをimport
-│   ├── hosts/home-lab-01/
-│   ├── modules/
-│   │   ├── core/
-│   │   ├── development/
-│   │   ├── networking/
-│   │   └── security/
-│   └── users/
+├── projects/                    # 各Webサービスのソースコード
+│   ├── dashboard/              # Next.js 統合ダッシュボード
+│   ├── nakamura-misaki/        # Slack Bot API (FastAPI)
+│   ├── code-server/            # ブラウザ版VS Code
+│   ├── filebrowser/            # Webファイル管理
+│   └── nats/                   # NATS messaging
 │
-├── scripts/                   # デプロイ・管理スクリプト
-├── .github/workflows/         # 自動デプロイ
-└── docs/                      # ドキュメント
+├── claudedocs/                  # Claude Code用詳細ドキュメント
+│   ├── service-registry.md     # Service Registry実装ガイド
+│   └── applebuyers-deploy-workflow-request.md
+│
+├── .github/workflows/           # CI/CD（自動デプロイ）
+├── .serena/                     # Serena MCP設定
+├── CLAUDE.md                    # Claude Code用プロジェクト設定
+└── README.md                    # このファイル
 ```
+
+**重要**: NixOSコマンド（`nix flake check`等）は`nixos-config/`ディレクトリで実行してください。
 
 ## 🚀 デプロイフロー
 

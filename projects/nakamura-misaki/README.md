@@ -1,6 +1,6 @@
 # nakamura-misaki v5.0.0
 
-**自然言語タスク管理AIアシスタント**
+**中村美咲 - 人格としてのタスク管理アシスタント**
 
 **現在のバージョン**: v5.0.0 (Implementation Complete)
 **前バージョン**: v4.0.0 (Deprecated)
@@ -13,8 +13,10 @@
 
 ## 🎯 概要
 
-nakamura-misakiは、**Slackでの会話を通じてタスク管理を行うAIアシスタント**です。
-Claudeを活用した自然言語理解により、柔軟で直感的なタスク操作を実現します。
+nakamura-misakiは、**Slackチーム内でユーザーとして存在する人格**です。
+Slackでの会話を通じてタスク管理を行い、Claudeを活用した自然言語理解により、柔軟で直感的なタスク操作を実現します。
+
+**重要**: nakamura-misakiはBotではなく、Slack User Token (`xoxp-`) で動作する人格的アシスタントです。
 
 ### v5.0.0（実装完了）
 
@@ -99,14 +101,15 @@ nakamura-misaki/
 
 - NixOS環境
 - PostgreSQL 16 (pgvector拡張有効)
-- Slack App設定済み（Events API, Bot Token）
+- Slack App設定済み（Events API, **User Token**）
 - Anthropic API Key
 
 ### 環境変数
 
 ```bash
 # sops-nix経由で管理（平文での保存禁止）
-SLACK_BOT_TOKEN=xoxb-...
+# 注: SLACK_BOT_TOKEN変数名だが、実際はUser Token (xoxp-) を使用
+SLACK_BOT_TOKEN=xoxp-...  # User Token（人格として動作）
 SLACK_SIGNING_SECRET=...
 ANTHROPIC_API_KEY=sk-ant-...
 DATABASE_URL=postgresql+asyncpg://nakamura_misaki@localhost:5432/nakamura_misaki

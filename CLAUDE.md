@@ -70,18 +70,18 @@ check-services
 
 ## 🏗️ Service Registry Pattern
 
-**すべてのサービスは `modules/services/registry/default.nix` で一元管理**
+**すべてのサービスは `nixos-config/modules/services/registry/default.nix` で一元管理**
 
 <instructions>
 新サービス追加時は以下の手順を厳守：
 
-1. `modules/services/registry/` に `.nix` ファイル作成
+1. `nixos-config/modules/services/registry/` に `.nix` ファイル作成
 2. `default.nix` の `services` リストに登録
 3. `configuration.nix` の `imports` に追加
 4. Tailscale公開設定を決定（Funnel or Serve）
 
 **重要な制約**:
-- ポート番号は `modules/core/port-management.nix` で一元管理
+- ポート番号は `nixos-config/modules/core/port-management.nix` で一元管理
 - 既存ポートとの競合を必ず確認
 - Funnelはポート443/8443/10000のみサポート
 - その他のポートはServeで公開（Tailscaleネットワーク内のみ）
@@ -91,7 +91,7 @@ check-services
 **シナリオ**: Slack Webhook受信用の外部公開API
 
 ```nix
-# modules/services/registry/webhook-api.nix
+# nixos-config/modules/services/registry/webhook-api.nix
 {
   port = 10001;
   path = "/webhook";
@@ -116,7 +116,7 @@ Registry登録・Tailscale設定・デプロイの詳細は `claudedocs/service-
 **結果**: NixOS再ビルド時にポート競合エラー
 
 **解決策**:
-1. `modules/core/port-management.nix` で空きポートを確認
+1. `nixos-config/modules/core/port-management.nix` で空きポートを確認
 2. 未使用ポート（例: 3006）を選択
 </example>
 
@@ -124,9 +124,30 @@ Registry登録・Tailscale設定・デプロイの詳細は `claudedocs/service-
 
 ## 📐 アーキテクチャ
 
+### リポジトリ構造
+
+```
+lab-project/                     # リポジトリルート
+├── nixos-config/                # NixOS設定（flake.nixはここ）
+│   ├── flake.nix               # NixOS設定のエントリーポイント
+│   ├── hosts/home-lab-01/      # ホスト固有設定
+│   │   └── configuration.nix
+│   └── modules/                # 再利用可能なモジュール
+│       ├── core/               # 基盤設定（ポート管理、SSH等）
+│       ├── networking/         # Tailscale VPN
+│       └── services/registry/  # サービス定義
+├── projects/                    # 各Webサービスのソースコード
+│   ├── dashboard/
+│   ├── nakamura-misaki/
+│   └── ...
+└── claudedocs/                  # 詳細ドキュメント（タスク指向）
+```
+
+**重要**: NixOSコマンドは`nixos-config/`ディレクトリで実行する必要があります。
+
 ### Flake-based NixOS Configuration
 
-- **flake.nix**: NixOS設定のエントリーポイント
+- **flake.nix**: `nixos-config/flake.nix`がエントリーポイント
 - **ホスト定義**: `nixos-config/hosts/home-lab-01/configuration.nix`
 - **モジュール構成**:
   - `modules/core/`: 基盤設定（ポート管理、SSH、ファイアウォール、シークレット）
@@ -140,7 +161,7 @@ Registry登録・Tailscale設定・デプロイの詳細は `claudedocs/service-
 | **Funnel** | インターネット公開 | 443/8443/10000のみ |
 | **Serve** | Tailscaleネットワーク内のみ | なし |
 
-設定は `modules/services/tailscale-direct.nix` で宣言的に管理
+設定は `nixos-config/modules/services/tailscale-direct.nix` で宣言的に管理
 
 ### 主要ポート
 
@@ -151,7 +172,7 @@ Registry登録・Tailscale設定・デプロイの詳細は `claudedocs/service-
 | 10000 | nakamura-misaki API | Funnel |
 | 8889-8891 | code-server | Serve |
 
-詳細は `modules/core/port-management.nix` 参照
+詳細は `nixos-config/modules/core/port-management.nix` 参照
 
 ---
 

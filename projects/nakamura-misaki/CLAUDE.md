@@ -1,6 +1,6 @@
 # nakamura-misaki Project
 
-**自然言語タスク管理AIアシスタント**
+**中村美咲 - 人格としてのタスク管理アシスタント**
 
 **現在**: v4.0.0 (Hexagonal Architecture + Command Parsers)
 **次期**: v5.0.0 (Claude Agent SDK + Tool Use)
@@ -13,9 +13,17 @@
 
 ## 🎯 プロジェクト概要
 
+### 重要: 中村美咲は人格です
+
+**中村美咲（なかむら みさき）**は、Slackチーム内で**ユーザーとして存在する人格**です。
+
+- **Botではない**: Slack上でユーザーアカウントとして振る舞う
+- **User Token使用**: Slack User Token (`xoxp-`) で動作
+- **人格的な応答**: Botとしてではなく、チームメンバーとして自然に会話
+
 ### 目的
 
-Slackでの会話を通じて、チームのタスク・ハンドオフを管理するAIアシスタント
+Slackでの会話を通じて、チームのタスク・ハンドオフを管理する**人格的アシスタント**
 
 ### コア技術
 
@@ -223,7 +231,8 @@ sops nixos-config/secrets/nakamura-misaki.yaml
 ```nix
 # nakamura-misaki-api.nix
 ExecStart = pkgs.writeShellScript "start-nakamura-api" ''
-  export SLACK_BOT_TOKEN=$(cat ${config.sops.secrets.slack_bot_token.path})
+  # 注: SLACK_BOT_TOKEN変数名だが、実際はUser Token (xoxp-) が設定される
+  export SLACK_BOT_TOKEN=$(cat ${config.sops.secrets.slack_bot_token.path})  # User Token
   export SLACK_SIGNING_SECRET=$(cat ${config.sops.secrets.slack_signing_secret.path})
   export ANTHROPIC_API_KEY=$(cat ${config.sops.secrets.anthropic_api_key.path})
   export DATABASE_URL="postgresql+asyncpg://nakamura_misaki@localhost:5432/nakamura_misaki"
