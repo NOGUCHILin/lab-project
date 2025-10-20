@@ -19,8 +19,8 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from src.infrastructure.database.schema import Base
 
 
-async def main():
-    """データベース初期化"""
+async def init_database():
+    """データベース初期化（async）"""
     database_url = os.getenv("DATABASE_URL")
 
     if not database_url:
@@ -47,5 +47,10 @@ async def main():
     print(f"🎉 Database initialization complete")
 
 
+def main():
+    """Entry point for nakamura-init-db script"""
+    asyncio.run(init_database())
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

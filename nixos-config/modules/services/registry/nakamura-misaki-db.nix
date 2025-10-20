@@ -55,7 +55,7 @@
 
   # データベース初期化サービス
   systemd.services.nakamura-misaki-init-db = {
-    description = "Initialize nakamura-misaki v4.0.0 database";
+    description = "Initialize nakamura-misaki v6.0.0 database";
     after = [ "postgresql.service" "nakamura-misaki-enable-vector.service" ];
     requires = [ "nakamura-misaki-enable-vector.service" ];
     wants = [ "postgresql.service" ];
@@ -65,7 +65,6 @@
       Type = "oneshot";
       User = "noguchilin";
       Group = "users";
-      WorkingDirectory = "/home/noguchilin/projects/lab-project/nakamura-misaki";
 
       # 初期化スクリプト実行（冪等性があるため毎回実行可能）
       ExecStart = pkgs.writeShellScript "init-nakamura-db" ''
@@ -77,19 +76,8 @@
         # C++ library path for numpy (required by pgvector)
         export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
 
-        # プロジェクトディレクトリ（nakamura-misaki API serviceと同じ）
-        PROJECT_DIR="/home/noguchilin/projects/lab-project/nakamura-misaki"
-
-        if [ ! -d "$PROJECT_DIR" ]; then
-          echo "Error: nakamura-misaki project not found at $PROJECT_DIR"
-          exit 1
-        fi
-
-        cd "$PROJECT_DIR"
-
-        # データベース初期化（nakamura-misakiのvenv環境を使用）
-        export PYTHONPATH="$PROJECT_DIR:$PYTHONPATH"
-        ${nakamura-misaki-venv}/bin/python scripts/init_db.py
+        # データベース初期化（nakamura-init-db scriptを使用）
+        ${nakamura-misaki-venv}/bin/nakamura-init-db
 
         echo "✅ Database initialization complete"
       '';
