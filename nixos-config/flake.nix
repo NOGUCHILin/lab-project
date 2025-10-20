@@ -70,6 +70,7 @@
           # nakamura-misakiのflakeモジュールとパッケージを渡す
           nakamura-misaki-flake = nakamura-misaki;
           nakamura-misaki-package = self.packages.${system}.nakamura-misaki;
+          nakamura-misaki-venv = nakamura-misaki.packages.${system}.venv;
         };
         modules = [
           ./hosts/home-lab-01/configuration.nix

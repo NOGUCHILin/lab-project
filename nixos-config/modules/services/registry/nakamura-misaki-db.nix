@@ -1,4 +1,4 @@
-{ config, pkgs, nakamura-misaki-package, ... }:
+{ config, pkgs, nakamura-misaki-venv, ... }:
 
 {
   # PostgreSQL 16 + pgvector
@@ -87,9 +87,9 @@
 
         cd "$PROJECT_DIR"
 
-        # データベース初期化（nakamura-misakiパッケージのPython環境を使用）
+        # データベース初期化（nakamura-misakiのvenv環境を使用）
         export PYTHONPATH="$PROJECT_DIR:$PYTHONPATH"
-        ${nakamura-misaki-package.python}/bin/python scripts/init_db.py
+        ${nakamura-misaki-venv}/bin/python scripts/init_db.py
 
         echo "✅ Database initialization complete"
       '';
