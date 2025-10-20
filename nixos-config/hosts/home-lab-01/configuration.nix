@@ -204,6 +204,30 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
+  # Enable nix-ld for Python venv with native libraries
+  programs.nix-ld = {
+    enable = true;
+    libraries = with pkgs; [
+      # Standard libraries for Python native extensions
+      stdenv.cc.cc
+      zlib
+      zstd
+      openssl
+      curl
+      libssh
+      libxml2
+      ncurses
+      attr
+      acl
+      bzip2
+      xz
+      util-linux
+      systemd
+      # PostgreSQL client libraries
+      postgresql
+    ];
+  };
+
   # sudo設定: nixos-rebuildとサービス制御をパスワードなし
   security.sudo.extraRules = [{
     users = [ "noguchilin" ];

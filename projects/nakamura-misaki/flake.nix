@@ -187,38 +187,37 @@
             Group = "users";
             WorkingDirectory = "/home/noguchilin/projects/lab-project/nakamura-misaki";
 
-            # venvの準備と依存関係のインストール（root権限で実行）
-            # Note: Using '+' prefix in ExecStartPre requires it to be at the start of the string
-            ExecStartPre = "+${pkgs.writeShellScript "nakamura-pre-start" ''
+            # venvの準備と依存関係のインストール（noguchilinユーザーで実行）
+            # nix-ldが有効なのでvenvでネイティブライブラリが正しくリンクされる
+            ExecStartPre = pkgs.writeShellScript "nakamura-pre-start" ''
               set -e
 
               TARGET_DIR="/home/noguchilin/projects/lab-project/nakamura-misaki"
 
-              # 完全にクリーンな状態から開始（root権限で古いファイルを削除）
-              rm -rf "$TARGET_DIR"
+              # ディレクトリ作成（存在しない場合）
               mkdir -p "$TARGET_DIR"
 
-              # ソースコードを同期（Nixパッケージから）
-              ${pkgs.rsync}/bin/rsync -a \
+              # ソースコードのみ更新（.venvと__pycache__は保持）
+              ${pkgs.rsync}/bin/rsync -a --delete \
                 --exclude=".venv" \
+                --exclude="__pycache__" \
+                --exclude="*.pyc" \
                 --exclude="node_modules" \
                 --exclude="workspaces" \
                 ${package}/opt/nakamura-misaki/ "$TARGET_DIR/"
 
-              # 所有者をnoguchilinに変更
-              chown -R noguchilin:users "$TARGET_DIR"
-
-              # noguchilinユーザーでvenv準備
+              # venv準備（初回のみ作成）
               cd "$TARGET_DIR"
               if [ ! -d .venv ]; then
-                sudo -u noguchilin ${pkgs.python312}/bin/python -m venv .venv
+                ${pkgs.python312}/bin/python -m venv .venv
               fi
 
-              # 依存関係をインストール/更新（noguchilinユーザーで）
-              sudo -u noguchilin .venv/bin/pip install -q --upgrade pip
-              sudo -u noguchilin .venv/bin/pip install -q -r requirements.txt || true
-              sudo -u noguchilin .venv/bin/pip install -q claude-agent-sdk pgvector || true
-            ''}";
+              # 依存関係をインストール/更新
+              # requirements.txtが変更された場合のみ再インストール
+              .venv/bin/pip install -q --upgrade pip
+              .venv/bin/pip install -q -r requirements.txt || true
+              .venv/bin/pip install -q claude-agent-sdk pgvector || true
+            '';
 
             # sops secretsを環境変数として読み込んでから起動
             ExecStart = pkgs.writeShellScript "nakamura-start" ''
