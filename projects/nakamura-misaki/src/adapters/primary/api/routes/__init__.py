@@ -1,5 +1,5 @@
 """API Route Modules"""
 
-from . import slack
+from .slack import router
 
-__all__ = ["slack"]
+__all__ = ["router", "slack"]
