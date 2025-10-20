@@ -1,4 +1,7 @@
-"""FastAPI application entry point - Nakamura-Misaki v2.0"""
+"""FastAPI application entry point - Nakamura-Misaki v2.0
+
+Fixed: Initialize app.state with Slack configuration for signature verification.
+"""
 
 from contextlib import asynccontextmanager
 
