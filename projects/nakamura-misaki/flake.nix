@@ -1,5 +1,5 @@
 {
-  description = "Nakamura-Misaki - Multi-User Claude Code Agent Service";
+  description = "Nakamura-Misaki - Multi-User Claude Code Agent Service (Pure Nix)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -10,39 +10,95 @@
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
 
-    # Pythonパッケージとして定義（ソースのみ、依存関係は実行時にvenvから）
-    # Nixはソースコードを/nix/store/に配置し、実行時に外部venvを参照
+    # カスタムPythonパッケージの定義
+    customPythonPackages = {
+      # claude-agent-sdk (PyPI: claude-agent-sdk 0.1.4)
+      claude-agent-sdk = pkgs.python312Packages.buildPythonPackage rec {
+        pname = "claude-agent-sdk";
+        version = "0.1.4";
+
+        src = pkgs.fetchPypi {
+          inherit pname version;
+          sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Will get real hash from build error
+        };
+
+        propagatedBuildInputs = with pkgs.python312Packages; [
+          anthropic
+          httpx
+        ];
+
+        doCheck = false;
+      };
+
+      # pgvector (PyPI: pgvector 0.4.1)
+      pgvector = pkgs.python312Packages.buildPythonPackage rec {
+        pname = "pgvector";
+        version = "0.4.1";
+
+        src = pkgs.fetchPypi {
+          inherit pname version;
+          sha256 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Will get real hash from build error
+        };
+
+        propagatedBuildInputs = with pkgs.python312Packages; [
+          numpy
+        ];
+
+        doCheck = false;
+      };
+    };
+
+    # Python環境を構築（すべての依存関係を含む）
+    pythonEnv = pkgs.python312.withPackages (ps: with ps; [
+      # Core dependencies
+      fastapi
+      uvicorn
+      pydantic
+      pydantic-settings
+
+      # Slack SDK
+      slack-bolt
+      slack-sdk
+
+      # Anthropic
+      anthropic
+
+      # HTTP client
+      aiohttp
+
+      # Database
+      sqlalchemy
+      asyncpg
+      psycopg3
+      alembic
+
+      # Python utilities
+      python-dateutil
+
+      # Custom packages
+      customPythonPackages.claude-agent-sdk
+      customPythonPackages.pgvector
+    ]);
+
+    # アプリケーションパッケージ
     nakamura-misaki = pkgs.stdenv.mkDerivation rec {
       pname = "nakamura-misaki";
       version = "6.0.0";
 
       src = ./.;
 
-      nativeBuildInputs = with pkgs; [
-        makeWrapper
-      ];
+      nativeBuildInputs = [ pkgs.makeWrapper ];
 
-      buildInputs = with pkgs; [
-        python312
-      ];
-
-      # ビルド不要、ソースをそのままコピー
       dontBuild = true;
 
-      # インストール：srcをコピーして起動スクリプトを作成
       installPhase = ''
         mkdir -p $out/opt/nakamura-misaki
-
-        # ソースコードをコピー（.venvは除外）
         cp -r src $out/opt/nakamura-misaki/
-        cp pyproject.toml uv.lock README.md $out/opt/nakamura-misaki/ || true
 
-        # 起動スクリプトを作成
-        # 実行時に /home/noguchilin/projects/lab-project/nakamura-misaki/.venv を使用
         mkdir -p $out/bin
-        makeWrapper ${pkgs.python312}/bin/python $out/bin/nakamura-misaki \
+        makeWrapper ${pythonEnv}/bin/python $out/bin/nakamura-misaki \
           --add-flags "-m src.main" \
-          --set PYTHONPATH "$out/opt/nakamura-misaki:$out/opt/nakamura-misaki/src" \
+          --set PYTHONPATH "$out/opt/nakamura-misaki" \
           --chdir "$out/opt/nakamura-misaki"
       '';
 
@@ -50,7 +106,6 @@
         description = "DDD + Clean Architecture based task management AI assistant";
         homepage = "https://github.com/NOGUCHILin/lab-project";
         license = licenses.mit;
-        maintainers = [];
       };
     };
 
@@ -69,7 +124,6 @@
         python312
         python312Packages.pip
         python312Packages.virtualenv
-        python312Packages.uv
         git
         jq
       ];
@@ -78,23 +132,7 @@
         echo "🤖 Nakamura-Misaki 開発環境"
         echo "🐍 Python: $(python --version)"
         echo ""
-
-        # uvで仮想環境セットアップ
-        if [ ! -d ".venv" ]; then
-          echo "📦 uv sync実行中..."
-          uv sync
-        fi
-
-        # 仮想環境をアクティベート
-        source .venv/bin/activate
-
-        echo "✅ 開発環境準備完了"
-        echo "🎯 Python: $(which python)"
-        echo "📁 作業ディレクトリ: $PWD"
-        echo ""
-        echo "💡 コマンド:"
-        echo "  uv run python -m src.main  - サービス起動"
-        echo "  uv run pytest                - テスト実行"
+        echo "💡 開発時はuvまたはpip installで依存関係を管理してください"
       '';
     };
 
@@ -102,13 +140,11 @@
     nixosModules.default = { config, lib, pkgs, ... }:
     let
       cfg = config.services.nakamura-misaki;
-      # Nixパッケージを使用
       package = self.packages.${system}.nakamura-misaki;
     in {
       options.services.nakamura-misaki = {
         enable = lib.mkEnableOption "Nakamura-Misaki Claude Agent Service";
 
-        # 既存設定との後方互換性のため ports.api を優先
         ports = {
           api = lib.mkOption {
             type = lib.types.port;
@@ -156,7 +192,7 @@
         databaseUrl = lib.mkOption {
           type = lib.types.str;
           default = "";
-          description = "PostgreSQL database URL (use sops for secrets)";
+          description = "PostgreSQL database URL";
         };
 
         nakamuraUserId = lib.mkOption {
@@ -167,7 +203,7 @@
       };
 
       config = lib.mkIf cfg.enable {
-        # Main service
+        # Main service - Pure Nix (no venv)
         systemd.services.nakamura-misaki = {
           description = "Nakamura-Misaki Multi-User Claude Code Agent";
           wantedBy = [ "multi-user.target" ];
@@ -185,51 +221,16 @@
             Type = "simple";
             User = "noguchilin";
             Group = "users";
-            WorkingDirectory = "/home/noguchilin/projects/lab-project/nakamura-misaki";
 
-            # venvの準備と依存関係のインストール（noguchilinユーザーで実行）
-            # nix-ldが有効なのでvenvでネイティブライブラリが正しくリンクされる
-            # 戦略: .venvを毎回削除して再作成（権限問題を完全回避）
-            ExecStartPre = pkgs.writeShellScript "nakamura-pre-start" ''
-              set -e
-
-              TARGET_DIR="/home/noguchilin/projects/lab-project/nakamura-misaki"
-
-              # ディレクトリ作成
-              mkdir -p "$TARGET_DIR"
-
-              # ソースコードを同期（.venvは完全無視）
-              ${pkgs.rsync}/bin/rsync -a --delete \
-                --exclude=".venv" \
-                --exclude="__pycache__" \
-                --exclude="*.pyc" \
-                --exclude="node_modules" \
-                --exclude="workspaces" \
-                ${package}/opt/nakamura-misaki/ "$TARGET_DIR/"
-
-              # 古い.venvを削除（権限問題がある場合はスキップ）
-              cd "$TARGET_DIR"
-              rm -rf .venv 2>/dev/null || true
-
-              # venvを新規作成
-              ${pkgs.python312}/bin/python -m venv .venv
-
-              # 依存関係をインストール
-              .venv/bin/pip install -q --upgrade pip
-              .venv/bin/pip install -q -r requirements.txt
-              .venv/bin/pip install -q claude-agent-sdk pgvector
-            '';
-
-            # sops secretsを環境変数として読み込んでから起動
+            # Pure Nixアプローチ: すべての依存関係がNixパッケージに含まれる
             ExecStart = pkgs.writeShellScript "nakamura-start" ''
               # Load secrets from sops-nix
               export SLACK_BOT_TOKEN=$(cat ${config.sops.secrets.slack_bot_token.path})
               export SLACK_SIGNING_SECRET=$(cat ${config.sops.secrets.slack_signing_secret.path})
               export ANTHROPIC_API_KEY=$(cat ${config.sops.secrets.anthropic_api_key.path})
 
-              # Launch the service from venv
-              cd /home/noguchilin/projects/lab-project/nakamura-misaki
-              exec .venv/bin/python -m src.main
+              # Nixパッケージから直接実行
+              exec ${package}/bin/nakamura-misaki
             '';
 
             Restart = "always";
@@ -238,18 +239,17 @@
             KillSignal = "SIGTERM";
             TimeoutStopSec = 10;
 
-            # セキュリティ設定
+            # Security hardening
             PrivateTmp = true;
             ProtectSystem = "strict";
-            ProtectHome = false;  # Claude CLIアクセス許可
+            ProtectHome = false;
             ReadWritePaths = [
               "/home/noguchilin/.claude"
-              "/home/noguchilin/projects/lab-project/nakamura-misaki"
             ];
           };
         };
 
-        # Tailscale Funnel設定
+        # Tailscale Funnel setup
         systemd.services.nakamura-misaki-funnel = lib.mkIf cfg.enableFunnel {
           description = "Setup Tailscale Funnel for Nakamura-Misaki";
           wantedBy = [ "multi-user.target" ];
@@ -261,19 +261,25 @@
             User = "noguchilin";
 
             ExecStart = pkgs.writeShellScript "setup-funnel" ''
-              # Wait for Tailscale and Serve to be ready
-              sleep 5
+              # Wait for services
+              while ! ${pkgs.systemd}/bin/systemctl is-active tailscaled.service >/dev/null 2>&1; do
+                echo "Waiting for tailscaled..."
+                sleep 2
+              done
 
-              # Enable Funnel for external access
-              ${pkgs.tailscale}/bin/tailscale funnel --bg --https=${toString cfg.ports.api} ${toString cfg.ports.api}
+              while ! ${pkgs.systemd}/bin/systemctl is-active nakamura-misaki.service >/dev/null 2>&1; do
+                echo "Waiting for nakamura-misaki..."
+                sleep 2
+              done
 
-              # Display webhook URL
-              echo "Nakamura-Misaki webhook URL (external):"
-              echo "https://$(${pkgs.tailscale}/bin/tailscale status --json | ${pkgs.jq}/bin/jq -r '.Self.DNSName' | sed 's/\.$//')/:${toString cfg.ports.api}/webhook/slack"
+              # Enable Funnel
+              echo "Setting up Tailscale Funnel for nakamura-misaki on port ${toString cfg.ports.api}..."
+              ${pkgs.tailscale}/bin/tailscale funnel --bg --https=443 --set-path=/ ${toString cfg.ports.api}
             '';
 
             ExecStop = pkgs.writeShellScript "stop-funnel" ''
-              ${pkgs.tailscale}/bin/tailscale funnel --https=${toString cfg.ports.api} off
+              echo "Removing Tailscale Funnel for nakamura-misaki..."
+              ${pkgs.tailscale}/bin/tailscale funnel --https=443 off || true
             '';
           };
         };
