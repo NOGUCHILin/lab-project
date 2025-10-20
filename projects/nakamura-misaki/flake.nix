@@ -188,16 +188,15 @@
             WorkingDirectory = "/home/noguchilin/projects/lab-project/nakamura-misaki";
 
             # venvの準備と依存関係のインストール（root権限で実行）
-            ExecStartPre = "+" + pkgs.writeShellScript "nakamura-pre-start" ''
+            # Note: Using '+' prefix in ExecStartPre requires it to be at the start of the string
+            ExecStartPre = "+${pkgs.writeShellScript "nakamura-pre-start" ''
               set -e
 
               TARGET_DIR="/home/noguchilin/projects/lab-project/nakamura-misaki"
 
-              # ディレクトリ作成
+              # 完全にクリーンな状態から開始（root権限で古いファイルを削除）
+              rm -rf "$TARGET_DIR"
               mkdir -p "$TARGET_DIR"
-
-              # 既存srcを削除（root権限で）
-              rm -rf "$TARGET_DIR/src"
 
               # ソースコードを同期（Nixパッケージから）
               ${pkgs.rsync}/bin/rsync -a \
@@ -219,7 +218,7 @@
               sudo -u noguchilin .venv/bin/pip install -q --upgrade pip
               sudo -u noguchilin .venv/bin/pip install -q -r requirements.txt || true
               sudo -u noguchilin .venv/bin/pip install -q claude-agent-sdk pgvector || true
-            '';
+            ''}";
 
             # sops secretsを環境変数として読み込んでから起動
             ExecStart = pkgs.writeShellScript "nakamura-start" ''
