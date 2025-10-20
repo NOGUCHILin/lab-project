@@ -1,10 +1,14 @@
-"""Domain models for Nakamura-Misaki
+"""Domain Models - Legacy bridge package
 
-Note: Domain models have been migrated to DDD bounded contexts.
-See:
-- src.contexts.personal_tasks.domain.models
-- src.contexts.handoffs.domain.entities
-- src.contexts.conversations.domain.models
+DEPRECATION NOTICE:
+This package provides legacy models for backward compatibility during
+the migration to the new Bounded Context architecture.
+
+New code should use models from:
+    src.contexts.<context>/domain/entities/
+    src.contexts.<context>/domain/value_objects/
 """
 
-__all__ = []
+from .session import SessionInfo
+
+__all__ = ["SessionInfo"]
