@@ -194,6 +194,17 @@
 
               TARGET_DIR="/home/noguchilin/projects/lab-project/nakamura-misaki"
 
+              # 権限エラー回避: 既存ディレクトリに書き込めない場合は退避して再作成
+              if [ -d "$TARGET_DIR" ] && [ ! -w "$TARGET_DIR" ]; then
+                echo "Target directory not writable, moving to backup..."
+                BACKUP_DIR="$TARGET_DIR.backup.$(date +%s)"
+                mv "$TARGET_DIR" "$BACKUP_DIR" || {
+                  echo "Cannot move directory, attempting to work around permission issues..."
+                  # 最悪の場合、書き込み可能な新しいディレクトリを使う
+                  TARGET_DIR="/home/noguchilin/projects/lab-project/nakamura-misaki.new"
+                }
+              fi
+
               # ディレクトリ作成（存在しない場合）
               mkdir -p "$TARGET_DIR"
 
@@ -204,7 +215,14 @@
                 --exclude="*.pyc" \
                 --exclude="node_modules" \
                 --exclude="workspaces" \
-                ${package}/opt/nakamura-misaki/ "$TARGET_DIR/"
+                ${package}/opt/nakamura-misaki/ "$TARGET_DIR/" || {
+                  echo "rsync failed, retrying without --delete..."
+                  ${pkgs.rsync}/bin/rsync -a \
+                    --exclude=".venv" \
+                    --exclude="__pycache__" \
+                    --exclude="*.pyc" \
+                    ${package}/opt/nakamura-misaki/ "$TARGET_DIR/"
+                }
 
               # venv準備（初回のみ作成）
               cd "$TARGET_DIR"
@@ -213,7 +231,6 @@
               fi
 
               # 依存関係をインストール/更新
-              # requirements.txtが変更された場合のみ再インストール
               .venv/bin/pip install -q --upgrade pip
               .venv/bin/pip install -q -r requirements.txt || true
               .venv/bin/pip install -q claude-agent-sdk pgvector || true
