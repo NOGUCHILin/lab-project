@@ -187,34 +187,38 @@
             Group = "users";
             WorkingDirectory = "/home/noguchilin/projects/lab-project/nakamura-misaki";
 
-            # venvの準備と依存関係のインストール
-            ExecStartPre = pkgs.writeShellScript "nakamura-pre-start" ''
+            # venvの準備と依存関係のインストール（root権限で実行）
+            ExecStartPre = "+" + pkgs.writeShellScript "nakamura-pre-start" ''
               set -e
 
-              # ディレクトリ作成
-              mkdir -p /home/noguchilin/projects/lab-project/nakamura-misaki
+              TARGET_DIR="/home/noguchilin/projects/lab-project/nakamura-misaki"
 
-              # 既存srcを削除（権限問題回避）
-              rm -rf /home/noguchilin/projects/lab-project/nakamura-misaki/src
+              # ディレクトリ作成
+              mkdir -p "$TARGET_DIR"
+
+              # 既存srcを削除（root権限で）
+              rm -rf "$TARGET_DIR/src"
 
               # ソースコードを同期（Nixパッケージから）
               ${pkgs.rsync}/bin/rsync -a \
                 --exclude=".venv" \
                 --exclude="node_modules" \
                 --exclude="workspaces" \
-                ${package}/opt/nakamura-misaki/ /home/noguchilin/projects/lab-project/nakamura-misaki/
+                ${package}/opt/nakamura-misaki/ "$TARGET_DIR/"
 
-              cd /home/noguchilin/projects/lab-project/nakamura-misaki
+              # 所有者をnoguchilinに変更
+              chown -R noguchilin:users "$TARGET_DIR"
 
-              # venv作成（なければ）
+              # noguchilinユーザーでvenv準備
+              cd "$TARGET_DIR"
               if [ ! -d .venv ]; then
-                ${pkgs.python312}/bin/python -m venv .venv
+                sudo -u noguchilin ${pkgs.python312}/bin/python -m venv .venv
               fi
 
-              # 依存関係をインストール/更新
-              .venv/bin/pip install -q --upgrade pip
-              .venv/bin/pip install -q -r requirements.txt || true
-              .venv/bin/pip install -q claude-agent-sdk pgvector || true
+              # 依存関係をインストール/更新（noguchilinユーザーで）
+              sudo -u noguchilin .venv/bin/pip install -q --upgrade pip
+              sudo -u noguchilin .venv/bin/pip install -q -r requirements.txt || true
+              sudo -u noguchilin .venv/bin/pip install -q claude-agent-sdk pgvector || true
             '';
 
             # sops secretsを環境変数として読み込んでから起動
