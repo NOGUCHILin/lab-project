@@ -51,7 +51,7 @@
 
         # Extend Python package set with uv2nix overlay
         pythonSet = (pkgs.callPackage pyproject-nix.build.packages {
-          inherit python312;
+          python = python312;
         }).overrideScope (lib.composeManyExtensions [
           pyproject-build-systems.overlays.default
           overlay
