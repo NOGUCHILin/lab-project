@@ -126,8 +126,8 @@ in {
         # Funnel設定: nakamura-misaki API（ポート10000）のみインターネット公開
         # Slack Webhook用に専用ポートを公開
         # Note: Tailscale Funnelは443, 8443, 10000のみ使用可能
-        # Internal port 10002 is exposed as external port 10000 via Funnel
-        tailscale funnel --bg --https 10000 http://localhost:10002
+        # Internal port 10000 is exposed as external port 10000 via Funnel
+        tailscale funnel --bg --https 10000 http://localhost:10000
 
         echo ""
         echo "✅ All services configured!"
