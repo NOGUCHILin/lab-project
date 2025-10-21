@@ -6,7 +6,7 @@ Handles conversation lifecycle: creation, message addition, history retrieval.
 
 from uuid import uuid4
 
-from ..models.conversation import Conversation, Message, MessageRole
+from ..models.conversation import Conversation, Message
 from ..repositories.conversation_repository import ConversationRepository
 
 
@@ -55,7 +55,7 @@ class ConversationManager:
         # Create new conversation
         messages = []
         if initial_message:
-            messages = [Message(role=MessageRole.USER, content=initial_message)]
+            messages = [Message.user(content=initial_message)]
 
         conversation = Conversation(
             conversation_id=uuid4(),
@@ -86,7 +86,7 @@ class ConversationManager:
                 f"No conversation found for user_id={user_id}, channel_id={channel_id}"
             )
 
-        conversation.add_message(Message(role=MessageRole.USER, content=message))
+        conversation.add_message(Message.user(content=message))
         await self._repository.save(conversation)
 
     async def add_assistant_message(
@@ -108,7 +108,7 @@ class ConversationManager:
                 f"No conversation found for user_id={user_id}, channel_id={channel_id}"
             )
 
-        conversation.add_message(Message(role=MessageRole.ASSISTANT, content=message))
+        conversation.add_message(Message.assistant(content=message))
         await self._repository.save(conversation)
 
     async def get_conversation_history(

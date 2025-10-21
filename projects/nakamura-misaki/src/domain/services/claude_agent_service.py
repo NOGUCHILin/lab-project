@@ -13,7 +13,7 @@ from anthropic import AsyncAnthropic
 from anthropic.types import Message as AnthropicMessage
 
 from ...adapters.primary.tools.base_tool import BaseTool
-from ...contexts.personal_tasks.domain.models.conversation import Conversation, Message, MessageRole
+from ...contexts.personal_tasks.domain.models.conversation import Conversation, Message
 from ...infrastructure.metrics import get_metrics
 
 logger = logging.getLogger(__name__)
