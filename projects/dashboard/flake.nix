@@ -32,12 +32,9 @@
           # Run on NixOS: nix run nixpkgs#prefetch-npm-deps package-lock.json
           npmDepsHash = "sha256-A+QujJnwZNTLXx2BDdLRtPqkmKEI77g8welPn9AGrp8=";
 
-          # Skip scripts during install (husky, etc.)
-          npmFlags = [ "--ignore-scripts" ];
-
           # Set environment for build
           NODE_ENV = "production";
-          HUSKY = "0";
+          HUSKY = "0";  # Disable husky git hooks
 
           # Build phase
           buildPhase = ''
