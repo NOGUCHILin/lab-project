@@ -7,8 +7,9 @@ This test specifically catches the AttributeError that occurs when
 trying to access .value on msg.role (which is a str, not an Enum).
 """
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
 
 from src.contexts.personal_tasks.domain.models.conversation import Conversation, Message
 from src.domain.services.claude_agent_service import ClaudeAgentService
