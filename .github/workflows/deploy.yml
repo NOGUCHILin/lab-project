@@ -82,6 +82,12 @@ jobs:
           echo "⏳ Waiting 30 seconds for services to start..."
           sleep 30
 
+      # jqをインストール（Tailscaleドメイン取得に必要）
+      - name: Install jq for health check
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y jq
+
       # ヘルスチェック（nakamura-misaki API）
       - name: Health Check (nakamura-misaki API)
         id: health_check
