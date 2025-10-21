@@ -215,7 +215,7 @@
             '';
 
             Restart = "on-failure";
-            RestartSec = 10;
+            RestartSec = 65;  # Wait for TIME_WAIT state to clear (default 60s)
             KillMode = "control-group";  # Ensure all processes are killed
             KillSignal = "SIGTERM";
             TimeoutStopSec = 30;  # Give more time for graceful shutdown
