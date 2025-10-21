@@ -82,12 +82,6 @@ jobs:
           echo "⏳ Waiting 30 seconds for services to start..."
           sleep 30
 
-      # jqをインストール（Tailscaleドメイン取得に必要）
-      - name: Install jq for health check
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y jq
-
       # ヘルスチェック（nakamura-misaki API）
       - name: Health Check (nakamura-misaki API)
         id: health_check
@@ -95,8 +89,14 @@ jobs:
         run: |
           echo "🏥 Performing health check on nakamura-misaki API..."
 
-          # TailscaleドメインをSSH経由で取得
-          TAILSCALE_DOMAIN=$(ssh root@home-lab-01 "tailscale status --json | jq -r '.Self.DNSName' | sed 's/\.$//'")
+          # TailscaleドメインをSSH経由で取得（jqを使わずにテキスト出力から抽出）
+          TAILSCALE_DOMAIN=$(ssh root@home-lab-01 "tailscale status | grep -E '^\s*\S+\s+\S+.*this machine' | awk '{print \$2}'" | head -1)
+
+          # ドメインが取得できなかった場合はhostnameを使用
+          if [ -z "$TAILSCALE_DOMAIN" ]; then
+            TAILSCALE_DOMAIN=$(ssh root@home-lab-01 "hostname -f")
+          fi
+
           echo "Tailscale domain: $TAILSCALE_DOMAIN"
 
           # ヘルスチェック（最大5回リトライ、各5秒間隔）
@@ -138,7 +138,12 @@ jobs:
           # ロールバック後のヘルスチェック
           echo "🏥 Verifying rollback succeeded..."
           sleep 10
-          TAILSCALE_DOMAIN=$(ssh root@home-lab-01 "tailscale status --json | jq -r '.Self.DNSName' | sed 's/\.$//'")
+
+          # Tailscaleドメイン取得（jq不要の方法）
+          TAILSCALE_DOMAIN=$(ssh root@home-lab-01 "tailscale status | grep -E '^\s*\S+\s+\S+.*this machine' | awk '{print \$2}'" | head -1)
+          if [ -z "$TAILSCALE_DOMAIN" ]; then
+            TAILSCALE_DOMAIN=$(ssh root@home-lab-01 "hostname -f")
+          fi
 
           if curl -f --max-time 10 "https://${TAILSCALE_DOMAIN}:10000/health"; then
             echo "✅ Rollback successful! Service is healthy."
