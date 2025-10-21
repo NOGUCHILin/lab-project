@@ -152,12 +152,6 @@
           description = "Refuse manual systemctl operations";
         };
 
-        enableFunnel = lib.mkOption {
-          type = lib.types.bool;
-          default = true;
-          description = "Enable Tailscale Funnel for external access";
-        };
-
         slackToken = lib.mkOption {
           type = lib.types.str;
           default = "";
@@ -228,47 +222,6 @@
             ReadWritePaths = [
               "/home/noguchilin/.claude"
             ];
-          };
-        };
-
-        # Tailscale Funnel setup
-        systemd.services.nakamura-misaki-funnel = lib.mkIf cfg.enableFunnel {
-          description = "Setup Tailscale Funnel for Nakamura-Misaki";
-          wantedBy = [ "multi-user.target" ];
-          after = [ "tailscaled.service" "nakamura-misaki.service" "tailscale-serve-setup.service" ];
-
-          serviceConfig = {
-            Type = "oneshot";
-            RemainAfterExit = true;
-            User = "noguchilin";
-
-            ExecStart = pkgs.writeShellScript "setup-funnel" ''
-              # Wait for tailscaled
-              while ! ${pkgs.systemd}/bin/systemctl is-active tailscaled.service >/dev/null 2>&1; do
-                echo "Waiting for tailscaled..."
-                sleep 2
-              done
-
-              # Clean up old Serve/Funnel configurations to prevent port conflicts
-              echo "Cleaning up old Tailscale Serve/Funnel configurations..."
-              ${pkgs.tailscale}/bin/tailscale funnel --https=443 off 2>/dev/null || true
-              ${pkgs.tailscale}/bin/tailscale serve https:10000 off 2>/dev/null || true
-              ${pkgs.tailscale}/bin/tailscale serve https:10001 off 2>/dev/null || true
-              ${pkgs.tailscale}/bin/tailscale serve https:3001 off 2>/dev/null || true
-
-              # Enable Funnel for current port
-              # Correct syntax: tailscale funnel --bg <port>
-              # This exposes http://localhost:<port> via HTTPS on the internet
-              echo "Setting up Tailscale Funnel for nakamura-misaki on port ${toString cfg.ports.api}..."
-              ${pkgs.tailscale}/bin/tailscale funnel --bg ${toString cfg.ports.api}
-
-              echo "Funnel configuration complete. Accessible at https://$(${pkgs.tailscale}/bin/tailscale status --json | ${pkgs.jq}/bin/jq -r '.Self.DNSName' | sed 's/\.$//')/"
-            '';
-
-            ExecStop = pkgs.writeShellScript "stop-funnel" ''
-              echo "Removing Tailscale Funnel for nakamura-misaki..."
-              ${pkgs.tailscale}/bin/tailscale funnel --https=443 off || true
-            '';
           };
         };
       };
