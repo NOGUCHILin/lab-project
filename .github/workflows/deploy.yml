@@ -63,6 +63,21 @@ jobs:
             --ssh-opts "-o StrictHostKeyChecking=accept-new" \
             .#home-lab-01
 
+      # データベースマイグレーション実行
+      - name: Run database migrations
+        run: |
+          echo "🔄 Running database migrations for nakamura-misaki..."
+          ssh root@home-lab-01 '
+            cd /home/noguchilin/projects/lab-project/nakamura-misaki
+
+            # uvを使ってalembicマイグレーションを実行
+            uv run alembic upgrade head
+
+            # マイグレーション結果を確認
+            echo "✅ Migration completed. Current version:"
+            psql -U nakamura_misaki -d nakamura_misaki -c "SELECT version_num FROM alembic_version;"
+          '
+
       # サービス状態確認
       - name: Verify deployment
         run: |

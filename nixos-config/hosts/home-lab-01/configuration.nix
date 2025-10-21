@@ -122,9 +122,9 @@
     enable = true;
     enforceDeclarative = false;  # Allow manual restart for testing
     ports = {
-      api = 10002;  # Internal port (exposed as 10000 via Tailscale Funnel)
+      api = 10000;  # API port (Funnel directly exposes this)
       adminUI = 3002;
-      webhook = 10002;  # Deprecated, using api port instead
+      webhook = 10000;  # Deprecated, using api port instead
     };
 
     # Secrets from sops-nix (read at runtime via ExecStartPre)

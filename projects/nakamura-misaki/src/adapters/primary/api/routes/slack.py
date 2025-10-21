@@ -22,6 +22,12 @@ _processed_events: set[str] = set()
 _processed_events_lock = asyncio.Lock()
 
 
+@router.get("/health")
+async def health():
+    """Health check endpoint for deployment verification"""
+    return {"status": "ok", "service": "nakamura-misaki", "version": "2.0"}
+
+
 @router.post("/slack")
 async def slack_events(
     request: Request,
