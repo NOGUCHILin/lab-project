@@ -41,6 +41,22 @@ jobs:
         env:
           NODE_ENV: production
 
+  nix-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/dashboard
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v14
+
+      - name: Test Nix build
+        run: nix build .#dashboard --no-link
+
   e2e:
     runs-on: ubuntu-latest
     needs: test

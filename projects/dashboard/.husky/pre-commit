@@ -1,4 +1,19 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Run linter on staged files
 npx lint-staged
+
+# Test Nix build if flake.nix changed
+if git diff --cached --name-only | grep -q "flake.nix"; then
+  echo "🔍 Flake changed - testing Nix build..."
+  if command -v nix &> /dev/null; then
+    nix build .#dashboard --no-link || {
+      echo "❌ Nix build failed! Fix errors before committing."
+      exit 1
+    }
+    echo "✅ Nix build succeeded"
+  else
+    echo "⚠️  Nix not installed - skipping build test"
+  fi
+fi
