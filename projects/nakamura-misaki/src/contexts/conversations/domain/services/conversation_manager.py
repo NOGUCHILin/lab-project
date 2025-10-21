@@ -4,10 +4,10 @@ Manages conversation sessions with TTL-based expiration.
 Handles conversation lifecycle: creation, message addition, history retrieval.
 """
 
-from uuid import uuid4
-
-from ..models.conversation import Conversation, Message, MessageRole
+from ..entities.conversation import Conversation
+from ..value_objects.message import Message, MessageRole
 from ..repositories.conversation_repository import ConversationRepository
+from src.shared_kernel.domain.value_objects.user_id import UserId
 
 
 class ConversationManager:
@@ -47,9 +47,11 @@ class ConversationManager:
             Conversation: 取得または作成された会話
         """
         # Try to get existing conversation
-        existing = await self._repository.get_by_user_and_channel(user_id, channel_id)
+        existing = await self._repository.find_by_user_and_channel(
+            UserId(value=user_id), channel_id
+        )
 
-        if existing and not existing.is_expired(self._ttl_hours):
+        if existing and not existing.is_expired():
             return existing
 
         # Create new conversation
@@ -57,10 +59,10 @@ class ConversationManager:
         if initial_message:
             messages = [Message(role=MessageRole.USER, content=initial_message)]
 
-        conversation = Conversation(
-            conversation_id=uuid4(),
-            user_id=user_id,
+        conversation = Conversation.create(
+            user_id=UserId(value=user_id),
             channel_id=channel_id,
+            ttl_hours=self._ttl_hours,
             messages=messages,
         )
 
@@ -77,8 +79,8 @@ class ConversationManager:
             channel_id: チャンネルID
             message: メッセージ内容
         """
-        conversation = await self._repository.get_by_user_and_channel(
-            user_id, channel_id
+        conversation = await self._repository.find_by_user_and_channel(
+            UserId(value=user_id), channel_id
         )
 
         if not conversation:
@@ -99,8 +101,8 @@ class ConversationManager:
             channel_id: チャンネルID
             message: メッセージ内容
         """
-        conversation = await self._repository.get_by_user_and_channel(
-            user_id, channel_id
+        conversation = await self._repository.find_by_user_and_channel(
+            UserId(value=user_id), channel_id
         )
 
         if not conversation:
@@ -124,14 +126,14 @@ class ConversationManager:
             list[dict]: Claude Messages API形式のメッセージ一覧
                 [{"role": "user"|"assistant", "content": "..."}]
         """
-        conversation = await self._repository.get_by_user_and_channel(
-            user_id, channel_id
+        conversation = await self._repository.find_by_user_and_channel(
+            UserId(value=user_id), channel_id
         )
 
         if not conversation:
             return []
 
-        return conversation.get_messages_for_claude_api()
+        return conversation.get_messages_for_api()
 
     async def save(self, conversation: Conversation) -> Conversation:
         """会話を保存.
@@ -150,4 +152,4 @@ class ConversationManager:
         Returns:
             int: 削除された会話の数
         """
-        return await self._repository.delete_expired(ttl_hours=self._ttl_hours)
+        return await self._repository.delete_expired()
