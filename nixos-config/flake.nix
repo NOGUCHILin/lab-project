@@ -37,10 +37,11 @@
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
   in {
-    # nakamura-misakiパッケージをre-export
-    packages.${system}.nakamura-misaki = nakamura-misaki.packages.${system}.default;
-    # dashboardパッケージをre-export
-    packages.${system}.dashboard = dashboard.packages.${system}.default;
+    # Re-export packages from project flakes
+    packages.${system} = {
+      nakamura-misaki = nakamura-misaki.packages.${system}.default;
+      dashboard = dashboard.packages.${system}.default;
+    };
 
     # Developer experience: formatter, devShells, and basic checks
     formatter.${system} = pkgs.alejandra;
