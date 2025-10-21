@@ -41,6 +41,13 @@
             runHook preBuild
 
             export HOME=$TMPDIR
+
+            # Debug: Verify tsconfig.json exists and has correct paths
+            echo "=== Checking tsconfig.json ==="
+            ls -la tsconfig.json
+            cat tsconfig.json | grep -A 5 "paths"
+            echo "=== Building Next.js application ==="
+
             npm run build
 
             runHook postBuild
