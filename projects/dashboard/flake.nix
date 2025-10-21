@@ -30,7 +30,7 @@
 
           # Generate npm dependencies hash
           # Run on NixOS: nix run nixpkgs#prefetch-npm-deps package-lock.json
-          npmDepsHash = "";  # Will fail with correct hash on first build
+          npmDepsHash = "sha256-A+QujJnwZNTLXx2BDdLRtPqkmKEI77g8welPn9AGrp8=";
 
           # Skip scripts during install (husky, etc.)
           npmFlags = [ "--ignore-scripts" ];
