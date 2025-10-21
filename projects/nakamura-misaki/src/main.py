@@ -92,7 +92,7 @@ def main():
     """Run the application"""
     uvicorn.run(
         "src.main:app",
-        host="0.0.0.0",  # Listen on all interfaces for deployment
+        host="127.0.0.1",  # Listen on localhost only (Tailscale proxies to localhost)
         port=config.port,
         reload=config.debug,
         log_level="debug" if config.debug else "info",
