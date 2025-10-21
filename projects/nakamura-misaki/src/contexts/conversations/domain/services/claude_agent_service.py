@@ -93,7 +93,7 @@ class ClaudeAgentService:
             str: Assistant's response text
         """
         # Add user message to conversation
-        conversation.add_message(Message(role=MessageRole.USER, content=user_message))
+        conversation.add_message(Message.user(content=user_message))
 
         # Build messages for Claude API
         messages = self._build_messages(conversation)

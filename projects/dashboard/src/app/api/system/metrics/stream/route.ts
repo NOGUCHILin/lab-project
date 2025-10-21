@@ -8,14 +8,18 @@ export async function GET() {
     start(controller) {
       const encoder = new TextEncoder();
       let alive = true;
+      let closed = false;
 
       async function push() {
+        if (!alive || closed) return;
         try {
           const m = await getMetrics();
           const payload = `data: ${JSON.stringify(m)}\n\n`;
           controller.enqueue(encoder.encode(payload));
         } catch {
-          controller.enqueue(encoder.encode(`event: error\n`));
+          if (!closed) {
+            controller.enqueue(encoder.encode(`event: error\n`));
+          }
         }
       }
 
@@ -26,7 +30,9 @@ export async function GET() {
       push();
 
       const close = () => {
+        if (closed) return;
         alive = false;
+        closed = true;
         clearInterval(id);
         try { controller.close(); } catch {}
       };
