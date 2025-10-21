@@ -55,7 +55,21 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v14
 
       - name: Test Nix build
-        run: nix build .#dashboard --no-link
+        run: |
+          set +e
+          nix build .#dashboard --no-link --print-build-logs
+          BUILD_RESULT=$?
+          if [ $BUILD_RESULT -ne 0 ]; then
+            echo "::error::Nix build failed. Checking for derivation logs..."
+            # Find the most recent failed derivation
+            DRV=$(find /nix/store -name "*.drv" -type f 2>/dev/null | grep unified-dashboard | tail -1)
+            if [ -n "$DRV" ]; then
+              echo "::group::Detailed build logs"
+              nix log "$DRV" 2>&1 || echo "Could not retrieve nix log"
+              echo "::endgroup::"
+            fi
+            exit $BUILD_RESULT
+          fi
 
   e2e:
     runs-on: ubuntu-latest

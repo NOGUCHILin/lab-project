@@ -1,0 +1,23 @@
+{
+  "name": "Dashboard Nix Development",
+  "image": "nixos/nix:latest",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "jnoortheen.nix-ide",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  },
+  "postCreateCommand": "nix --version && node --version",
+  "remoteUser": "root",
+  "mounts": [
+    "source=/nix,target=/nix,type=volume"
+  ]
+}
