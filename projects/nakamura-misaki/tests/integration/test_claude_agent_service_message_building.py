@@ -10,10 +10,7 @@ trying to access .value on msg.role (which is a str, not an Enum).
 import pytest
 from unittest.mock import Mock
 
-from src.contexts.personal_tasks.domain.models.conversation import (
-    Conversation,
-    Message,
-)
+from src.contexts.personal_tasks.domain.models.conversation import Conversation, Message
 from src.domain.services.claude_agent_service import ClaudeAgentService
 
 

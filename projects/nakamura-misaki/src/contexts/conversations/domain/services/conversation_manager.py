@@ -4,10 +4,11 @@ Manages conversation sessions with TTL-based expiration.
 Handles conversation lifecycle: creation, message addition, history retrieval.
 """
 
-from ..entities.conversation import Conversation
-from ..value_objects.message import Message, MessageRole
-from ..repositories.conversation_repository import ConversationRepository
 from src.shared_kernel.domain.value_objects.user_id import UserId
+
+from ..entities.conversation import Conversation
+from ..repositories.conversation_repository import ConversationRepository
+from ..value_objects.message import Message, MessageRole
 
 
 class ConversationManager:
