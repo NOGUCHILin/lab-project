@@ -1,3 +1,5 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Build output directory can be separated per environment
@@ -7,6 +9,11 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
+  },
+  // Explicitly configure webpack aliases for Nix build compatibility
+  webpack: (config) => {
+    config.resolve.alias['@'] = path.resolve(__dirname, 'src');
+    return config;
   },
   // Allow cross-origin requests from Tailscale domain during development
   async headers() {
