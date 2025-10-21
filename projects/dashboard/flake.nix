@@ -33,7 +33,8 @@
           npmDepsHash = "sha256-A+QujJnwZNTLXx2BDdLRtPqkmKEI77g8welPn9AGrp8=";
 
           # Set environment for build
-          NODE_ENV = "production";
+          # NOTE: Do NOT set NODE_ENV=production here, it prevents devDependencies installation
+          # devDependencies (like @tailwindcss/postcss) are needed for Next.js build
           HUSKY = "0";  # Disable husky git hooks
 
           # Build phase
@@ -41,6 +42,7 @@
             runHook preBuild
 
             export HOME=$TMPDIR
+            export NODE_ENV=production
             npm run build
 
             runHook postBuild
