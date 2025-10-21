@@ -34,7 +34,7 @@
       ../../modules/services/registry/file-manager.nix       # Simple File Manager (registry-based)
       ../../modules/services/registry/mumuko.nix              # Mumuko Service (registry-based)
       ../../modules/services/registry/nats.nix               # NATS Event-Driven Messaging (monitoring via registry)
-      ../../modules/services/registry/unified-dashboard.nix       # 統合ダッシュボード
+      # dashboardはflakeのNixOSモジュールから提供（flake.nixで自動import）
       # nakamura-misakiはflakeのNixOSモジュールから提供（flake.nixで自動import）
       # nakamura-misaki-db.nixもflake.nixでspecialArgs経由でimport（venv依存のため）
       ../../modules/services/registry/applebuyers-site.nix        # AppleBuyers Public Site (dev server)

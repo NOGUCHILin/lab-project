@@ -52,30 +52,7 @@ jobs:
             echo '✅ nakamura-misaki User Token updated in sops'
           "
 
-      # Dashboardコードを同期（dashboardのみ、nakamura-misakiはNixパッケージ化済み）
-      - name: Sync Dashboard code
-        run: |
-          ssh root@home-lab-01 '
-            # lab-projectコード取得（GitHubから）
-            cd /tmp
-            rm -rf lab-project-temp
-            git clone --filter=blob:none --no-checkout --depth 1 https://github.com/NOGUCHILin/lab-project.git lab-project-temp
-            cd lab-project-temp
-            git sparse-checkout init --cone
-            git sparse-checkout set projects/dashboard
-            git checkout main
-
-            # ~/projects/dashboard/ に同期
-            rsync -av --delete \
-              --exclude="node_modules" \
-              --exclude=".next" \
-              projects/dashboard/ /home/noguchilin/projects/dashboard/
-
-            # 一時ディレクトリ削除
-            rm -rf /tmp/lab-project-temp
-          '
-
-      # deploy-rsでNixOS設定をデプロイ
+      # deploy-rsでNixOS設定をデプロイ (Dashboard & nakamura-misaki両方ともNixパッケージ化済み)
       - name: Deploy NixOS configuration with deploy-rs
         run: |
           cd nixos-config

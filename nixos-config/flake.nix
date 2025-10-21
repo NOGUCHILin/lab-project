@@ -24,15 +24,23 @@
       url = "path:../projects/nakamura-misaki";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # dashboardのflake参照
+    dashboard = {
+      url = "path:../projects/dashboard";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, sops-nix, deploy-rs, nakamura-misaki, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, sops-nix, deploy-rs, nakamura-misaki, dashboard, ... }@inputs:
   let
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
   in {
     # nakamura-misakiパッケージをre-export
     packages.${system}.nakamura-misaki = nakamura-misaki.packages.${system}.default;
+    # dashboardパッケージをre-export
+    packages.${system}.dashboard = dashboard.packages.${system}.default;
 
     # Developer experience: formatter, devShells, and basic checks
     formatter.${system} = pkgs.alejandra;
@@ -71,12 +79,18 @@
           nakamura-misaki-flake = nakamura-misaki;
           nakamura-misaki-package = self.packages.${system}.nakamura-misaki;
           nakamura-misaki-venv = nakamura-misaki.packages.${system}.venv;
+          # dashboardのflakeモジュールとパッケージを渡す
+          dashboard-flake = dashboard;
+          dashboard-package = self.packages.${system}.dashboard;
         };
         modules = [
           ./hosts/home-lab-01/configuration.nix
 
           # nakamura-misakiのNixOSモジュールをインポート
           nakamura-misaki.nixosModules.default
+
+          # dashboardのNixOSモジュールをインポート
+          dashboard.nixosModules.default
 
           # nakamura-misaki-db module with specialArgs
           ({ config, lib, pkgs, nakamura-misaki-venv, ... }: import ./modules/services/registry/nakamura-misaki-db.nix {
