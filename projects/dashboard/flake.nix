@@ -61,8 +61,9 @@
             cp package.json $out/
             cp package-lock.json $out/
 
-            # Copy Next.js config
+            # Copy Next.js config and TypeScript config (needed for path aliases)
             cp next.config.js $out/
+            cp tsconfig.json $out/
 
             runHook postInstall
           '';
