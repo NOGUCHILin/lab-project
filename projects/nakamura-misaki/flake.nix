@@ -243,20 +243,24 @@
             User = "noguchilin";
 
             ExecStart = pkgs.writeShellScript "setup-funnel" ''
-              # Wait for services
+              # Wait for tailscaled
               while ! ${pkgs.systemd}/bin/systemctl is-active tailscaled.service >/dev/null 2>&1; do
                 echo "Waiting for tailscaled..."
                 sleep 2
               done
 
-              while ! ${pkgs.systemd}/bin/systemctl is-active nakamura-misaki.service >/dev/null 2>&1; do
-                echo "Waiting for nakamura-misaki..."
-                sleep 2
-              done
+              # Clean up old Serve/Funnel configurations to prevent port conflicts
+              echo "Cleaning up old Tailscale Serve/Funnel configurations..."
+              ${pkgs.tailscale}/bin/tailscale funnel --https=443 off 2>/dev/null || true
+              ${pkgs.tailscale}/bin/tailscale serve https:10000 off 2>/dev/null || true
+              ${pkgs.tailscale}/bin/tailscale serve https:10001 off 2>/dev/null || true
+              ${pkgs.tailscale}/bin/tailscale serve https:3001 off 2>/dev/null || true
 
-              # Enable Funnel
+              # Enable Funnel for current port
               echo "Setting up Tailscale Funnel for nakamura-misaki on port ${toString cfg.ports.api}..."
               ${pkgs.tailscale}/bin/tailscale funnel --bg --https=443 --set-path=/ ${toString cfg.ports.api}
+
+              echo "Funnel configuration complete. Nakamura-misaki should now be able to bind to port ${toString cfg.ports.api}"
             '';
 
             ExecStop = pkgs.writeShellScript "stop-funnel" ''
