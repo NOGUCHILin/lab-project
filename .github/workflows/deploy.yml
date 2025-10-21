@@ -75,3 +75,71 @@ jobs:
             echo "🔍 Recent logs (last 20 lines):"
             journalctl -u nakamura-misaki.service -n 20 --no-pager || true
           '
+
+      # サービス起動待機
+      - name: Wait for service startup
+        run: |
+          echo "⏳ Waiting 30 seconds for services to start..."
+          sleep 30
+
+      # ヘルスチェック（nakamura-misaki API）
+      - name: Health Check (nakamura-misaki API)
+        id: health_check
+        continue-on-error: true
+        run: |
+          echo "🏥 Performing health check on nakamura-misaki API..."
+
+          # TailscaleドメインをSSH経由で取得
+          TAILSCALE_DOMAIN=$(ssh root@home-lab-01 "tailscale status --json | jq -r '.Self.DNSName' | sed 's/\.$//'")
+          echo "Tailscale domain: $TAILSCALE_DOMAIN"
+
+          # ヘルスチェック（最大5回リトライ、各5秒間隔）
+          for i in {1..5}; do
+            echo "Attempt $i/5..."
+            if curl -f --max-time 10 "https://${TAILSCALE_DOMAIN}:10000/health"; then
+              echo "✅ Health check passed!"
+              echo "status=success" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+            if [ $i -lt 5 ]; then
+              echo "⏳ Retrying in 5 seconds..."
+              sleep 5
+            fi
+          done
+
+          echo "❌ Health check failed after 5 attempts"
+          echo "status=failed" >> $GITHUB_OUTPUT
+          exit 1
+
+      # 失敗時の自動ロールバック
+      - name: Auto Rollback on Health Check Failure
+        if: failure() && steps.health_check.outputs.status == 'failed'
+        run: |
+          echo "⚠️ Health check failed. Rolling back to previous NixOS generation..."
+
+          ssh root@home-lab-01 "
+            echo '🔄 Rolling back to previous generation...'
+            nixos-rebuild switch --rollback
+
+            echo '⏳ Waiting for services to restart...'
+            sleep 15
+
+            echo '📊 Post-rollback service status:'
+            systemctl status nakamura-misaki.service --no-pager || true
+          "
+
+          # ロールバック後のヘルスチェック
+          echo "🏥 Verifying rollback succeeded..."
+          sleep 10
+          TAILSCALE_DOMAIN=$(ssh root@home-lab-01 "tailscale status --json | jq -r '.Self.DNSName' | sed 's/\.$//'")
+
+          if curl -f --max-time 10 "https://${TAILSCALE_DOMAIN}:10000/health"; then
+            echo "✅ Rollback successful! Service is healthy."
+          else
+            echo "❌ WARNING: Rollback completed but health check still failing!"
+            echo "Manual intervention may be required."
+          fi
+
+          # ワークフロー全体を失敗扱いにする
+          exit 1
