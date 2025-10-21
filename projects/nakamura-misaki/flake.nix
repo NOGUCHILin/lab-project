@@ -257,10 +257,12 @@
               ${pkgs.tailscale}/bin/tailscale serve https:3001 off 2>/dev/null || true
 
               # Enable Funnel for current port
+              # Correct syntax: tailscale funnel --bg <port>
+              # This exposes http://localhost:<port> via HTTPS on the internet
               echo "Setting up Tailscale Funnel for nakamura-misaki on port ${toString cfg.ports.api}..."
-              ${pkgs.tailscale}/bin/tailscale funnel --bg --https=443 --set-path=/ ${toString cfg.ports.api}
+              ${pkgs.tailscale}/bin/tailscale funnel --bg ${toString cfg.ports.api}
 
-              echo "Funnel configuration complete. Nakamura-misaki should now be able to bind to port ${toString cfg.ports.api}"
+              echo "Funnel configuration complete. Accessible at https://$(${pkgs.tailscale}/bin/tailscale status --json | ${pkgs.jq}/bin/jq -r '.Self.DNSName' | sed 's/\.$//')/"
             '';
 
             ExecStop = pkgs.writeShellScript "stop-funnel" ''
