@@ -214,11 +214,12 @@
               exec ${package}/bin/nakamura-misaki
             '';
 
-            Restart = "always";
+            Restart = "on-failure";
             RestartSec = 10;
-            KillMode = "mixed";
+            KillMode = "control-group";  # Ensure all processes are killed
             KillSignal = "SIGTERM";
-            TimeoutStopSec = 10;
+            TimeoutStopSec = 30;  # Give more time for graceful shutdown
+            TimeoutStartSec = 60;  # Prevent infinite startup loops
 
             # Security hardening
             PrivateTmp = true;
