@@ -7,6 +7,9 @@ import { ServiceGrid } from '@/components/services/ServiceGrid';
 import { transformNixOSRegistry, getServicesByCategory, type Service } from '@/config/services';
 import fs from 'fs';
 
+// Force dynamic rendering to read services.json at runtime (not build time)
+export const dynamic = 'force-dynamic';
+
 async function getServices(): Promise<Service[]> {
   const servicesPath = process.env.SERVICES_CONFIG || '/etc/unified-dashboard/services.json';
 
