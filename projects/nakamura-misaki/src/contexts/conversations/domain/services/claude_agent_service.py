@@ -14,7 +14,7 @@ from anthropic.types import Message as AnthropicMessage
 
 from ...adapters.primary.tools.base_tool import BaseTool
 from ...infrastructure.metrics import get_metrics
-from ..models.conversation import Conversation, Message
+from ..models.conversation import Conversation, Message, MessageRole
 
 logger = logging.getLogger(__name__)
 metrics = get_metrics()
@@ -143,7 +143,7 @@ class ClaudeAgentService:
 
         # Add assistant response to conversation
         conversation.add_message(
-            Message.assistant(content=response_text)
+            Message(role=MessageRole.ASSISTANT, content=response_text)
         )
 
         return response_text
@@ -235,7 +235,7 @@ class ClaudeAgentService:
         # Add assistant response to conversation (skip if empty)
         if response_text:
             conversation.add_message(
-                Message.assistant(content=response_text)
+                Message(role=MessageRole.ASSISTANT, content=response_text)
             )
 
         return response_text
@@ -250,7 +250,7 @@ class ClaudeAgentService:
             list: Messages in Claude API format
         """
         return [
-            {"role": msg.role, "content": msg.content}
+            {"role": msg.role.value, "content": msg.content}
             for msg in conversation.messages
         ]
 

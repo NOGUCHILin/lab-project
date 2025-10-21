@@ -13,7 +13,7 @@ from anthropic import AsyncAnthropic
 from anthropic.types import Message as AnthropicMessage
 
 from ...adapters.primary.tools.base_tool import BaseTool
-from ...contexts.personal_tasks.domain.models.conversation import Conversation, Message
+from ...contexts.personal_tasks.domain.models.conversation import Conversation, Message, MessageRole
 from ...infrastructure.metrics import get_metrics
 
 logger = logging.getLogger(__name__)
@@ -246,7 +246,7 @@ class ClaudeAgentService:
             list: Messages in Claude API format
         """
         return [
-            {"role": msg.role, "content": msg.content}
+            {"role": msg.role.value, "content": msg.content}
             for msg in conversation.messages
         ]
 
