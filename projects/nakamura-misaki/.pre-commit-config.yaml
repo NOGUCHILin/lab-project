@@ -26,7 +26,7 @@ repos:
     hooks:
       - id: pytest-unit
         name: pytest-unit
-        entry: bash -c 'cd nakamura-misaki && uv run pytest tests/ -m "not integration and not e2e" -v --tb=short'
+        entry: bash -c 'cd projects/nakamura-misaki && uv run pytest tests/ -m "not integration and not e2e" -v --tb=short'
         language: system
         pass_filenames: false
         always_run: true
@@ -37,7 +37,7 @@ repos:
     hooks:
       - id: pytest-integration
         name: pytest-integration (conditional)
-        entry: bash -c 'if git diff --cached --name-only | grep -qE "(adapters/secondary|infrastructure/)"; then cd nakamura-misaki && uv run pytest tests/ -m integration -v --tb=short; else echo "No integration tests needed"; fi'
+        entry: bash -c 'if git diff --cached --name-only | grep -qE "(adapters/secondary|infrastructure/)"; then cd projects/nakamura-misaki && uv run pytest tests/ -m integration -v --tb=short; else echo "No integration tests needed"; fi'
         language: system
         pass_filenames: false
         stages: [commit]
@@ -47,7 +47,7 @@ repos:
     hooks:
       - id: pytest-all
         name: pytest-all (before push)
-        entry: bash -c 'cd nakamura-misaki && uv run pytest tests/ -v'
+        entry: bash -c 'cd projects/nakamura-misaki && uv run pytest tests/ -v'
         language: system
         pass_filenames: false
         always_run: true
