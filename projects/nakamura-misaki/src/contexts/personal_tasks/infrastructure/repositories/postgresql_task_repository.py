@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import DateTime, String, select
+from sqlalchemy import DateTime, Enum, String, select
 from sqlalchemy import delete as sql_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -15,11 +15,13 @@ from ...domain.repositories.task_repository import TaskRepository
 
 class Base(DeclarativeBase):
     """SQLAlchemy declarative base"""
+
     pass
 
 
 class TaskModel(Base):
     """SQLAlchemy model for Task"""
+
     __tablename__ = "tasks"
 
     id: Mapped[UUID] = mapped_column(primary_key=True)
@@ -27,7 +29,9 @@ class TaskModel(Base):
     description: Mapped[str | None] = mapped_column(String, nullable=True)
     assignee_user_id: Mapped[str] = mapped_column(String(50))
     creator_user_id: Mapped[str] = mapped_column(String(50))
-    status: Mapped[str] = mapped_column(String(20))
+    status: Mapped[str] = mapped_column(
+        Enum("pending", "in_progress", "completed", "cancelled", name="task_status", create_type=False)
+    )
     due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
@@ -100,11 +104,7 @@ class PostgreSQLTaskRepository(TaskRepository):
 
         return self._to_domain(model)
 
-    async def list_by_user(
-        self,
-        user_id: str,
-        status: TaskStatus | None = None
-    ) -> list[Task]:
+    async def list_by_user(self, user_id: str, status: TaskStatus | None = None) -> list[Task]:
         """List tasks by user ID
 
         Args:
@@ -144,11 +144,7 @@ class PostgreSQLTaskRepository(TaskRepository):
         models = result.scalars().all()
 
         # Filter by date (SQLite doesn't support date() function)
-        return [
-            self._to_domain(model)
-            for model in models
-            if model.due_at and model.due_at.date() == today
-        ]
+        return [self._to_domain(model) for model in models if model.due_at and model.due_at.date() == today]
 
     async def list_overdue(self, user_id: str) -> list[Task]:
         """List overdue tasks
