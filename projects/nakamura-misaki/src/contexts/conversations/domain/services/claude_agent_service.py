@@ -250,7 +250,7 @@ class ClaudeAgentService:
             list: Messages in Claude API format
         """
         return [
-            {"role": msg.role.value, "content": msg.content}
+            {"role": msg.role, "content": msg.content}
             for msg in conversation.messages
         ]
 
