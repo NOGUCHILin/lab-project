@@ -8,7 +8,8 @@ let
   # Avoid recursion on environment.sessionVariables: read process env first, fallback to hostName
   tailscaleDomain = let d = builtins.getEnv "TAILSCALE_DOMAIN"; in
     if d != "" then d else (config.networking.hostName or "tailnet.local");
-in {
+in
+{
   # Tailscale設定
   services.tailscale = {
     enable = true;
@@ -19,7 +20,7 @@ in {
   networking.firewall = {
     # Tailscaleインターフェースを信頼
     trustedInterfaces = [ "tailscale0" ];
-    
+
     # 各サービスのポートを開放（nullを除外）
     allowedTCPPorts = lib.unique (
       lib.filter (port: port != null) (
@@ -53,7 +54,7 @@ in {
 
       echo "Setup complete! Services are available at their respective ports."
     '')
-    
+
     (writeScriptBin "check-services" ''
       #!${pkgs.bash}/bin/bash
       export PATH=${pkgs.curl}/bin:$PATH

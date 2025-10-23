@@ -5,7 +5,8 @@
 let
   cfg = config.services.nakamura-misaki;
   projectDir = "/home/noguchilin/projects/lab-project/nakamura-misaki";
-in {
+in
+{
   options.services.nakamura-misaki = {
     enable = lib.mkEnableOption "Nakamura-Misaki Claude Agent Service";
 
@@ -38,12 +39,12 @@ in {
     services.redis.servers.nakamura = {
       enable = true;
       port = 6380;
-      bind = "127.0.0.1";  # Only local access
+      bind = "127.0.0.1"; # Only local access
 
       # Persistence settings
       save = [
-        [ 900 1 ]    # After 900 sec (15 min) if at least 1 key changed
-        [ 300 10 ]   # After 300 sec (5 min) if at least 10 keys changed
+        [ 900 1 ] # After 900 sec (15 min) if at least 1 key changed
+        [ 300 10 ] # After 300 sec (5 min) if at least 10 keys changed
         [ 60 10000 ] # After 60 sec if at least 10000 keys changed
       ];
 
@@ -52,7 +53,7 @@ in {
       appendFsync = "everysec";
 
       # Security
-      requirePass = null;  # No password needed (local-only)
+      requirePass = null; # No password needed (local-only)
 
       # Performance - use settings attribute set
       settings = {
@@ -161,7 +162,7 @@ in {
         RestartSec = 10;
         KillMode = "mixed";
         KillSignal = "SIGTERM";
-        TimeoutStopSec = 30;  # Longer timeout for graceful worker shutdown
+        TimeoutStopSec = 30; # Longer timeout for graceful worker shutdown
 
         # Security
         PrivateTmp = true;

@@ -4,7 +4,8 @@
 
 let
   cfg = config.services.code-server-applebuyers-dev;
-in {
+in
+{
   options.services.code-server-applebuyers-dev = {
     enable = lib.mkEnableOption "Code Server for AppleBuyers development (engineers)";
 

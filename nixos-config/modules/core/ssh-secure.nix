@@ -6,8 +6,8 @@
   services.openssh = {
     enable = true;
     settings = {
-      PasswordAuthentication = false;  # 公開鍵認証のみ
-      PermitRootLogin = "prohibit-password";  # Root login via SSH key only (for deploy-rs)
+      PasswordAuthentication = false; # 公開鍵認証のみ
+      PermitRootLogin = "prohibit-password"; # Root login via SSH key only (for deploy-rs)
       PubkeyAuthentication = true;
       AuthorizedKeysFile = "/etc/ssh/authorized_keys.d/%u %h/.ssh/authorized_keys";
     };

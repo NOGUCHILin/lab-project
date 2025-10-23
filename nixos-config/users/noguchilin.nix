@@ -61,25 +61,25 @@
     shellAliases = {
       # 一般的なls系
       ll = "ls -la";
-      la = "ls -la"; 
+      la = "ls -la";
       l = "ls -l";
-      
+
       # 一般的なgit系
       gs = "git status";
       ga = "git add";
       gc = "git commit";
       gp = "git push";
       gl = "git log --oneline";
-      
+
       # 一般的なNixOS系（コミュニティ標準）
       nrs = "sudo nixos-rebuild switch --flake ~/nixos-config#home-lab-01";
       nrt = "sudo nixos-rebuild test --flake ~/nixos-config#home-lab-01";
       nrb = "sudo nixos-rebuild build --flake ~/nixos-config#home-lab-01";
       nru = "nix flake update ~/nixos-config";
-      
+
       # フレンドリーな名前（併用）
       rebuild = "sudo nixos-rebuild switch --flake ~/nixos-config#home-lab-01";
-      
+
       # tmux + Claude Code
       tc = "tmux new-session -A -s claude";
       tl = "tmux list-sessions";
@@ -108,7 +108,7 @@
 
   # VS Code設定（必要なら）
   programs.vscode = {
-    enable = false;  # 必要ならtrueに
+    enable = false; # 必要ならtrueに
     profiles.default.extensions = with pkgs.vscode-extensions; [
       # bbenoist.nix
       # ms-python.python

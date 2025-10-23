@@ -5,7 +5,8 @@
 let
   cfg = config.services.applebuyers-site;
   projectDir = "/home/noguchilin/projects/applebuyers_application/public-site";
-in {
+in
+{
   options.services.applebuyers-site = {
     enable = lib.mkEnableOption "AppleBuyers Public Site dev server";
 

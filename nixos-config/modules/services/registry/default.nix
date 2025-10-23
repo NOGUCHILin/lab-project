@@ -24,21 +24,28 @@ let
     applebuyersPreview = { port = cfg.applebuyers-site.port; path = "/applebuyers-preview"; name = "AppleBuyers Preview"; description = "記事プレビュー"; healthCheck = "/"; icon = "👁️"; };
   };
 
-  servicesJson = builtins.toJSON (lib.mapAttrs (_: service:
-    let
-      # Dashboard (port 3000) uses root domain, others use port-based URLs
-      # Skip URL generation for services without ports (like DB/timers)
-      httpsUrl = if service.port == null then null
-        else if service.port == 3000
-        then "https://${domain}"
-        else "https://${domain}:${toString service.port}";
-      httpUrl = if service.port == null then null
-        else "http://localhost:${toString service.port}";
-      publicUrl = if service.port == null then null
-        else if domain == "localhost" then httpUrl else httpsUrl;
-    in service // { url = publicUrl; apiUrl = httpUrl; }
-  ) services);
-in {
+  servicesJson = builtins.toJSON (lib.mapAttrs
+    (_: service:
+      let
+        # Dashboard (port 3000) uses root domain, others use port-based URLs
+        # Skip URL generation for services without ports (like DB/timers)
+        httpsUrl =
+          if service.port == null then null
+          else if service.port == 3000
+          then "https://${domain}"
+          else "https://${domain}:${toString service.port}";
+        httpUrl =
+          if service.port == null then null
+          else "http://localhost:${toString service.port}";
+        publicUrl =
+          if service.port == null then null
+          else if domain == "localhost" then httpUrl else httpsUrl;
+      in
+      service // { url = publicUrl; apiUrl = httpUrl; }
+    )
+    services);
+in
+{
   options.myServices = lib.mkOption {
     type = lib.types.attrs;
     default = services;

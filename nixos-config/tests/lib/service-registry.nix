@@ -3,7 +3,8 @@
 # Minimal test helper for service registry behaviors used in tests/
 let
   inherit (lib) mkIf;
-in {
+in
+{
   # Example function stubs to satisfy tests; replace with real implementations if needed
   registerService = svc: svc // {
     user = svc.name;
@@ -31,17 +32,17 @@ in {
   managePorts = services: {
     ports = map (s: s.port) (lib.attrValues services);
     networking.firewall.allowedTCPPorts = map (s: s.port) (lib.attrValues services);
-    conflicts = [];
+    conflicts = [ ];
   };
 
   resolveDependencies = svc: {
-    after = map (d: "${d}.service") (svc.dependencies or []);
-    wants = map (d: "${d}.service") (svc.dependencies or []);
+    after = map (d: "${d}.service") (svc.dependencies or [ ]);
+    wants = map (d: "${d}.service") (svc.dependencies or [ ]);
   };
 
   handleEnvironment = svc: {
-    environment = (svc.environment or {}) // (
-      if svc.useSops or false then { OPENAI_API_KEY_FILE = "/run/secrets/OPENAI_API_KEY"; } else {}
+    environment = (svc.environment or { }) // (
+      if svc.useSops or false then { OPENAI_API_KEY_FILE = "/run/secrets/OPENAI_API_KEY"; } else { }
     );
   };
 }

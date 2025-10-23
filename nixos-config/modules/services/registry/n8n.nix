@@ -2,8 +2,9 @@
 
 let
   has = config ? myServices && config.myServices ? n8n;
-  svc = if has then config.myServices.n8n else {};
-in {
+  svc = if has then config.myServices.n8n else { };
+in
+{
   config = lib.mkIf has {
     services.n8n = {
       enable = true;

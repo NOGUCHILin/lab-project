@@ -9,7 +9,7 @@
 
     serviceConfig = {
       Type = "oneshot";
-      User = "noguchilin";  # Changed to noguchilin (same as nakamura-misaki API service)
+      User = "noguchilin"; # Changed to noguchilin (same as nakamura-misaki API service)
       Group = "users";
       WorkingDirectory = "/home/noguchilin/projects/lab-project/nakamura-misaki";
 

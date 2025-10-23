@@ -2,8 +2,9 @@
 
 let
   has = config ? myServices && config.myServices ? codeServer;
-  svc = if has then config.myServices.codeServer else {};
-in {
+  svc = if has then config.myServices.codeServer else { };
+in
+{
   config = lib.mkIf has {
     services.code-server = {
       enable = true;

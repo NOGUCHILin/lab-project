@@ -4,7 +4,7 @@
 with lib;
 let
   cfg = config.services.projectStructure;
-  
+
   # プロジェクト定義
   projects = {
     # AIサービス群
@@ -23,14 +23,14 @@ let
       owner = "noguchilin";
       group = "users";
     };
-    
+
     # UI
     "dashboard" = {
       description = "Main Dashboard UI";
       owner = "noguchilin";
       group = "users";
     };
-    
+
     # データ
     "syncthing-data" = {
       description = "Syncthing Sync Directory";
@@ -38,57 +38,61 @@ let
       group = "syncthing";
     };
   };
-  
+
   # 廃止されたプロジェクト（自動削除）
   deprecatedProjects = [
     "nixos-dashboard"
     "test-sync"
-    "unified-dashboard/.next"  # 古いビルドキャッシュ
+    "unified-dashboard/.next" # 古いビルドキャッシュ
   ];
-  
+
   # エイリアス（シンボリックリンク）
   projectAliases = {
-    "unified-dashboard" = "dashboard";  # 互換性のため
+    "unified-dashboard" = "dashboard"; # 互換性のため
   };
 in
 {
   options.services.projectStructure = {
     enable = mkEnableOption "Declarative project structure management";
-    
+
     basePath = mkOption {
       type = types.str;
       default = "/home/noguchilin/projects";
       description = "Base path for all projects";
     };
-    
+
     autoCleanup = mkOption {
       type = types.bool;
       default = true;
       description = "Automatically remove deprecated projects";
     };
   };
-  
+
   config = mkIf cfg.enable {
     # プロジェクトディレクトリの作成
-    systemd.tmpfiles.rules = 
+    systemd.tmpfiles.rules =
       # ベースディレクトリ
       [ "d ${cfg.basePath} 0755 noguchilin users - -" ] ++
-      
+
       # 各プロジェクトディレクトリ
-      (mapAttrsToList (name: proj: 
-        "d ${cfg.basePath}/${name} 0755 ${proj.owner} ${proj.group} - -"
-      ) projects) ++
-      
+      (mapAttrsToList
+        (name: proj:
+          "d ${cfg.basePath}/${name} 0755 ${proj.owner} ${proj.group} - -"
+        )
+        projects) ++
+
       # シンボリックリンク
-      (mapAttrsToList (alias: target:
-        "L ${cfg.basePath}/${alias} - - - - ${cfg.basePath}/${target}"
-      ) projectAliases) ++
-      
+      (mapAttrsToList
+        (alias: target:
+          "L ${cfg.basePath}/${alias} - - - - ${cfg.basePath}/${target}"
+        )
+        projectAliases) ++
+
       # 廃止プロジェクトの削除（有効時のみ）
       (optionals cfg.autoCleanup
         (map (name: "r ${cfg.basePath}/${name}") deprecatedProjects)
       );
-    
+
     # プロジェクト初期化スクリプト
     system.activationScripts.projectStructure = ''
       echo "Setting up project structure..."
@@ -119,7 +123,7 @@ in
         fi
       '') (attrNames projects)}
     '';
-    
+
     # プロジェクト情報表示コマンド
     environment.systemPackages = [
       (pkgs.writeScriptBin "projects" ''

@@ -6,7 +6,7 @@ with lib;
 
 let
   cfg = config.services.portManagement;
-  
+
   # Centralized port definitions
   defaultPorts = {
     codeServer = 8889;
@@ -26,66 +26,66 @@ in
 {
   options.services.portManagement = {
     enable = mkEnableOption "Centralized port management";
-    
+
     ports = mkOption {
       type = types.attrs;
       default = defaultPorts;
       description = "Central registry of service ports";
     };
-    
+
     autoFirewall = mkOption {
       type = types.bool;
       default = true;
       description = "Automatically open firewall ports for enabled services";
     };
-    
+
     allowedNetworks = mkOption {
       type = types.listOf types.str;
       default = [
-        "100.64.0.0/10"    # Tailscale CGNAT
-        "192.168.0.0/16"   # Private network class C
-        "10.0.0.0/8"       # Private network class A
+        "100.64.0.0/10" # Tailscale CGNAT
+        "192.168.0.0/16" # Private network class C
+        "10.0.0.0/8" # Private network class A
       ];
       description = "Networks allowed to access services";
     };
-    
+
     useInterfaceRules = mkOption {
       type = types.bool;
       default = false;
       description = "Use interface-specific firewall rules instead of global";
     };
   };
-  
+
   config = mkIf cfg.enable {
     # Export ports for other modules to use
     environment.etc."nixos/ports.json".text = builtins.toJSON cfg.ports;
-    
+
     # Automatically configure firewall based on enabled services
     networking.firewall = mkMerge [
       # Global port configuration (when not using interface rules)
       (mkIf (!cfg.useInterfaceRules && cfg.autoFirewall) {
-        allowedTCPPorts = []
+        allowedTCPPorts = [ ]
           ++ optional (config.services.code-server.enable or false) cfg.ports.codeServer
           ++ optional (config.services.unified-dashboard.enable or false) cfg.ports.unifiedDashboard
           ++ optional (config.services.openai-realtime.enable or false) cfg.ports.openaiRealtime
           ++ optional (config.services.nakamura-misaki-api.enable or false) cfg.ports.nakamuraMisaki.api
           ++ optional (config.services.nakamura-misaki-admin.enable or false) cfg.ports.nakamuraMisaki.adminUi
           ++ optionals config.services.syncthing.enable [
-               cfg.ports.syncthing.sync
-               cfg.ports.syncthing.discovery
-             ]
+          cfg.ports.syncthing.sync
+          cfg.ports.syncthing.discovery
+        ]
           ++ optional config.services.syncthing.enable cfg.ports.syncthing.gui;
-        
-        allowedUDPPorts = []
+
+        allowedUDPPorts = [ ]
           ++ optional config.services.syncthing.enable cfg.ports.syncthing.discovery;
       })
-      
+
       # Interface-specific rules (more secure)
       (mkIf (cfg.useInterfaceRules && cfg.autoFirewall) {
         interfaces = {
           # Tailscale interface
           tailscale0 = {
-            allowedTCPPorts = []
+            allowedTCPPorts = [ ]
               ++ optional (config.services.code-server.enable or false) cfg.ports.codeServer
               ++ optional (config.services.unified-dashboard.enable or false) cfg.ports.unifiedDashboard
               ++ optional (config.services.openai-realtime.enable or false) cfg.ports.openaiRealtime
@@ -94,7 +94,7 @@ in
           };
         };
       })
-      
+
       # Network-specific iptables rules for finer control
       (mkIf cfg.autoFirewall {
         extraCommands = ''
@@ -129,7 +129,7 @@ in
             add_network_rules ${toString cfg.ports.nakamuraMisaki.adminUi} tcp
           ''}
         '';
-        
+
         extraStopCommands = ''
           # Clean up our custom rules
           ${concatMapStringsSep "\n" (network: ''
@@ -142,7 +142,7 @@ in
         '';
       })
     ];
-    
+
     # Service configuration helper
     systemd.services.port-registry = {
       description = "Port Registry Service";
@@ -176,7 +176,7 @@ in
         '';
       };
     };
-    
+
     # Port conflict detection
     assertions = [
       {

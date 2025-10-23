@@ -6,40 +6,41 @@
 
 {
   imports =
-    [ # Include the results of the hardware scan.
+    [
+      # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      
+
       # Core modules (基盤設定)
-      ../../modules/core/port-management.nix      # Centralized port configuration (MUST BE FIRST)
-      ../../modules/core/secrets.nix              # Secrets management with sops-nix
-      ../../modules/core/ssh-secure.nix           # SSH secure configuration
-      ../../modules/core/firewall-secure.nix      # Firewall security rules
-      ../../modules/core/project-structure.nix   # Project directory management
-      
+      ../../modules/core/port-management.nix # Centralized port configuration (MUST BE FIRST)
+      ../../modules/core/secrets.nix # Secrets management with sops-nix
+      ../../modules/core/ssh-secure.nix # SSH secure configuration
+      ../../modules/core/firewall-secure.nix # Firewall security rules
+      ../../modules/core/project-structure.nix # Project directory management
+
       # Networking modules (ネットワーク設定)
-      ../../modules/networking/tailscale.nix      # Tailscale VPN service
-      
+      ../../modules/networking/tailscale.nix # Tailscale VPN service
+
       # Service modules (アプリケーションサービス)
       # Services (registry + exposure)
-      ../../modules/services/registry                     # Centralized service configuration (default.nix)
-      ../../modules/services/tailscale-direct.nix         # Tailscale exposure (Serve)
-      
+      ../../modules/services/registry # Centralized service configuration (default.nix)
+      ../../modules/services/tailscale-direct.nix # Tailscale exposure (Serve)
+
       # Services
-      ../../modules/services/registry/code-server.nix     # Code Server (VS Code in Browser)
-      ../../modules/services/registry/openai-realtime.nix        # OpenAI Realtime Voice Chat (Clean Architecture)
-      ../../modules/services/registry/ai-gateway.nix             # AI Gateway - Multi-provider AI API (Clean Architecture)
-      ../../modules/services/registry/ai-agents.nix              # AI Agents - CrewAI orchestration (Clean Architecture)
-      ../../modules/services/registry/ai-knowledge.nix           # AI Knowledge - RAG with LlamaIndex (Clean Architecture)
-      ../../modules/services/registry/n8n.nix                # N8N Workflow Automation Platform
-      ../../modules/services/registry/file-manager.nix       # Simple File Manager (registry-based)
-      ../../modules/services/registry/mumuko.nix              # Mumuko Service (registry-based)
-      ../../modules/services/registry/nats.nix               # NATS Event-Driven Messaging (monitoring via registry)
+      ../../modules/services/registry/code-server.nix # Code Server (VS Code in Browser)
+      ../../modules/services/registry/openai-realtime.nix # OpenAI Realtime Voice Chat (Clean Architecture)
+      ../../modules/services/registry/ai-gateway.nix # AI Gateway - Multi-provider AI API (Clean Architecture)
+      ../../modules/services/registry/ai-agents.nix # AI Agents - CrewAI orchestration (Clean Architecture)
+      ../../modules/services/registry/ai-knowledge.nix # AI Knowledge - RAG with LlamaIndex (Clean Architecture)
+      ../../modules/services/registry/n8n.nix # N8N Workflow Automation Platform
+      ../../modules/services/registry/file-manager.nix # Simple File Manager (registry-based)
+      ../../modules/services/registry/mumuko.nix # Mumuko Service (registry-based)
+      ../../modules/services/registry/nats.nix # NATS Event-Driven Messaging (monitoring via registry)
       # dashboardはflakeのNixOSモジュールから提供（flake.nixで自動import）
       # nakamura-misakiはflakeのNixOSモジュールから提供（flake.nixで自動import）
       # nakamura-misaki-web-uiもflakeのNixOSモジュールから提供（flake.nixで自動import）
       # nakamura-misaki-db.nixもflake.nixでspecialArgs経由でimport（venv依存のため）
-      ../../modules/services/registry/applebuyers-site.nix        # AppleBuyers Public Site (dev server)
-      ../../modules/services/registry/code-server-applebuyers.nix     # Code Server for AppleBuyers (Writers)
+      ../../modules/services/registry/applebuyers-site.nix # AppleBuyers Public Site (dev server)
+      ../../modules/services/registry/code-server-applebuyers.nix # Code Server for AppleBuyers (Writers)
       ../../modules/services/registry/code-server-applebuyers-dev.nix # Code Server for AppleBuyers (Engineers)
     ];
 
@@ -121,17 +122,17 @@
   # Nakamura-Misaki Configuration
   services.nakamura-misaki = {
     enable = true;
-    enforceDeclarative = false;  # Allow manual restart for testing
+    enforceDeclarative = false; # Allow manual restart for testing
     ports = {
-      api = 10000;  # API port (Funnel directly exposes this)
+      api = 10000; # API port (Funnel directly exposes this)
       adminUI = 3002;
-      webhook = 10000;  # Deprecated, using api port instead
+      webhook = 10000; # Deprecated, using api port instead
     };
 
     # Secrets from sops-nix (read at runtime via ExecStartPre)
     # Note: We can't directly pass secrets here, they're loaded in the service script
-    slackToken = "";  # Loaded from ${config.sops.secrets.slack_bot_token.path}
-    anthropicApiKey = "";  # Loaded from ${config.sops.secrets.anthropic_api_key.path}
+    slackToken = ""; # Loaded from ${config.sops.secrets.slack_bot_token.path}
+    anthropicApiKey = ""; # Loaded from ${config.sops.secrets.anthropic_api_key.path}
     databaseUrl = "postgresql+asyncpg://nakamura_misaki@localhost:5432/nakamura_misaki";
   };
 
@@ -139,14 +140,14 @@
   services.nakamura-misaki-web-ui = {
     enable = true;
     port = 3002;
-    apiUrl = "https://home-lab-01.tail4ed625.ts.net:10000";  # Tailscale Funnel URL for client-side API calls
+    apiUrl = "https://home-lab-01.tail4ed625.ts.net:10000"; # Tailscale Funnel URL for client-side API calls
   };
 
   # AppleBuyers Configuration
   services.applebuyers-site = {
     enable = true;
     port = 13006;
-    memoryLimit = 768;  # 768MB memory limit
+    memoryLimit = 768; # 768MB memory limit
   };
 
   # Code Server for AppleBuyers Writers
@@ -174,7 +175,7 @@
     description = "noguchilin";
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
-    #  thunderbird
+      #  thunderbird
     ];
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMLiIuIMFlbVcZQAJCpSj8xvZe2dqSH+wvVkUJhNZmMf noguchilin1103@gmail.com"
@@ -196,7 +197,7 @@
 
   # Firefox無効化（使用しない）
   # programs.firefox.enable = true;
-  
+
   # Git設定
   programs.git = {
     enable = true;
@@ -324,8 +325,8 @@
   # Enable centralized port management
   services.portManagement = {
     enable = true;
-    autoFirewall = false;  # FWはregistry/tailscale側で一元管理（YAGNI）
-    useInterfaceRules = false;  # Use global rules for simplicity
+    autoFirewall = false; # FWはregistry/tailscale側で一元管理（YAGNI）
+    useInterfaceRules = false; # Use global rules for simplicity
     # Ports are defined in the module, but can be overridden here if needed
     # ports = {
     #   codeServer = 8889;
@@ -333,12 +334,12 @@
     #   openaiRealtime = 8891;
     # };
   };
-  
+
   # Enable declarative project structure management
   services.projectStructure = {
     enable = true;
     basePath = "/home/noguchilin/projects";
-    autoCleanup = true;  # 古いプロジェクトを自動削除
+    autoCleanup = true; # 古いプロジェクトを自動削除
   };
 
   # List packages installed in system profile. To search, run:
@@ -378,7 +379,7 @@
       gui = {
         address = "0.0.0.0:8384";
         insecureAdminAccess = true;
-        insecureSkipHostCheck = true;  # Tailscale経由のアクセスを許可
+        insecureSkipHostCheck = true; # Tailscale経由のアクセスを許可
       };
     };
   };
@@ -399,29 +400,29 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "25.05"; # Did you read the comment?
-  
+
   # SSH設定はtailscale-secure.nixで管理
 
   # Disable automatic sleep and suspend
-    powerManagement = {
-      enable = false;
-    };
+  powerManagement = {
+    enable = false;
+  };
 
-    services.logind = {
-      settings = {
-        Login = {
-          HandleLidSwitch = "ignore";
-          IdleAction = "ignore";
-          IdleActionSec = "infinity";
-          HandleSuspendKey = "ignore";
-          HandleHibernateKey = "ignore";
-        };
+  services.logind = {
+    settings = {
+      Login = {
+        HandleLidSwitch = "ignore";
+        IdleAction = "ignore";
+        IdleActionSec = "infinity";
+        HandleSuspendKey = "ignore";
+        HandleHibernateKey = "ignore";
       };
     };
+  };
 
-    systemd.targets = {
-      sleep.enable = false;
-      suspend.enable = false;
-      hibernate.enable = false;
-    };
+  systemd.targets = {
+    sleep.enable = false;
+    suspend.enable = false;
+    hibernate.enable = false;
+  };
 }

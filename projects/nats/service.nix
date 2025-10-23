@@ -5,7 +5,7 @@
   services.nats = {
     enable = true;
     serverName = "nixos-nats";
-    port = 4222;  # クライアント接続用
+    port = 4222; # クライアント接続用
 
     settings = {
       # 基本設定
@@ -22,7 +22,7 @@
       # 接続設定
       max_connections = 1000;
       max_control_line = 512;
-      max_payload = 1048576;  # 1MB
+      max_payload = 1048576; # 1MB
     };
   };
 }

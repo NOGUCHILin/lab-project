@@ -13,10 +13,10 @@ let
     slack-sdk
     anthropic
     aiohttp
-    asyncpg  # required for postgresql+asyncpg:// connection
-    psycopg  # psycopg[binary,pool]
+    asyncpg # required for postgresql+asyncpg:// connection
+    psycopg # psycopg[binary,pool]
     sqlalchemy
-    alembic  # database migrations
+    alembic # database migrations
     pgvector
     pydantic
     pydantic-settings
@@ -63,7 +63,7 @@ let
     ];
 
     doCheck = false;
-    pythonImportsCheck = [];
+    pythonImportsCheck = [ ];
 
     # Python環境をpassthru経由で公開
     passthru = {

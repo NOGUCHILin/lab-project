@@ -6,12 +6,12 @@
     enable = true;
     host = "127.0.0.1";
     port = 8889;
-    auth = "none";  # Tailscale経由のみなので認証不要
+    auth = "none"; # Tailscale経由のみなので認証不要
     user = "noguchilin";
     extraArguments = [
       "--disable-telemetry"
       "--disable-update-check"
-      "--disable-workspace-trust"  # Tailscale経由での信頼性問題を回避
+      "--disable-workspace-trust" # Tailscale経由での信頼性問題を回避
     ];
   };
 }

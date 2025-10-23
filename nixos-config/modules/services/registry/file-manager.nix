@@ -3,7 +3,8 @@
 
 let
   cfg = config.services.file-manager;
-in {
+in
+{
   options.services.file-manager = {
     enable = lib.mkEnableOption "Filebrowser file manager";
 
@@ -30,7 +31,7 @@ in {
         FB_ADDRESS = "127.0.0.1";
         FB_ROOT = cfg.rootDir;
         FB_DATABASE = "/var/lib/filebrowser/filebrowser.db";
-        FB_NOAUTH = "true";  # No auth since behind Tailscale
+        FB_NOAUTH = "true"; # No auth since behind Tailscale
       };
 
       path = [ pkgs.filebrowser ];
