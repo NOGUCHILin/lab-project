@@ -17,7 +17,7 @@ from src.infrastructure.di import DIContainer
 from src.infrastructure.jobs import ConversationCleanupJob
 from src.infrastructure.metrics import get_metrics
 
-from .routes import slack
+from .routes import slack, webui
 
 logger = logging.getLogger(__name__)
 
@@ -80,11 +80,11 @@ def create_app() -> FastAPI:
         logger.info("Environment variables validated")
 
         # データベース接続
-        logger.info(f"Connecting to database: {app.state.database_url.split('@')[1] if '@' in app.state.database_url else 'localhost'}")
-        engine = create_async_engine(app.state.database_url, echo=False)
-        app.state.async_session_maker = sessionmaker(
-            engine, class_=AsyncSession, expire_on_commit=False
+        logger.info(
+            f"Connecting to database: {app.state.database_url.split('@')[1] if '@' in app.state.database_url else 'localhost'}"
         )
+        engine = create_async_engine(app.state.database_url, echo=False)
+        app.state.async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
         logger.info("Database connection established")
 
         # SlackEventHandlerV5作成（セッションは各リクエストで作成）
@@ -146,6 +146,7 @@ def create_app() -> FastAPI:
     # ルート登録
     app.include_router(slack.router, prefix="/webhook", tags=["Slack"])
     app.include_router(handoffs.router, prefix="/api", tags=["Handoffs"])
+    app.include_router(webui.router, tags=["Web UI"])  # /api prefix is in router definition
 
     return app
 
