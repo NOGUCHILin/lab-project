@@ -3,7 +3,9 @@
 Provides real data from PostgreSQL database for the Web UI dashboard.
 """
 
+import json
 from datetime import UTC, datetime
+from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel
@@ -63,6 +65,15 @@ class ErrorLogResponse(BaseModel):
     occurrence_count: int
     first_seen: str
     last_seen: str
+
+
+class PromptResponse(BaseModel):
+    name: str
+    system_prompt: str
+    description: str
+    version: str
+    created_at: str
+    updated_at: str
 
 
 router = APIRouter(prefix="/api", tags=["Web UI"])
@@ -154,3 +165,47 @@ async def list_error_logs(limit: int = Query(10, ge=1, le=100)) -> list[ErrorLog
     """List recent error logs (mock data)"""
     # Return empty list to indicate no errors
     return []
+
+
+@router.get("/admin/prompts", response_model=list[PromptResponse])
+async def list_prompts() -> list[PromptResponse]:
+    """List all prompts (read from JSON files)"""
+    # Path to prompts directory (relative to src/)
+    prompts_dir = Path(__file__).parents[5] / "src" / "infrastructure" / "config" / "prompts"
+
+    if not prompts_dir.exists():
+        raise HTTPException(status_code=500, detail="Prompts directory not found")
+
+    prompts = []
+
+    for json_file in prompts_dir.glob("*.json"):
+        try:
+            with open(json_file, encoding="utf-8") as f:
+                data = json.load(f)
+
+            # Extract metadata for created_at/updated_at
+            metadata = data.get("metadata", {})
+            created_at = metadata.get("created_at", "2025-01-01")
+            updated_at = metadata.get("updated_at", created_at)
+
+            # Convert to ISO datetime format if needed
+            if not created_at.endswith("Z") and "T" not in created_at:
+                created_at = f"{created_at}T00:00:00Z"
+            if not updated_at.endswith("Z") and "T" not in updated_at:
+                updated_at = f"{updated_at}T00:00:00Z"
+
+            prompts.append(
+                PromptResponse(
+                    name=data["name"],
+                    system_prompt=data["system_prompt"],
+                    description=data.get("description", ""),
+                    version=data.get("version", "1.0.0"),
+                    created_at=created_at,
+                    updated_at=updated_at,
+                )
+            )
+        except (json.JSONDecodeError, KeyError, OSError) as e:
+            print(f"⚠️ Failed to load prompt {json_file.name}: {e}")
+            continue
+
+    return prompts
