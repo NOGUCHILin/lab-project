@@ -1,5 +1,6 @@
 """PostgreSQL Conversation Repository Implementation"""
 
+import json
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import delete, select
@@ -108,13 +109,18 @@ class PostgreSQLConversationRepository(ConversationRepository):
 
     def _to_entity(self, conversation_table: ConversationTable) -> Conversation:
         """Convert ConversationTable to Conversation entity"""
+        # Handle case where messages might be stored as JSON string
+        messages_data = conversation_table.messages
+        if isinstance(messages_data, str):
+            messages_data = json.loads(messages_data)
+
         messages = [
             Message(
                 role=msg["role"],
                 content=msg["content"],
                 timestamp=datetime.fromisoformat(msg.get("timestamp", conversation_table.created_at.isoformat())),
             )
-            for msg in conversation_table.messages
+            for msg in messages_data
         ]
 
         # Calculate expires_at as created_at + 24 hours (default TTL)
