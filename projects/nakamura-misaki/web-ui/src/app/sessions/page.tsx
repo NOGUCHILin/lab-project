@@ -33,9 +33,9 @@ export default function SessionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8">セッション一覧</h1>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8">セッション一覧</h1>
 
         <Card>
           <CardHeader>
@@ -48,7 +48,7 @@ export default function SessionsPage() {
                   key={session.session_id}
                   className="border rounded-lg p-4 hover:bg-gray-50"
                 >
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium">{session.title}</h3>
@@ -59,12 +59,12 @@ export default function SessionsPage() {
                       <div className="mt-2 text-sm text-gray-600 space-y-1">
                         <div>ユーザー: {session.user_id}</div>
                         <div>メッセージ数: {session.message_count}件</div>
-                        <div className="font-mono text-xs text-gray-400">
+                        <div className="font-mono text-xs text-gray-400 break-all">
                           ID: {session.session_id}
                         </div>
                       </div>
                     </div>
-                    <div className="text-right text-sm text-gray-500">
+                    <div className="text-left sm:text-right text-sm text-gray-500">
                       <div>
                         作成: {new Date(session.created_at).toLocaleDateString('ja-JP')}
                       </div>

@@ -33,9 +33,9 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8">タスク管理</h1>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8">タスク管理</h1>
 
         <Card>
           <CardHeader>
@@ -51,21 +51,21 @@ export default function TasksPage() {
                     key={task.id}
                     className="border rounded-lg p-4 hover:bg-gray-50"
                   >
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg">{task.title}</h3>
                         <p className="text-sm text-gray-600 mt-1">
                           {task.description}
                         </p>
-                        <div className="mt-2 text-sm text-gray-500">
+                        <div className="mt-2 text-sm text-gray-500 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0">
                           <span>ユーザー: {task.user_id}</span>
-                          <span className="mx-2">•</span>
+                          <span className="hidden sm:inline mx-2">•</span>
                           <span>
                             期限: {new Date(task.due_date).toLocaleString('ja-JP')}
                           </span>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-2">
+                      <div className="flex flex-row sm:flex-col items-start sm:items-end gap-2">
                         <Badge
                           variant={
                             task.status === 'completed'

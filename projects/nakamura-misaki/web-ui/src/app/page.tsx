@@ -59,12 +59,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8">nakamura-misaki 管理画面</h1>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 sm:mb-8">nakamura-misaki 管理画面</h1>
 
         {/* メトリクスカード */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Link href="/tasks">
             <Card className="hover:shadow-md transition-shadow cursor-pointer">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -142,8 +142,8 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-4">
                 {todayTasks.map((task) => (
-                  <div key={task.id} className="flex items-center justify-between border-b pb-3">
-                    <div>
+                  <div key={task.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b pb-3">
+                    <div className="flex-1">
                       <h3 className="font-medium">{task.title}</h3>
                       <p className="text-sm text-muted-foreground">{task.description}</p>
                     </div>
@@ -169,8 +169,8 @@ export default function Dashboard() {
             <CardContent>
               <div className="space-y-4">
                 {overdueTasks.map((task) => (
-                  <div key={task.id} className="flex items-center justify-between border-b pb-3">
-                    <div>
+                  <div key={task.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b pb-3">
+                    <div className="flex-1">
                       <h3 className="font-medium">{task.title}</h3>
                       <p className="text-sm text-red-600">
                         期限: {new Date(task.due_date).toLocaleString('ja-JP')}
