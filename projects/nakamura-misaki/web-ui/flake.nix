@@ -39,6 +39,11 @@
         # Copy static files
         cp -r .next/static $out/.next/static
 
+        # Copy server directory (pages-manifest.json, etc.)
+        if [ -d .next/server ]; then
+          cp -r .next/server $out/.next/server
+        fi
+
         # Copy all root-level files from .next (BUILD_ID, manifests, etc.)
         find .next -maxdepth 1 -type f -exec cp {} $out/.next/ \;
 
