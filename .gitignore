@@ -48,3 +48,7 @@ secrets/*.age
 nakamura-misaki/workspaces/user_*/
 nakamura-misaki/workspaces/sessions/*.json
 !nakamura-misaki/workspaces/_templates/
+
+# Coverage reports
+coverage.xml
+htmlcov/

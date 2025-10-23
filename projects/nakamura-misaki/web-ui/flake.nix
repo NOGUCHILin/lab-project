@@ -30,12 +30,17 @@
       installPhase = ''
         mkdir -p $out
 
-        # Copy standalone server
+        # Copy standalone server (includes server.js, node_modules, etc.)
         cp -r .next/standalone/* $out/
 
-        # Copy static files
+        # Create .next directory structure
         mkdir -p $out/.next
+
+        # Copy static files
         cp -r .next/static $out/.next/static
+
+        # Copy all root-level files from .next (BUILD_ID, manifests, etc.)
+        find .next -maxdepth 1 -type f -exec cp {} $out/.next/ \;
 
         # Copy public files
         cp -r public $out/public
