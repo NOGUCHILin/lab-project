@@ -52,11 +52,16 @@ jobs:
             echo '✅ nakamura-misaki User Token updated in sops'
           "
 
+      # deploy-rsをインストール (バイナリキャッシュから取得)
+      - name: Install deploy-rs
+        run: |
+          nix profile install nixpkgs#deploy-rs
+
       # deploy-rsでNixOS設定をデプロイ (Dashboard & nakamura-misaki両方ともNixパッケージ化済み)
       - name: Deploy NixOS configuration with deploy-rs
         run: |
           cd nixos-config
-          nix run github:serokell/deploy-rs -- \
+          deploy \
             --skip-checks \
             --remote-build \
             --ssh-user root \
