@@ -20,15 +20,6 @@ repos:
         files: ^projects/nakamura-misaki/web-ui/
         stages: [push]
 
-      # Nix flake check - Validates all NixOS configurations
-      - id: nix-flake-check
-        name: Nix flake check (nixos-config)
-        entry: bash -c 'cd nixos-config && nix flake check'
-        language: system
-        pass_filenames: false
-        files: ^nixos-config/
-        stages: [push]
-
       # Python tests (nakamura-misaki)
       - id: pytest-all
         name: pytest-all (nakamura-misaki)
@@ -37,3 +28,6 @@ repos:
         pass_filenames: false
         files: ^projects/nakamura-misaki/
         stages: [push]
+
+      # Note: Nix flake check is performed in GitHub Actions CI
+      # (local development machine does not have Nix installed)
