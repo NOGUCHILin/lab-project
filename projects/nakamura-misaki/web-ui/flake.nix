@@ -16,8 +16,8 @@
       version = "1.0.0";
       src = ./.;
 
-      # npm dependencies hash (will be updated on first build failure)
-      npmDepsHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+      # npm dependencies hash
+      npmDepsHash = "sha256-Ihb96hIfq1asPsBQsnbEubeivlh6XOzn629OFQxnpmI=";
 
       # Build Next.js app
       buildPhase = ''
