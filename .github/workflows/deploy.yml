@@ -33,14 +33,14 @@ jobs:
           mkdir -p ~/.ssh
           echo "$NIXOS_ROOT_SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H home-lab-01.tail4ed625.ts.net >> ~/.ssh/known_hosts
+          # StrictHostKeyChecking=accept-newを使用するため、ssh-keyscanは不要
         env:
           NIXOS_ROOT_SSH_KEY: ${{ secrets.NIXOS_ROOT_SSH_KEY }}
 
       # nakamura-misaki User Tokenを更新
       - name: Update nakamura-misaki User Token in sops
         run: |
-          ssh root@home-lab-01.tail4ed625.ts.net "
+          ssh -o StrictHostKeyChecking=accept-new root@home-lab-01.tail4ed625.ts.net "
             cd /etc/nixos
             # sops-nixで暗号化ファイルを更新
             export SOPS_AGE_KEY_FILE=/etc/nixos/age-key.txt
@@ -67,7 +67,7 @@ jobs:
       - name: Run database migrations
         run: |
           echo "🔄 Running database migrations for nakamura-misaki..."
-          ssh root@home-lab-01.tail4ed625.ts.net '
+          ssh -o StrictHostKeyChecking=accept-new root@home-lab-01.tail4ed625.ts.net '
             cd /home/noguchilin/projects/lab-project/nakamura-misaki
 
             # uvを使ってalembicマイグレーションを実行
@@ -81,7 +81,7 @@ jobs:
       # サービス状態確認
       - name: Verify deployment
         run: |
-          ssh root@home-lab-01.tail4ed625.ts.net '
+          ssh -o StrictHostKeyChecking=accept-new root@home-lab-01.tail4ed625.ts.net '
             echo "📊 Service status:"
             systemctl status dashboard.service --no-pager || true
             systemctl status nakamura-misaki.service --no-pager || true
@@ -105,11 +105,11 @@ jobs:
           echo "🏥 Performing health check on nakamura-misaki API..."
 
           # TailscaleドメインをSSH経由で取得（jqを使わずにテキスト出力から抽出）
-          TAILSCALE_DOMAIN=$(ssh root@home-lab-01.tail4ed625.ts.net "tailscale status | grep -E '^\s*\S+\s+\S+.*this machine' | awk '{print \$2}'" | head -1)
+          TAILSCALE_DOMAIN=$(ssh -o StrictHostKeyChecking=accept-new root@home-lab-01.tail4ed625.ts.net "tailscale status | grep -E '^\s*\S+\s+\S+.*this machine' | awk '{print \$2}'" | head -1)
 
           # ドメインが取得できなかった場合はhostnameを使用
           if [ -z "$TAILSCALE_DOMAIN" ]; then
-            TAILSCALE_DOMAIN=$(ssh root@home-lab-01.tail4ed625.ts.net "hostname -f")
+            TAILSCALE_DOMAIN=$(ssh -o StrictHostKeyChecking=accept-new root@home-lab-01.tail4ed625.ts.net "hostname -f")
           fi
 
           echo "Tailscale domain: $TAILSCALE_DOMAIN"
@@ -139,7 +139,7 @@ jobs:
         run: |
           echo "⚠️ Health check failed. Rolling back to previous NixOS generation..."
 
-          ssh root@home-lab-01.tail4ed625.ts.net "
+          ssh -o StrictHostKeyChecking=accept-new root@home-lab-01.tail4ed625.ts.net "
             echo '🔄 Rolling back to previous generation...'
             nixos-rebuild switch --rollback
 
@@ -155,9 +155,9 @@ jobs:
           sleep 10
 
           # Tailscaleドメイン取得（jq不要の方法）
-          TAILSCALE_DOMAIN=$(ssh root@home-lab-01.tail4ed625.ts.net "tailscale status | grep -E '^\s*\S+\s+\S+.*this machine' | awk '{print \$2}'" | head -1)
+          TAILSCALE_DOMAIN=$(ssh -o StrictHostKeyChecking=accept-new root@home-lab-01.tail4ed625.ts.net "tailscale status | grep -E '^\s*\S+\s+\S+.*this machine' | awk '{print \$2}'" | head -1)
           if [ -z "$TAILSCALE_DOMAIN" ]; then
-            TAILSCALE_DOMAIN=$(ssh root@home-lab-01.tail4ed625.ts.net "hostname -f")
+            TAILSCALE_DOMAIN=$(ssh -o StrictHostKeyChecking=accept-new root@home-lab-01.tail4ed625.ts.net "hostname -f")
           fi
 
           if curl -f --max-time 10 "https://${TAILSCALE_DOMAIN}:10000/health"; then
