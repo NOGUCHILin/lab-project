@@ -19,12 +19,9 @@ let
     fileManager = { port = cfg.file-manager.port; path = "/files"; name = "File Manager"; description = "Web-based file management"; healthCheck = "/api/public/dl/nopass"; icon = "📁"; };
     # nakamuraMisaki (old admin UI entry) removed - replaced by nakamuraMisakiWebUI below
     nakamuraMisakiWebUI = { port = 3002; path = "/nakamura"; name = "Nakamura-Misaki Web UI"; description = "タスク管理AI - 運用管理画面"; healthCheck = "/"; icon = "🤖"; };
-    nakamuraMisakiApi = { port = null; path = "/nakamura-api"; name = "Nakamura-Misaki API"; description = "Claude Agent API Backend (Funnel only)"; healthCheck = "/health"; icon = "🔧"; };
     applebuyersWriterEditor = { port = 8890; path = "/applebuyers-writer"; name = "AppleBuyers Writer"; description = "ライター用記事編集"; healthCheck = "/healthz"; icon = "✍️"; };
     applebuyersDevEditor = { port = 8891; path = "/applebuyers-dev"; name = "AppleBuyers Dev"; description = "エンジニア用開発環境"; healthCheck = "/healthz"; icon = "⚙️"; };
     applebuyersPreview = { port = cfg.applebuyers-site.port; path = "/applebuyers-preview"; name = "AppleBuyers Preview"; description = "記事プレビュー"; healthCheck = "/"; icon = "👁️"; };
-    nakamuraMisakiDb = { port = null; path = null; name = "nakamura-misaki Database"; description = "PostgreSQL 16 + pgvector for v4.0.0"; healthCheck = null; icon = "🗄️"; };
-    nakamuraMisakiReminder = { port = null; path = null; name = "nakamura-misaki Reminder"; description = "Handoff reminder scheduler (runs every minute)"; healthCheck = null; icon = "⏰"; };
   };
 
   servicesJson = builtins.toJSON (lib.mapAttrs (_: service:
