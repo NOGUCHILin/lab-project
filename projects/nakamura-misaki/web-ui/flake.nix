@@ -9,10 +9,9 @@
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
-    in
-    {
-      # Web UI Package (Production Build)
-      packages.${system}.default = pkgs.buildNpmPackage {
+
+      # Parameterized package builder
+      mkWebUI = { apiUrl }: pkgs.buildNpmPackage {
         pname = "nakamura-misaki-web-ui";
         version = "1.0.0";
         src = ./.;
@@ -20,10 +19,11 @@
         # npm dependencies hash
         npmDepsHash = "sha256-Ihb96hIfq1asPsBQsnbEubeivlh6XOzn629OFQxnpmI=";
 
-        # Build Next.js app
+        # Build Next.js app with API URL injected at build time
         buildPhase = ''
           export NEXT_TELEMETRY_DISABLED=1
           export NODE_ENV=production
+          export NEXT_PUBLIC_API_URL="${apiUrl}"
           npm run build
         '';
 
@@ -57,11 +57,19 @@
           license = pkgs.lib.licenses.mit;
         };
       };
+    in
+    {
+      # Default package (for local testing with default API URL)
+      packages.${system}.default = mkWebUI {
+        apiUrl = "http://localhost:10000";
+      };
 
       # NixOS Module
       nixosModules.default = { config, lib, pkgs, ... }:
         let
           cfg = config.services.nakamura-misaki-web-ui;
+          # Build Web UI package with configured API URL
+          webui-pkg = mkWebUI { apiUrl = cfg.apiUrl; };
         in
         {
           options.services.nakamura-misaki-web-ui = {
@@ -76,7 +84,7 @@
             apiUrl = lib.mkOption {
               type = lib.types.str;
               default = "http://localhost:10000";
-              description = "Backend API URL";
+              description = "Backend API URL (injected at build time into NEXT_PUBLIC_API_URL)";
             };
           };
 
@@ -89,7 +97,6 @@
               environment = {
                 NODE_ENV = "production";
                 PORT = toString cfg.port;
-                NEXT_PUBLIC_API_URL = cfg.apiUrl;
                 HOSTNAME = "127.0.0.1";
               };
 
@@ -97,7 +104,7 @@
                 Type = "simple";
                 User = "noguchilin";
                 Group = "users";
-                WorkingDirectory = "${self.packages.${system}.default}";
+                WorkingDirectory = "${webui-pkg}";
                 ExecStart = "${pkgs.nodejs}/bin/node server.js";
 
                 Restart = "always";
