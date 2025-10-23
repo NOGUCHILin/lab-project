@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { taskApi, userApi, sessionApi, errorLogApi, Task, User, Session } from '@/lib/api';
 
+// Dashboard - Nakamura-Misaki Web UI v2.0
 export default function Dashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [users, setUsers] = useState<User[]>([]);
