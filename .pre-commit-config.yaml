@@ -1,0 +1,39 @@
+# Pre-commit configuration for lab-project
+# Repository-wide checks for Nix, TypeScript, Python
+
+repos:
+  # Nix formatting
+  - repo: https://github.com/nix-community/nixpkgs-fmt
+    rev: v1.3.0
+    hooks:
+      - id: nixpkgs-fmt
+
+  # Pre-push hooks - Heavy builds and tests
+  - repo: local
+    hooks:
+      # Next.js Web UI build test
+      - id: nextjs-build
+        name: Next.js Web UI build check
+        entry: bash -c 'cd projects/nakamura-misaki/web-ui && npm ci && npm run build'
+        language: system
+        pass_filenames: false
+        files: ^projects/nakamura-misaki/web-ui/
+        stages: [push]
+
+      # Nix flake check - Validates all NixOS configurations
+      - id: nix-flake-check
+        name: Nix flake check (nixos-config)
+        entry: bash -c 'cd nixos-config && nix flake check'
+        language: system
+        pass_filenames: false
+        files: ^nixos-config/
+        stages: [push]
+
+      # Python tests (nakamura-misaki)
+      - id: pytest-all
+        name: pytest-all (nakamura-misaki)
+        entry: bash -c 'cd projects/nakamura-misaki && uv run pytest tests/ -v'
+        language: system
+        pass_filenames: false
+        files: ^projects/nakamura-misaki/
+        stages: [push]
