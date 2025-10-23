@@ -88,6 +88,13 @@ app.add_middleware(
 app.include_router(router)
 
 
+# Health check endpoint
+@app.get("/health")
+async def health():
+    """Health check endpoint"""
+    return {"status": "ok", "service": "nakamura-misaki", "version": "2.0.0"}
+
+
 def main():
     """Run the application"""
     uvicorn.run(
