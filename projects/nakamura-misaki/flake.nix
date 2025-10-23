@@ -22,9 +22,15 @@
       inputs.uv2nix.follows = "uv2nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Web UI
+    web-ui = {
+      url = "path:./web-ui";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, uv2nix, pyproject-nix, pyproject-build-systems }:
+  outputs = { self, nixpkgs, uv2nix, pyproject-nix, pyproject-build-systems, web-ui }:
   let
     inherit (nixpkgs) lib;
 
@@ -85,6 +91,9 @@
       default = nakamuraMisakiPkgs.${system};
       nakamura-misaki = nakamuraMisakiPkgs.${system};
 
+      # Web UI package
+      web-ui = web-ui.packages.${system}.default;
+
       # Also export the virtual environment for debugging
       venv = pythonSets.${system}.mkVirtualEnv "nakamura-misaki-env" workspace.deps.default;
     });
@@ -123,6 +132,11 @@
       # Use the package built for the current system
       package = self.packages.${pkgs.system}.default;
     in {
+      # Import Web UI module
+      imports = [
+        web-ui.nixosModules.default
+      ];
+
       options.services.nakamura-misaki = {
         enable = lib.mkEnableOption "Nakamura-Misaki Claude Agent Service";
 

@@ -17,7 +17,8 @@ let
     syncthing = { port = 8384; path = "/syncthing"; name = "Syncthing"; description = "File synchronization"; healthCheck = "/rest/noauth/health"; icon = "🔄"; };
     nats = { port = 8222; path = "/nats"; name = "NATS"; description = "Event-driven messaging"; healthCheck = "/varz"; icon = "📡"; };
     fileManager = { port = cfg.file-manager.port; path = "/files"; name = "File Manager"; description = "Web-based file management"; healthCheck = "/api/public/dl/nopass"; icon = "📁"; };
-    nakamuraMisaki = { port = cfg.nakamura-misaki.ports.adminUI; path = "/nakamura"; name = "Nakamura-Misaki"; description = "Multi-user Claude Code Agent - Admin UI"; healthCheck = "/health"; icon = "🤖"; };
+    # nakamuraMisaki (old admin UI entry) removed - replaced by nakamuraMisakiWebUI below
+    nakamuraMisakiWebUI = { port = 3002; path = "/nakamura"; name = "Nakamura-Misaki Web UI"; description = "タスク管理AI - 運用管理画面"; healthCheck = "/"; icon = "🤖"; };
     nakamuraMisakiApi = { port = null; path = "/nakamura-api"; name = "Nakamura-Misaki API"; description = "Claude Agent API Backend (Funnel only)"; healthCheck = "/health"; icon = "🔧"; };
     applebuyersWriterEditor = { port = 8890; path = "/applebuyers-writer"; name = "AppleBuyers Writer"; description = "ライター用記事編集"; healthCheck = "/healthz"; icon = "✍️"; };
     applebuyersDevEditor = { port = 8891; path = "/applebuyers-dev"; name = "AppleBuyers Dev"; description = "エンジニア用開発環境"; healthCheck = "/healthz"; icon = "⚙️"; };

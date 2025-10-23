@@ -36,7 +36,9 @@
       ../../modules/services/registry/nats.nix               # NATS Event-Driven Messaging (monitoring via registry)
       # dashboardはflakeのNixOSモジュールから提供（flake.nixで自動import）
       # nakamura-misakiはflakeのNixOSモジュールから提供（flake.nixで自動import）
+      # nakamura-misaki-web-uiもflakeのNixOSモジュールから提供（flake.nixで自動import）
       # nakamura-misaki-db.nixもflake.nixでspecialArgs経由でimport（venv依存のため）
+      ../../modules/services/registry/nakamura-misaki-web-ui.nix  # Nakamura-Misaki Web UI (registry only)
       ../../modules/services/registry/applebuyers-site.nix        # AppleBuyers Public Site (dev server)
       ../../modules/services/registry/code-server-applebuyers.nix     # Code Server for AppleBuyers (Writers)
       ../../modules/services/registry/code-server-applebuyers-dev.nix # Code Server for AppleBuyers (Engineers)
@@ -132,6 +134,13 @@
     slackToken = "";  # Loaded from ${config.sops.secrets.slack_bot_token.path}
     anthropicApiKey = "";  # Loaded from ${config.sops.secrets.anthropic_api_key.path}
     databaseUrl = "postgresql+asyncpg://nakamura_misaki@localhost:5432/nakamura_misaki";
+  };
+
+  # Nakamura-Misaki Web UI Configuration
+  services.nakamura-misaki-web-ui = {
+    enable = true;
+    port = 3002;
+    apiUrl = "http://localhost:10000";
   };
 
   # AppleBuyers Configuration
