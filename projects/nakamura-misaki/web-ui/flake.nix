@@ -78,7 +78,7 @@
             NODE_ENV = "production";
             PORT = toString cfg.port;
             NEXT_PUBLIC_API_URL = cfg.apiUrl;
-            HOSTNAME = "0.0.0.0";
+            HOSTNAME = "127.0.0.1";
           };
 
           serviceConfig = {
