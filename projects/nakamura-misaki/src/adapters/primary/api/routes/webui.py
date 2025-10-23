@@ -1,13 +1,20 @@
-"""Web UI API Routes - Mock endpoints for dashboard
+"""Web UI API Routes - Real data from PostgreSQL
 
-Provides mock data for the Web UI dashboard while real implementations are being developed.
+Provides real data from PostgreSQL database for the Web UI dashboard.
 """
 
-from datetime import datetime, timedelta
-from uuid import uuid4
+from datetime import UTC, datetime
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel
+
+from .....contexts.conversations.infrastructure.repositories.postgresql_conversation_repository import (
+    PostgreSQLConversationRepository,
+)
+from .....contexts.personal_tasks.infrastructure.repositories.postgresql_task_repository import (
+    PostgreSQLTaskRepository,
+)
+from ...dependencies import get_slack_adapter
 
 
 # Response Models
@@ -62,110 +69,84 @@ router = APIRouter(prefix="/api", tags=["Web UI"])
 
 
 @router.get("/tasks", response_model=list[TaskResponse])
-async def list_tasks() -> list[TaskResponse]:
-    """List all tasks (mock data)"""
-    now = datetime.now()
-    return [
-        TaskResponse(
-            id=str(uuid4()),
-            user_id="U12345",
-            title="nakamura-misaki Web UIの実装",
-            due_date=(now + timedelta(hours=2)).isoformat(),
-            status="in_progress",
-            progress=75,
-            description="Next.jsでWeb UIを実装し、統合ダッシュボードに登録する",
-            created_by="U12345",
-            created_at=(now - timedelta(days=1)).isoformat(),
-            updated_at=now.isoformat(),
-        ),
-        TaskResponse(
-            id=str(uuid4()),
-            user_id="U12345",
-            title="REST APIエンドポイントの追加",
-            due_date=(now + timedelta(days=1)).isoformat(),
-            status="pending",
-            progress=0,
-            description="タスク・ユーザー・セッション用のREST APIを実装",
-            created_by="U12345",
-            created_at=now.isoformat(),
-            updated_at=now.isoformat(),
-        ),
-        TaskResponse(
-            id=str(uuid4()),
-            user_id="U67890",
-            title="デプロイメントパイプラインの確認",
-            due_date=(now - timedelta(hours=2)).isoformat(),  # 期限切れ
-            status="pending",
-            progress=20,
-            description="GitHub Actionsのデプロイワークフローをレビュー",
-            created_by="U12345",
-            created_at=(now - timedelta(days=2)).isoformat(),
-            updated_at=(now - timedelta(hours=3)).isoformat(),
-        ),
-    ]
+async def list_tasks(request: Request) -> list[TaskResponse]:
+    """List all tasks (real data from PostgreSQL)"""
+    db_manager = request.app.state.db_manager
+
+    async with db_manager.session() as session:
+        repo = PostgreSQLTaskRepository(session)
+        tasks = await repo.find_all()
+
+        return [
+            TaskResponse(
+                id=str(task.id),
+                user_id=task.assignee_user_id,
+                title=task.title,
+                due_date=task.due_at.isoformat() if task.due_at else "",
+                status=task.status.value,
+                progress=0,  # TODO: 進捗率の計算ロジック追加
+                description=task.description or "",
+                created_by=task.creator_user_id,
+                created_at=task.created_at.isoformat(),
+                updated_at=task.updated_at.isoformat(),
+            )
+            for task in tasks
+        ]
 
 
 @router.get("/users", response_model=list[UserResponse])
 async def list_users() -> list[UserResponse]:
-    """List all users (mock data)"""
-    now = datetime.now()
+    """List all users (real data from Slack API)"""
+    slack = get_slack_adapter()
+
+    try:
+        users_result = await slack.users_list()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch users from Slack: {str(e)}")
+
+    if not users_result.get("ok"):
+        error = users_result.get("error", "unknown")
+        raise HTTPException(status_code=500, detail=f"Slack API error: {error}")
+
+    members = users_result.get("members", [])
+
     return [
         UserResponse(
-            user_id="U12345",
-            name="noguchilin",
-            real_name="野口凜",
-            display_name="野口凜",
-            email="noguchilin@example.com",
-            is_admin=True,
-            is_bot=False,
-            created_at=(now - timedelta(days=30)).isoformat(),
-        ),
-        UserResponse(
-            user_id="U67890",
-            name="testuser",
-            real_name="Test User",
-            display_name="Test User",
-            email="test@example.com",
-            is_admin=False,
-            is_bot=False,
-            created_at=(now - timedelta(days=15)).isoformat(),
-        ),
+            user_id=user["id"],
+            name=user.get("name", ""),
+            real_name=user.get("real_name", ""),
+            display_name=user.get("profile", {}).get("display_name", "") or user.get("name", ""),
+            email=user.get("profile", {}).get("email", ""),
+            is_admin=user.get("is_admin", False),
+            is_bot=user.get("is_bot", False),
+            created_at=datetime.fromtimestamp(user.get("updated", 0), tz=UTC).isoformat(),
+        )
+        for user in members
+        if not user.get("deleted", False)
     ]
 
 
 @router.get("/sessions", response_model=list[SessionResponse])
-async def list_sessions() -> list[SessionResponse]:
-    """List all sessions (mock data)"""
-    now = datetime.now()
-    return [
-        SessionResponse(
-            session_id=str(uuid4()),
-            user_id="U12345",
-            created_at=(now - timedelta(hours=2)).isoformat(),
-            last_active=now.isoformat(),
-            title="Web UI実装に関する相談",
-            message_count=15,
-            is_active=True,
-        ),
-        SessionResponse(
-            session_id=str(uuid4()),
-            user_id="U12345",
-            created_at=(now - timedelta(days=1)).isoformat(),
-            last_active=(now - timedelta(hours=5)).isoformat(),
-            title="デプロイメント設定のレビュー",
-            message_count=8,
-            is_active=False,
-        ),
-        SessionResponse(
-            session_id=str(uuid4()),
-            user_id="U67890",
-            created_at=(now - timedelta(days=2)).isoformat(),
-            last_active=(now - timedelta(days=1)).isoformat(),
-            title="タスク管理機能について",
-            message_count=23,
-            is_active=False,
-        ),
-    ]
+async def list_sessions(request: Request, limit: int = Query(50, ge=1, le=100)) -> list[SessionResponse]:
+    """List all sessions (real data from conversations table)"""
+    db_manager = request.app.state.db_manager
+
+    async with db_manager.session() as session:
+        repo = PostgreSQLConversationRepository(session)
+        conversations = await repo.find_recent(limit=limit)
+
+        return [
+            SessionResponse(
+                session_id=str(conv.id.value),
+                user_id=conv.user_id.value,
+                created_at=conv.created_at.isoformat(),
+                last_active=conv.updated_at.isoformat(),
+                title=f"Conversation in #{conv.channel_id}",
+                message_count=len(conv.messages),
+                is_active=(datetime.now(UTC) - conv.updated_at).total_seconds() < 3600,
+            )
+            for conv in conversations
+        ]
 
 
 @router.get("/logs/errors", response_model=list[ErrorLogResponse])

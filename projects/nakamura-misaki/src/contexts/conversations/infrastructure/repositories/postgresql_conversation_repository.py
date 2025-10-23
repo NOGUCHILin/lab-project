@@ -106,6 +106,18 @@ class PostgreSQLConversationRepository(ConversationRepository):
 
         return deleted_count
 
+    async def find_recent(self, limit: int = 50) -> list[Conversation]:
+        """Find recent conversations ordered by last_message_at"""
+        stmt = (
+            select(ConversationTable)
+            .order_by(ConversationTable.last_message_at.desc())
+            .limit(limit)
+        )
+        result = await self._session.execute(stmt)
+        conversation_tables = result.scalars().all()
+
+        return [self._to_entity(conv_table) for conv_table in conversation_tables]
+
     def _to_entity(self, conversation_table: ConversationTable) -> Conversation:
         """Convert ConversationTable to Conversation entity"""
         messages = [

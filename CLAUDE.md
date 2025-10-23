@@ -59,11 +59,16 @@ check-services
 - **秘密情報管理**: sops-nix経由で必ず暗号化
 - **デプロイは自動**: mainへのpushで自動デプロイされるため、テストは慎重に
 
+**Next.js固有の制約**:
+- ⚠️ **NEXT_PUBLIC_*変数はビルド時に埋め込まれる** - ランタイム設定は無効、Nixパッケージのパラメータ化が必須（詳細: `claudedocs/nextjs-nix-best-practices.md`）
+- ⚠️ **本番デプロイ前に必ずローカルでビルドテスト** - `npm run build` 成功を確認、pre-push フックが自動実行
+
 **禁止事項**:
 - ❌ 手動でのsystemctl設定変更（NixOS再ビルドで上書きされる）
 - ❌ プレーンテキストでの秘密情報コミット
 - ❌ Funnel非対応ポート（443/8443/10000以外）での外部公開
 - ❌ テスト不十分なままmainブランチへpush
+- ❌ Next.jsのNEXT_PUBLIC_*変数をsystemd environmentで設定（ビルド時に注入が必要）
 </instructions>
 
 ---
@@ -183,9 +188,10 @@ lab-project/                     # リポジトリルート
 | ファイル | 内容 |
 |---------|------|
 | `service-registry.md` | Service Registryパターンの完全実装ガイド（7ステップ、トラブルシューティング等） |
+| `nextjs-nix-best-practices.md` | **重要** Next.js+Nix統合のベストプラクティス（NEXT_PUBLIC_*変数、ビルド時注入、ローカルテスト戦略） |
 | `deployment.md` | デプロイワークフローの詳細 |
 | `troubleshooting.md` | 一般的なトラブルシューティング |
 
 ---
 
-最終更新: 2025-10-12（コンテキストエンジニアリング原則適用）
+最終更新: 2025-10-23（Next.js+Nixベストプラクティス追加）

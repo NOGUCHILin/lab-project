@@ -104,6 +104,18 @@ class PostgreSQLTaskRepository(TaskRepository):
 
         return self._to_domain(model)
 
+    async def find_all(self) -> list[Task]:
+        """Find all tasks
+
+        Returns:
+            List of all Task domain entities
+        """
+        stmt = select(TaskModel).order_by(TaskModel.created_at.desc())
+        result = await self.session.execute(stmt)
+        models = result.scalars().all()
+
+        return [self._to_domain(model) for model in models]
+
     async def list_by_user(self, user_id: str, status: TaskStatus | None = None) -> list[Task]:
         """List tasks by user ID
 
