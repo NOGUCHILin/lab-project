@@ -139,7 +139,7 @@
   services.nakamura-misaki-web-ui = {
     enable = true;
     port = 3002;
-    apiUrl = "http://localhost:10000";
+    apiUrl = "https://home-lab-01.tail4ed625.ts.net:10000";  # Tailscale Funnel URL for client-side API calls
   };
 
   # AppleBuyers Configuration
