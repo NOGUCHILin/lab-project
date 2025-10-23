@@ -30,17 +30,17 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        stages: [commit]
+        stages: [pre-commit]
 
   # Pytest - Run integration tests if adapter/infrastructure files changed
   - repo: local
     hooks:
       - id: pytest-integration
         name: pytest-integration (conditional)
-        entry: bash -c 'if git diff --cached --name-only | grep -qE "(adapters/secondary|infrastructure/)"; then cd projects/nakamura-misaki && uv run pytest tests/ -m integration -v --tb=short; else echo "No integration tests needed"; fi'
+        entry: bash -c 'if git diff --cached --name-only | grep -qE "(adapters/secondary|infrastructure/).*\.py$"; then cd projects/nakamura-misaki && (uv run pytest tests/ -m integration -v --tb=short; code=$?; if [ $code -eq 0 ] || [ $code -eq 5 ]; then exit 0; else exit $code; fi); else echo "✓ No integration tests needed (no adapter/infrastructure changes)"; exit 0; fi'
         language: system
         pass_filenames: false
-        stages: [commit]
+        stages: [pre-commit]
 
   # Pre-push hook - Run all tests including E2E
   - repo: local
@@ -51,4 +51,4 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        stages: [push]
+        stages: [pre-push]

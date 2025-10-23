@@ -24,9 +24,7 @@ class PostgreSQLConversationRepository(ConversationRepository):
     async def save(self, conversation: Conversation) -> None:
         """Save conversation"""
         # Check if exists
-        stmt = select(ConversationTable).where(
-            ConversationTable.conversation_id == conversation.id.value
-        )
+        stmt = select(ConversationTable).where(ConversationTable.conversation_id == conversation.id.value)
         result = await self._session.execute(stmt)
         existing = result.scalar_one_or_none()
 
@@ -52,9 +50,7 @@ class PostgreSQLConversationRepository(ConversationRepository):
 
     async def find_by_id(self, conversation_id: ConversationId) -> Conversation | None:
         """Find conversation by ID"""
-        stmt = select(ConversationTable).where(
-            ConversationTable.conversation_id == conversation_id.value
-        )
+        stmt = select(ConversationTable).where(ConversationTable.conversation_id == conversation_id.value)
         result = await self._session.execute(stmt)
         conversation_table = result.scalar_one_or_none()
 
@@ -63,9 +59,7 @@ class PostgreSQLConversationRepository(ConversationRepository):
 
         return self._to_entity(conversation_table)
 
-    async def find_by_user_and_channel(
-        self, user_id: UserId, channel_id: str
-    ) -> Conversation | None:
+    async def find_by_user_and_channel(self, user_id: UserId, channel_id: str) -> Conversation | None:
         """Find conversation by user and channel"""
         stmt = (
             select(ConversationTable)
@@ -83,9 +77,7 @@ class PostgreSQLConversationRepository(ConversationRepository):
 
     async def delete(self, conversation_id: ConversationId) -> None:
         """Delete conversation"""
-        stmt = delete(ConversationTable).where(
-            ConversationTable.conversation_id == conversation_id.value
-        )
+        stmt = delete(ConversationTable).where(ConversationTable.conversation_id == conversation_id.value)
         await self._session.execute(stmt)
         await self._session.flush()
 
@@ -108,11 +100,7 @@ class PostgreSQLConversationRepository(ConversationRepository):
 
     async def find_recent(self, limit: int = 50) -> list[Conversation]:
         """Find recent conversations ordered by last_message_at"""
-        stmt = (
-            select(ConversationTable)
-            .order_by(ConversationTable.last_message_at.desc())
-            .limit(limit)
-        )
+        stmt = select(ConversationTable).order_by(ConversationTable.last_message_at.desc()).limit(limit)
         result = await self._session.execute(stmt)
         conversation_tables = result.scalars().all()
 
