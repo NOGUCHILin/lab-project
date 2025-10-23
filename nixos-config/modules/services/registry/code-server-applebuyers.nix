@@ -37,9 +37,9 @@ in {
         Group = "users";
 
         ExecStart = pkgs.writeShellScript "code-server-applebuyers-writer" ''
-          # Ensure content-draft branch is checked out
+          # Ensure main branch is checked out
           cd /home/noguchilin/projects/applebuyers_application/public-site
-          ${pkgs.git}/bin/git checkout content-draft 2>/dev/null || true
+          ${pkgs.git}/bin/git checkout main 2>/dev/null || true
 
           exec ${pkgs.code-server}/bin/code-server \
             --host 127.0.0.1 \
