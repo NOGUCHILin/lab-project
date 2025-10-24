@@ -44,11 +44,10 @@ def run_alembic_upgrade():
 
     print(f"📁 Using alembic directory: {alembic_dir}")
 
-    # Run alembic upgrade head
-    alembic_ini = project_root / "alembic.ini"
-    if not alembic_ini.exists():
-        # Create minimal alembic.ini if not exists
-        alembic_ini_content = f"""[alembic]
+    # Create temporary alembic.ini (since Nix store is read-only)
+    import tempfile
+
+    alembic_ini_content = f"""[alembic]
 script_location = {alembic_dir}
 version_path_separator = os
 
@@ -86,7 +85,11 @@ formatter = generic
 format = %(levelname)-5.5s [%(name)s] %(message)s
 datefmt = %H:%M:%S
 """
-        alembic_ini.write_text(alembic_ini_content)
+
+    # Write to temporary file (Nix store is read-only)
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".ini", delete=False) as f:
+        f.write(alembic_ini_content)
+        alembic_ini = f.name
 
     result = subprocess.run(
         ["alembic", "-c", str(alembic_ini), "upgrade", "head"],
