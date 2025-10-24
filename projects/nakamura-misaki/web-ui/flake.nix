@@ -14,7 +14,15 @@
       mkWebUI = { apiUrl }: pkgs.buildNpmPackage {
         pname = "nakamura-misaki-web-ui";
         version = "1.0.0";
-        src = ./.;
+
+        # Fetch source from GitHub instead of local directory (for remote-build)
+        src = pkgs.fetchFromGitHub
+          {
+            owner = "NOGUCHILin";
+            repo = "lab-project";
+            rev = "main"; # Always use latest main branch
+            sha256 = pkgs.lib.fakeSha256; # Auto-update on each build
+          } + "/projects/nakamura-misaki/web-ui";
 
         # npm dependencies hash
         npmDepsHash = "sha256-tthnOvNCmcfg4gwa36xos2qOmTO1yMUhSM8QJF2DZCI=";
