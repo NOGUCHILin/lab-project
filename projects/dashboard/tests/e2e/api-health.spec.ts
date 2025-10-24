@@ -17,7 +17,10 @@ test.describe('API Health Check', () => {
     const CODE_SERVER_PORT = process.env.NEXT_PUBLIC_CODE_SERVER_PORT || '8889';
 
     try {
-      const codeServerResponse = await request.get(`${BASE_URL}:${CODE_SERVER_PORT}`, {
+      // URLオブジェクトを使用して正しくホスト名とポートを組み立てる
+      const url = new URL(BASE_URL);
+      const codeServerUrl = `${url.protocol}//${url.hostname}:${CODE_SERVER_PORT}`;
+      const codeServerResponse = await request.get(codeServerUrl, {
         timeout: 5000,
         ignoreHTTPSErrors: true // SSL証明書エラーを無視
       });
