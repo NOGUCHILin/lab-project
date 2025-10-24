@@ -42,7 +42,9 @@ def upgrade() -> None:
         sa.Column("assignee_user_id", sa.String(length=100), nullable=False),
         sa.Column("creator_user_id", sa.String(length=100), nullable=False),
         sa.Column(
-            "status", sa.Enum("pending", "in_progress", "completed", "cancelled", name="task_status"), nullable=False
+            "status",
+            sa.Enum("pending", "in_progress", "completed", "cancelled", name="task_status", create_type=False),
+            nullable=False,
         ),
         sa.Column("due_at", sa.DateTime(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False),
