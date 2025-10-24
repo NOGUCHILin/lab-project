@@ -91,12 +91,13 @@ datefmt = %H:%M:%S
         f.write(alembic_ini_content)
         alembic_ini = f.name
 
-    # Find alembic executable
-    import shutil
+    # Find alembic executable (in same bin directory as this Python interpreter)
+    python_exe = Path(sys.executable)
+    alembic_exe = python_exe.parent / "alembic"
 
-    alembic_exe = shutil.which("alembic")
-    if not alembic_exe:
-        print("Error: alembic executable not found in PATH", file=sys.stderr)
+    if not alembic_exe.exists():
+        print(f"Error: alembic executable not found at {alembic_exe}", file=sys.stderr)
+        print(f"Python executable: {python_exe}", file=sys.stderr)
         sys.exit(1)
 
     print(f"🔧 Using alembic executable: {alembic_exe}")
