@@ -1,6 +1,6 @@
 {
   description = "Nakamura-Misaki - Multi-User Claude Code Agent Service (uv2nix)";
-  # Force flake rebuild to pick up uv.lock changes (requests dependency)
+  # Force flake rebuild to pick up changes (2025-10-24: migration idempotency fix)
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
