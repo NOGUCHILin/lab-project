@@ -28,7 +28,10 @@ def run_alembic_upgrade():
     # Try local development path first
     alembic_dir = project_root / "alembic"
 
-    if not alembic_dir.exists():
+    # Verify it's our alembic (not the alembic package) by checking for our migrations
+    is_our_alembic = alembic_dir.exists() and (alembic_dir / "versions" / "001_initial_schema.py").exists()
+
+    if not is_our_alembic:
         # Try to find alembic in shared-data directory (when installed as package)
         # hatchling installs shared-data to {venv}/share/nakamura-misaki/alembic
 
