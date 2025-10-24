@@ -26,14 +26,8 @@
           pname = "unified-dashboard";
           version = "0.1.0";
 
-          # Fetch source from GitHub instead of local directory (for remote-build)
-          src = pkgs.fetchFromGitHub
-            {
-              owner = "NOGUCHILin";
-              repo = "lab-project";
-              rev = "main"; # Always use latest main branch
-              sha256 = "sha256-9lgkevdAR29jpB+SI4R3MED9IjINGcbE+AMtUtKH60k="; # Auto-update on each build
-            } + "/projects/dashboard";
+          # Use local source directory
+          src = ./.;
 
           # Generate npm dependencies hash
           # Run on NixOS: nix run nixpkgs#prefetch-npm-deps package-lock.json

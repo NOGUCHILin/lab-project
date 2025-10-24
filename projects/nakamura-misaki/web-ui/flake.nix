@@ -15,14 +15,8 @@
         pname = "nakamura-misaki-web-ui";
         version = "1.0.0";
 
-        # Fetch source from GitHub instead of local directory (for remote-build)
-        src = pkgs.fetchFromGitHub
-          {
-            owner = "NOGUCHILin";
-            repo = "lab-project";
-            rev = "main"; # Always use latest main branch
-            sha256 = "sha256-8YM8Kh1A/F0FeCMSv6BLGJW6NLmzdJ59j1Tu1jWoumw="; # Context Management page (ab46110)
-          } + "/projects/nakamura-misaki/web-ui";
+        # Use local source directory
+        src = ./.;
 
         # npm dependencies hash
         npmDepsHash = "sha256-tthnOvNCmcfg4gwa36xos2qOmTO1yMUhSM8QJF2DZCI=";
