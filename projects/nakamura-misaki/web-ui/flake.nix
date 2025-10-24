@@ -21,7 +21,7 @@
             owner = "NOGUCHILin";
             repo = "lab-project";
             rev = "main"; # Always use latest main branch
-            sha256 = "sha256-qKyzx3QOKJnIuaaAjCSsC1uQmeSyszbfuJDnRQtSpMI="; # Auto-update on each build
+            sha256 = pkgs.lib.fakeSha256; # Auto-update on each build
           } + "/projects/nakamura-misaki/web-ui";
 
         # npm dependencies hash
