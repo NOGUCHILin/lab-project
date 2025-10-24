@@ -102,10 +102,15 @@ datefmt = %H:%M:%S
 
     print(f"🔧 Using alembic executable: {alembic_exe}")
 
+    # Convert async DATABASE_URL to sync for Alembic (which uses sync SQLAlchemy)
+    sync_database_url = database_url.replace("postgresql+asyncpg://", "postgresql://")
+
+    print(f"🔧 Using database URL: {sync_database_url.split('@')[0]}@...")
+
     result = subprocess.run(
         [alembic_exe, "-c", str(alembic_ini), "upgrade", "head"],
         cwd=project_root,
-        env={**os.environ, "DATABASE_URL": database_url},
+        env={**os.environ, "DATABASE_URL": sync_database_url},
         capture_output=True,
         text=True,
     )
