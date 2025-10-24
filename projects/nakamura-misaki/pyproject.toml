@@ -47,6 +47,10 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src", "scripts", "alembic"]
 
+# Include alembic directory and its contents as package data
+[tool.hatch.build.targets.wheel.force-include]
+"alembic" = "alembic"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]

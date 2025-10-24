@@ -29,17 +29,21 @@ def run_alembic_upgrade():
 
     if not alembic_dir.exists():
         # Try to find alembic in site-packages (when installed as package)
+        # Look for nakamura-misaki's alembic directory, not the alembic package
         import site
 
         for site_dir in site.getsitepackages():
+            # Check for nakamura-misaki's alembic directory
             pkg_alembic = Path(site_dir) / "alembic"
-            if pkg_alembic.exists() and (pkg_alembic / "versions").exists():
+            # Verify it's our alembic by checking for a nakamura-misaki specific migration
+            if pkg_alembic.exists() and (pkg_alembic / "versions" / "001_initial_schema.py").exists():
                 alembic_dir = pkg_alembic
                 break
 
     if not alembic_dir.exists():
-        print("Error: Could not find alembic directory", file=sys.stderr)
+        print("Error: Could not find nakamura-misaki alembic directory", file=sys.stderr)
         print(f"Searched: {project_root / 'alembic'}", file=sys.stderr)
+        print("This error means the alembic directory was not packaged correctly", file=sys.stderr)
         sys.exit(1)
 
     print(f"📁 Using alembic directory: {alembic_dir}")
