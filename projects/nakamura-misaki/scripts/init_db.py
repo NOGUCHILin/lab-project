@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Database initialization script
 
-PostgreSQL + pgvector extension setup and table creation.
+PostgreSQL + pgvector extension setup and Alembic migrations.
 """
 
-import asyncio
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -13,43 +13,102 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine
 
-from src.infrastructure.database.schema import Base
-
-
-async def init_database():
-    """データベース初期化（async）"""
+def run_alembic_upgrade():
+    """Run Alembic migrations to upgrade database to latest version"""
     database_url = os.getenv("DATABASE_URL")
 
     if not database_url:
         print("Error: DATABASE_URL not set", file=sys.stderr)
         sys.exit(1)
 
-    print(f"🔧 Connecting to database...")
-    engine = create_async_engine(database_url, echo=True)
+    print("🔧 Running Alembic migrations...")
 
-    async with engine.begin() as conn:
-        print(f"✅ Connected to database")
+    # Find alembic directory in the package
+    alembic_dir = project_root / "alembic"
 
-        # Enable pgvector extension (idempotent)
-        print(f"🔧 Enabling pgvector extension...")
-        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-        print(f"✅ pgvector extension enabled")
+    if not alembic_dir.exists():
+        # Try to find alembic in site-packages (when installed as package)
+        import site
 
-        # テーブル作成
-        print(f"🔧 Creating tables...")
-        await conn.run_sync(Base.metadata.create_all)
-        print(f"✅ Tables created")
+        for site_dir in site.getsitepackages():
+            pkg_alembic = Path(site_dir) / "alembic"
+            if pkg_alembic.exists() and (pkg_alembic / "versions").exists():
+                alembic_dir = pkg_alembic
+                break
 
-    await engine.dispose()
-    print(f"🎉 Database initialization complete")
+    if not alembic_dir.exists():
+        print("Error: Could not find alembic directory", file=sys.stderr)
+        print(f"Searched: {project_root / 'alembic'}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"📁 Using alembic directory: {alembic_dir}")
+
+    # Run alembic upgrade head
+    alembic_ini = project_root / "alembic.ini"
+    if not alembic_ini.exists():
+        # Create minimal alembic.ini if not exists
+        alembic_ini_content = f"""[alembic]
+script_location = {alembic_dir}
+version_path_separator = os
+
+[loggers]
+keys = root,sqlalchemy,alembic
+
+[handlers]
+keys = console
+
+[formatters]
+keys = generic
+
+[logger_root]
+level = WARN
+handlers = console
+qualname =
+
+[logger_sqlalchemy]
+level = WARN
+handlers =
+qualname = sqlalchemy.engine
+
+[logger_alembic]
+level = INFO
+handlers =
+qualname = alembic
+
+[handler_console]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = generic
+
+[formatter_generic]
+format = %(levelname)-5.5s [%(name)s] %(message)s
+datefmt = %H:%M:%S
+"""
+        alembic_ini.write_text(alembic_ini_content)
+
+    result = subprocess.run(
+        ["alembic", "-c", str(alembic_ini), "upgrade", "head"],
+        cwd=project_root,
+        env={**os.environ, "DATABASE_URL": database_url},
+        capture_output=True,
+        text=True,
+    )
+
+    if result.returncode != 0:
+        print("Error running alembic upgrade:", file=sys.stderr)
+        print(result.stderr, file=sys.stderr)
+        sys.exit(1)
+
+    print(result.stdout)
+    print("✅ Database migrations applied")
 
 
 def main():
     """Entry point for nakamura-init-db script"""
-    asyncio.run(init_database())
+    run_alembic_upgrade()
+    print("🎉 Database initialization complete")
 
 
 if __name__ == "__main__":
