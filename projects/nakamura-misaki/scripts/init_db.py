@@ -9,14 +9,15 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Import alembic directory from our package (works in both dev and production)
+# Import alembic directory from our package
+# Note: src is the top-level package, so import as src.nakamura_misaki_alembic
 try:
-    from nakamura_misaki_alembic import ALEMBIC_DIR
+    from src.nakamura_misaki_alembic import ALEMBIC_DIR
 except ImportError:
     # Fallback for local development without install
     project_root = Path(__file__).parent.parent
-    sys.path.insert(0, str(project_root / "src"))
-    from nakamura_misaki_alembic import ALEMBIC_DIR
+    sys.path.insert(0, str(project_root))
+    from src.nakamura_misaki_alembic import ALEMBIC_DIR
 
 
 def run_alembic_upgrade():
