@@ -103,7 +103,8 @@ datefmt = %H:%M:%S
     print(f"🔧 Using alembic executable: {alembic_exe}")
 
     # Convert async DATABASE_URL to sync for Alembic (which uses sync SQLAlchemy)
-    sync_database_url = database_url.replace("postgresql+asyncpg://", "postgresql://")
+    # Use psycopg (version 3) driver instead of psycopg2
+    sync_database_url = database_url.replace("postgresql+asyncpg://", "postgresql+psycopg://")
 
     print(f"🔧 Using database URL: {sync_database_url.split('@')[0]}@...")
 
