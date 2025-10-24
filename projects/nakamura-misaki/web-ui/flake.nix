@@ -21,7 +21,7 @@
             owner = "NOGUCHILin";
             repo = "lab-project";
             rev = "main"; # Always use latest main branch
-            sha256 = pkgs.lib.fakeSha256; # Intentionally wrong to get correct hash from error
+            sha256 = "sha256-8YM8Kh1A/F0FeCMSv6BLGJW6NLmzdJ59j1Tu1jWoumw="; # Context Management page (ab46110)
           } + "/projects/nakamura-misaki/web-ui";
 
         # npm dependencies hash
