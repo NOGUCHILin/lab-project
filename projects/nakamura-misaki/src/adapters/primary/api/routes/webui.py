@@ -16,6 +16,7 @@ from .....contexts.conversations.infrastructure.repositories.postgresql_conversa
 from .....contexts.personal_tasks.infrastructure.repositories.postgresql_task_repository import (
     PostgreSQLTaskRepository,
 )
+from .....infrastructure.repositories.postgresql_slack_user_repository import PostgreSQLSlackUserRepository
 from ...dependencies import get_slack_adapter
 
 
@@ -106,35 +107,27 @@ async def list_tasks(request: Request) -> list[TaskResponse]:
 
 
 @router.get("/users", response_model=list[UserResponse])
-async def list_users() -> list[UserResponse]:
-    """List all users (real data from Slack API)"""
-    slack = get_slack_adapter()
+async def list_users(request: Request) -> list[UserResponse]:
+    """List all users (from database cache, synced every hour)"""
+    db_manager = request.app.state.db_manager
 
-    try:
-        users_result = await slack.users_list()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch users from Slack: {str(e)}")
+    async with db_manager.session() as session:
+        repo = PostgreSQLSlackUserRepository(session)
+        users = await repo.find_all_active()
 
-    if not users_result.get("ok"):
-        error = users_result.get("error", "unknown")
-        raise HTTPException(status_code=500, detail=f"Slack API error: {error}")
-
-    members = users_result.get("members", [])
-
-    return [
-        UserResponse(
-            user_id=user["id"],
-            name=user.get("name", ""),
-            real_name=user.get("real_name", ""),
-            display_name=user.get("profile", {}).get("display_name", "") or user.get("name", ""),
-            email=user.get("profile", {}).get("email", ""),
-            is_admin=user.get("is_admin", False),
-            is_bot=user.get("is_bot", False),
-            created_at=datetime.fromtimestamp(user.get("updated", 0), tz=UTC).isoformat(),
-        )
-        for user in members
-        if not user.get("deleted", False)
-    ]
+        return [
+            UserResponse(
+                user_id=user.user_id,
+                name=user.name,
+                real_name=user.real_name or "",
+                display_name=user.display_name or user.name,
+                email=user.email or "",
+                is_admin=user.is_admin,
+                is_bot=user.is_bot,
+                created_at=user.slack_created_at.isoformat(),
+            )
+            for user in users
+        ]
 
 
 @router.get("/sessions", response_model=list[SessionResponse])

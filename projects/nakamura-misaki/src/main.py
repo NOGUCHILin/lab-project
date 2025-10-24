@@ -4,6 +4,7 @@ Fixed: Initialize app.state with Slack configuration for signature verification.
 Fixed: Initialize slack_event_handler from DI container for message processing.
 """
 
+import asyncio
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -13,9 +14,12 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from .adapters.primary.api.routes import router
 from .adapters.primary.dependencies import get_slack_adapter
+from .adapters.secondary.slack_adapter import SlackAdapter
+from .domain.services.slack_user_sync_service import SlackUserSyncService
 from .infrastructure.config import AppConfig
 from .infrastructure.database.manager import DatabaseManager
 from .infrastructure.logging import setup_logging
+from .infrastructure.repositories.postgresql_slack_user_repository import PostgreSQLSlackUserRepository
 
 # Load configuration
 config = AppConfig.from_env()
@@ -23,6 +27,34 @@ config.validate()
 
 # Setup logging
 setup_logging(debug=config.debug)
+
+
+async def _periodic_user_sync(db_manager: DatabaseManager, slack_token: str) -> None:
+    """Background task: Sync Slack users every hour"""
+    SYNC_INTERVAL = 3600  # 1 hour in seconds
+
+    while True:
+        try:
+            print("🔄 Starting periodic Slack user sync...")
+            async with db_manager.session() as session:
+                slack_adapter = SlackAdapter(token=slack_token)
+                slack_user_repo = PostgreSQLSlackUserRepository(session)
+                sync_service = SlackUserSyncService(slack_adapter, slack_user_repo)
+
+                result = await sync_service.sync_users()
+
+                # Commit the transaction
+                await session.commit()
+
+                if result["status"] == "success":
+                    print(f"✅ User sync completed: {result['synced_count']} users synced")
+                else:
+                    print(f"⚠️ User sync failed: {result.get('message', 'unknown error')}")
+
+        except Exception as e:
+            print(f"❌ Error in periodic user sync: {e}")
+
+        await asyncio.sleep(SYNC_INTERVAL)
 
 
 @asynccontextmanager
@@ -60,10 +92,37 @@ async def lifespan(app: FastAPI):
     else:
         print(f"⚠️ おやすみモード解除失敗: {dnd_result.get('error', 'unknown')}")
 
+    # Initial user sync on startup
+    print("🔄 Running initial Slack user sync...")
+    try:
+        async with db_manager.session() as session:
+            slack_adapter = SlackAdapter(token=config.slack_bot_token)
+            slack_user_repo = PostgreSQLSlackUserRepository(session)
+            sync_service = SlackUserSyncService(slack_adapter, slack_user_repo)
+
+            result = await sync_service.sync_users()
+            await session.commit()
+
+            if result["status"] == "success":
+                print(f"✅ Initial user sync completed: {result['synced_count']} users synced")
+            else:
+                print(f"⚠️ Initial user sync failed: {result.get('message', 'unknown error')}")
+    except Exception as e:
+        print(f"❌ Error in initial user sync: {e}")
+
+    # Start background user sync task
+    sync_task = asyncio.create_task(_periodic_user_sync(db_manager, config.slack_bot_token))
+    print("✅ Started periodic user sync task (1 hour interval)")
+
     yield
 
     # Shutdown
     print("👋 Shutting down Nakamura-Misaki...")
+    sync_task.cancel()
+    try:
+        await sync_task
+    except asyncio.CancelledError:
+        pass
     await db_manager.close()
 
 
