@@ -25,12 +25,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # nakamura-misaki Web UIのflake参照
-    nakamura-misaki-web-ui = {
-      url = "path:../projects/nakamura-misaki/web-ui";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # dashboardのflake参照
     dashboard = {
       url = "path:../projects/dashboard";
@@ -38,7 +32,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, sops-nix, deploy-rs, nakamura-misaki, nakamura-misaki-web-ui, dashboard, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, sops-nix, deploy-rs, nakamura-misaki, dashboard, ... }@inputs:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
@@ -94,11 +88,8 @@
           modules = [
             ./hosts/home-lab-01/configuration.nix
 
-            # nakamura-misakiのNixOSモジュールをインポート
+            # nakamura-misakiのNixOSモジュールをインポート（Web UIも自動的にインポートされる）
             nakamura-misaki.nixosModules.default
-
-            # nakamura-misaki Web UIのNixOSモジュールをインポート
-            nakamura-misaki-web-ui.nixosModules.default
 
             # dashboardのNixOSモジュールをインポート
             dashboard.nixosModules.default
