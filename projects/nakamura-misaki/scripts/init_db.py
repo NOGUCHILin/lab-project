@@ -91,8 +91,18 @@ datefmt = %H:%M:%S
         f.write(alembic_ini_content)
         alembic_ini = f.name
 
+    # Find alembic executable
+    import shutil
+
+    alembic_exe = shutil.which("alembic")
+    if not alembic_exe:
+        print("Error: alembic executable not found in PATH", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"🔧 Using alembic executable: {alembic_exe}")
+
     result = subprocess.run(
-        ["alembic", "-c", str(alembic_ini), "upgrade", "head"],
+        [alembic_exe, "-c", str(alembic_ini), "upgrade", "head"],
         cwd=project_root,
         env={**os.environ, "DATABASE_URL": database_url},
         capture_output=True,
