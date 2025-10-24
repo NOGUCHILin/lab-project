@@ -2,6 +2,7 @@
 
 Fixed: Initialize app.state with Slack configuration for signature verification.
 Fixed: Initialize slack_event_handler from DI container for message processing.
+Feature: Database caching for Slack users with periodic background sync.
 """
 
 import asyncio
