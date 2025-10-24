@@ -11,6 +11,7 @@ export function Navigation() {
   const navItems = [
     { href: '/', label: 'ダッシュボード', icon: '📊' },
     { href: '/prompts', label: 'プロンプト編集', icon: '✏️' },
+    { href: '/context', label: 'コンテキスト管理', icon: '🧠' },
     { href: '/tasks', label: 'タスク管理', icon: '📋' },
     { href: '/users', label: 'ユーザー', icon: '👤' },
     { href: '/sessions', label: 'セッション', icon: '💬' },
