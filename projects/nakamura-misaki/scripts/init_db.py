@@ -9,9 +9,14 @@ import subprocess
 import sys
 from pathlib import Path
 
-# プロジェクトルートをパスに追加
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+# Import alembic directory from our package (works in both dev and production)
+try:
+    from nakamura_misaki_alembic import ALEMBIC_DIR
+except ImportError:
+    # Fallback for local development without install
+    project_root = Path(__file__).parent.parent
+    sys.path.insert(0, str(project_root / "src"))
+    from nakamura_misaki_alembic import ALEMBIC_DIR
 
 
 def run_alembic_upgrade():
@@ -24,31 +29,10 @@ def run_alembic_upgrade():
 
     print("🔧 Running Alembic migrations...")
 
-    # Find alembic directory
-    # Try local development path first
-    alembic_dir = project_root / "alembic"
-
-    # Verify it's our alembic (not the alembic package) by checking for our migrations
-    is_our_alembic = alembic_dir.exists() and (alembic_dir / "versions" / "001_initial_schema.py").exists()
-
-    if not is_our_alembic:
-        # Try to find alembic in shared-data directory (when installed as package)
-        # hatchling installs shared-data to {venv}/share/nakamura-misaki/alembic
-
-        # Get the base prefix (virtual environment root)
-        venv_root = Path(sys.prefix)
-        shared_alembic = venv_root / "share" / "nakamura-misaki" / "alembic"
-
-        if shared_alembic.exists() and (shared_alembic / "versions" / "001_initial_schema.py").exists():
-            alembic_dir = shared_alembic
-        else:
-            print("Error: Could not find nakamura-misaki alembic directory", file=sys.stderr)
-            print("Searched paths:", file=sys.stderr)
-            print(f"  - {project_root / 'alembic'} (development)", file=sys.stderr)
-            print(f"  - {shared_alembic} (installed package)", file=sys.stderr)
-            print("This error means the alembic directory was not packaged correctly", file=sys.stderr)
-            sys.exit(1)
-
+    # Use alembic directory from nakamura_misaki_alembic package
+    # This works in both development (src/nakamura_misaki_alembic/)
+    # and production (installed as Python package)
+    alembic_dir = ALEMBIC_DIR
     print(f"📁 Using alembic directory: {alembic_dir}")
 
     # Create temporary alembic.ini (since Nix store is read-only)

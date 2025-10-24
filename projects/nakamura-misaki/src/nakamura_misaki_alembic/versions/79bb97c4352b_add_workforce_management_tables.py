@@ -5,17 +5,17 @@ Revises: 002_add_tasks_table
 Create Date: 2025-10-17 11:57:09.000263
 
 """
-from typing import Sequence, Union
 
-from alembic import op
+from collections.abc import Sequence
+
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = '79bb97c4352b'
-down_revision: Union[str, Sequence[str], None] = '002_add_tasks_table'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+revision: str = "79bb97c4352b"
+down_revision: str | Sequence[str] | None = "002_add_tasks_table"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
