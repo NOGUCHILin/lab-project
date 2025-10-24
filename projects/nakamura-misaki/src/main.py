@@ -31,7 +31,7 @@ setup_logging(debug=config.debug)
 
 async def _periodic_user_sync(db_manager: DatabaseManager, slack_token: str) -> None:
     """Background task: Sync Slack users every hour"""
-    SYNC_INTERVAL = 3600  # 1 hour in seconds
+    sync_interval = 3600  # 1 hour in seconds
 
     while True:
         try:
@@ -54,7 +54,7 @@ async def _periodic_user_sync(db_manager: DatabaseManager, slack_token: str) -> 
         except Exception as e:
             print(f"❌ Error in periodic user sync: {e}")
 
-        await asyncio.sleep(SYNC_INTERVAL)
+        await asyncio.sleep(sync_interval)
 
 
 @asynccontextmanager

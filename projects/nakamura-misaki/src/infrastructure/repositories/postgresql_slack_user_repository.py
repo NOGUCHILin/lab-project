@@ -1,6 +1,6 @@
 """PostgreSQL SlackUser Repository implementation"""
 
-from datetime import UTC, datetime
+from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, String, select
 from sqlalchemy.dialects.postgresql import insert

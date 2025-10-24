@@ -17,7 +17,6 @@ from .....contexts.personal_tasks.infrastructure.repositories.postgresql_task_re
     PostgreSQLTaskRepository,
 )
 from .....infrastructure.repositories.postgresql_slack_user_repository import PostgreSQLSlackUserRepository
-from ...dependencies import get_slack_adapter
 
 
 # Response Models
