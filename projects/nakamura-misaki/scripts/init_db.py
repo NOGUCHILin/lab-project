@@ -24,27 +24,27 @@ def run_alembic_upgrade():
 
     print("🔧 Running Alembic migrations...")
 
-    # Find alembic directory in the package
+    # Find alembic directory
+    # Try local development path first
     alembic_dir = project_root / "alembic"
 
     if not alembic_dir.exists():
-        # Try to find alembic in site-packages (when installed as package)
-        # Look for nakamura-misaki's alembic directory, not the alembic package
-        import site
+        # Try to find alembic in shared-data directory (when installed as package)
+        # hatchling installs shared-data to {venv}/share/nakamura-misaki/alembic
 
-        for site_dir in site.getsitepackages():
-            # Check for nakamura-misaki's alembic directory
-            pkg_alembic = Path(site_dir) / "alembic"
-            # Verify it's our alembic by checking for a nakamura-misaki specific migration
-            if pkg_alembic.exists() and (pkg_alembic / "versions" / "001_initial_schema.py").exists():
-                alembic_dir = pkg_alembic
-                break
+        # Get the base prefix (virtual environment root)
+        venv_root = Path(sys.prefix)
+        shared_alembic = venv_root / "share" / "nakamura-misaki" / "alembic"
 
-    if not alembic_dir.exists():
-        print("Error: Could not find nakamura-misaki alembic directory", file=sys.stderr)
-        print(f"Searched: {project_root / 'alembic'}", file=sys.stderr)
-        print("This error means the alembic directory was not packaged correctly", file=sys.stderr)
-        sys.exit(1)
+        if shared_alembic.exists() and (shared_alembic / "versions" / "001_initial_schema.py").exists():
+            alembic_dir = shared_alembic
+        else:
+            print("Error: Could not find nakamura-misaki alembic directory", file=sys.stderr)
+            print("Searched paths:", file=sys.stderr)
+            print(f"  - {project_root / 'alembic'} (development)", file=sys.stderr)
+            print(f"  - {shared_alembic} (installed package)", file=sys.stderr)
+            print("This error means the alembic directory was not packaged correctly", file=sys.stderr)
+            sys.exit(1)
 
     print(f"📁 Using alembic directory: {alembic_dir}")
 
