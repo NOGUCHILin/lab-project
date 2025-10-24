@@ -51,6 +51,10 @@ class RegisterTaskTool(BaseTool):
                     "type": "string",
                     "description": "タスクの詳細説明（任意）",
                 },
+                "assignee_user_id": {
+                    "type": "string",
+                    "description": "担当者のSlack User ID（任意、未指定の場合は依頼者自身に割り当て）",
+                },
                 "due_date": {
                     "type": "string",
                     "format": "date-time",
@@ -66,6 +70,7 @@ class RegisterTaskTool(BaseTool):
         Args:
             title: タスクタイトル
             description: タスク説明（任意）
+            assignee_user_id: 担当者のSlack User ID（任意、未指定の場合は依頼者自身）
             due_date: 期限（ISO 8601形式、任意）
 
         Returns:
@@ -74,6 +79,7 @@ class RegisterTaskTool(BaseTool):
         try:
             title = kwargs["title"]
             description = kwargs.get("description")
+            assignee_user_id = kwargs.get("assignee_user_id", self._user_id)
             due_date_str = kwargs.get("due_date")
 
             # Parse due_date if provided
@@ -84,7 +90,7 @@ class RegisterTaskTool(BaseTool):
             # Create DTO
             dto = CreateTaskDTO(
                 title=title,
-                assignee_user_id=self._user_id,
+                assignee_user_id=assignee_user_id,
                 creator_user_id=self._user_id,
                 description=description,
                 due_at=due_at,
