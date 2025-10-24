@@ -58,12 +58,12 @@ jobs:
           nix profile install nixpkgs#deploy-rs
 
       # deploy-rsでNixOS設定をデプロイ (Dashboard & nakamura-misaki両方ともNixパッケージ化済み)
+      # --remote-buildを削除: GitHub Actions内でビルドして完全Nixification実現
       - name: Deploy NixOS configuration with deploy-rs
         run: |
           cd nixos-config
           deploy \
             --skip-checks \
-            --remote-build \
             --ssh-user root \
             --ssh-opts "-o StrictHostKeyChecking=accept-new" \
             .#home-lab-01
