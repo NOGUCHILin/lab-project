@@ -17,7 +17,7 @@
         src = ./.;
 
         # npm dependencies hash
-        npmDepsHash = pkgs.lib.fakeHash;
+        npmDepsHash = "sha256-tthnOvNCmcfg4gwa36xos2qOmTO1yMUhSM8QJF2DZCI=";
 
         # Build Next.js app with API URL injected at build time
         buildPhase = ''
