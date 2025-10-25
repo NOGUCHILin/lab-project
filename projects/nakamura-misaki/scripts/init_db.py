@@ -102,7 +102,7 @@ datefmt = %H:%M:%S
 
     result = subprocess.run(
         [alembic_exe, "-c", str(alembic_ini), "upgrade", "head"],
-        cwd=project_root,
+        cwd=ALEMBIC_DIR.parent,  # Run from src/ directory
         env={**os.environ, "DATABASE_URL": sync_database_url},
         capture_output=True,
         text=True,
