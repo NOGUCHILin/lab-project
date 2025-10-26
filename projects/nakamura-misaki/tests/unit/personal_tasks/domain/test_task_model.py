@@ -95,7 +95,10 @@ class TestTaskEquality:
             due_at=None,
             completed_at=None,
             created_at=task1.created_at,
-            updated_at=task1.updated_at
+            updated_at=task1.updated_at,
+            priority=task1.priority,
+            progress_percent=task1.progress_percent,
+            estimated_hours=task1.estimated_hours,
         )
 
         assert task1 == task2  # Same ID = equal

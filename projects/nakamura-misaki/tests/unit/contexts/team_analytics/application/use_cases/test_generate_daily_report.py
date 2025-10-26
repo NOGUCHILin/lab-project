@@ -18,23 +18,19 @@ async def test_generate_daily_report_creates_new_summary():
     # Arrange
     mock_repo = AsyncMock()
     user_summaries = [
-        DailySummary(
-            id=uuid4(),
-            date=date(2025, 10, 26),
+        DailySummary.create(
+            summary_date=date(2025, 10, 26),
             user_id="U1",
             tasks_completed=5,
             tasks_pending=3,
             summary_text=None,
-            created_at=date(2025, 10, 26),
         ),
-        DailySummary(
-            id=uuid4(),
-            date=date(2025, 10, 26),
+        DailySummary.create(
+            summary_date=date(2025, 10, 26),
             user_id="U2",
             tasks_completed=8,
             tasks_pending=2,
             summary_text=None,
-            created_at=date(2025, 10, 26),
         ),
     ]
     mock_repo.find_by_date_range.return_value = user_summaries

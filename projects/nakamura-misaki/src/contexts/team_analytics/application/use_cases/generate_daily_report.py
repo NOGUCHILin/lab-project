@@ -42,7 +42,7 @@ class GenerateDailyReportUseCase:
         if existing_summary:
             # Update with new summary text if provided
             team_summary = DailySummary.create(
-                date=report_date,
+                summary_date=report_date,
                 user_id=None,  # Team-wide summary
                 tasks_completed=total_completed,
                 tasks_pending=total_pending,
@@ -51,7 +51,7 @@ class GenerateDailyReportUseCase:
         else:
             # Create new team summary
             team_summary = DailySummary.create(
-                date=report_date,
+                summary_date=report_date,
                 user_id=None,  # Team-wide summary
                 tasks_completed=total_completed,
                 tasks_pending=total_pending,
