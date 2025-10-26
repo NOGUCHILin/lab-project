@@ -172,3 +172,50 @@ class HandoffTable(Base):
 
 # Alias for backward compatibility
 HandoffModel = HandoffTable
+
+
+class ProjectTable(Base):
+    """Projects table for project management"""
+
+    __tablename__ = "projects"
+
+    project_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    owner_user_id = Column(String(100), nullable=True)
+    deadline = Column(DateTime, nullable=True)
+    status = Column(String(20), nullable=False, default="active")
+    created_at = Column(DateTime, nullable=False, default=datetime.now)
+    updated_at = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
+
+    __table_args__ = (
+        Index("idx_projects_owner", "owner_user_id"),
+        Index("idx_projects_status", "status"),
+        Index("idx_projects_deadline", "deadline"),
+    )
+
+
+class ProjectTaskTable(Base):
+    """Project-Task association table"""
+
+    __tablename__ = "project_tasks"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    project_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("projects.project_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    task_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("tasks.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    position = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, nullable=False, default=datetime.now)
+
+    __table_args__ = (
+        UniqueConstraint("project_id", "task_id", name="uq_project_task"),
+        Index("idx_project_tasks_project", "project_id"),
+        Index("idx_project_tasks_task", "task_id"),
+    )
