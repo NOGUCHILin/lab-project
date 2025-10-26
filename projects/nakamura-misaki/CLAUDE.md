@@ -7,64 +7,33 @@
 
 ---
 
-> ⚠️ **新規セッション開始時**: まず [`PROJECT_STATUS.md`](PROJECT_STATUS.md) で進捗状況を確認してください
+## 🎯 新規セッション開始時のガイド
+
+> ⚠️ **必読**: まず [`PROJECT_STATUS.md`](PROJECT_STATUS.md) で現在の進捗状況を確認してください
+
+**現在**: Phase 1 - Project Management Context（テスト実装中、99テスト完了）
 
 ---
 
-## 🎯 プロジェクト概要
-
-### 重要: 中村美咲は人格です
-
-**中村美咲（なかむら みさき）**は、Slackチーム内で**ユーザーとして存在する人格**です。
-
-- **Botではない**: Slack上でユーザーアカウントとして振る舞う
-- **User Token使用**: Slack User Token (`xoxp-`) で動作
-- **人格的な応答**: Botとしてではなく、チームメンバーとして自然に会話
-
-### 目的
-
-Slackでの会話を通じて、チームのタスク・ハンドオフを管理する**人格的アシスタント**
-
-### コア技術
-
-- **v4.0.0**: FastAPI + 正規表現パーサー + PostgreSQL
-- **v5.0.0**: Claude Agent SDK + Tool Use + 会話履歴管理
-
-### アーキテクチャスタイル
-
-**Hexagonal Architecture (Ports & Adapters)**
+## 📂 プロジェクト構成
 
 ```
-Primary Adapters (REST API, Slack Webhook)
-    ↓
-Application Layer (Use Cases)
-    ↓
-Domain Layer (Entities, Repository Interfaces)
-    ↓
-Secondary Adapters (PostgreSQL, Slack API, Claude API)
-```
-
----
-
-## 📂 ディレクトリ構成
-
-```
-src/
-├── adapters/
-│   ├── primary/           # 入力アダプター
-│   │   ├── api/           # FastAPI (routes/, app.py)
-│   │   └── slack_event_handler.py
-│   └── secondary/         # 出力アダプター
-│       └── repositories/  # PostgreSQL
-├── application/
-│   ├── dto/               # Data Transfer Objects
-│   └── use_cases/         # ビジネスロジック
-├── domain/
-│   ├── models/            # エンティティ
-│   └── repositories/      # リポジトリインターフェース
-└── infrastructure/
-    ├── database/          # DB接続・スキーマ
-    └── di.py              # DI Container
+nakamura-misaki/
+├── src/contexts/          # Bounded Contexts（Hexagonal Architecture）
+│   ├── personal_tasks/
+│   ├── project_management/  # Phase 1実装中
+│   ├── conversations/
+│   ├── workforce_management/
+│   └── handoffs/
+├── tests/
+│   ├── unit/              # ユニットテスト（外部依存なし）
+│   ├── integration/       # インテグレーションテスト（DB使用）
+│   └── e2e/              # E2Eテスト
+├── claudedocs/           # 詳細ドキュメント（実装計画、テスト戦略等）
+├── docs/                 # アーキテクチャ・デプロイ手順
+├── PROJECT_STATUS.md     # Phase 1-4の進捗状況
+├── CLAUDE.md            # このファイル（開発ガイド）
+└── README.md            # プロジェクト概要・起動方法
 ```
 
 ---
@@ -139,54 +108,28 @@ uv run alembic downgrade -1
 
 ---
 
-## 🏗️ 開発ガイドライン
+## 🏗️ アーキテクチャ原則（厳守）
 
-### アーキテクチャ原則
+1. **Hexagonal Architecture**: Domain層は外部依存なし
+2. **TDD必須**: Red→Green→Refactor サイクル厳守
+3. **新機能 = 新Bounded Context**: 既存Contextを肥大化させない
+4. **Repository Pattern**: データアクセスは抽象化
+5. **DI Container**: 依存性注入で疎結合を維持
 
-1. **ドメイン層の独立性**: エンティティ・リポジトリインターフェースは外部依存なし
-2. **Use Case駆動**: ビジネスロジックはUse Caseに集約
-3. **Repository Pattern**: データアクセスは抽象化
-4. **DI Container**: 依存性注入で疎結合を維持
-
-### コード規約
-
-- **命名**: snake_case（Python標準）
-- **型ヒント**: 必須（mypy検査）
-- **Docstring**: Google Style
-- **フォーマット**: Black + isort
-- **非同期**: async/await必須（FastAPI, SQLAlchemy 2.0）
-
-### v5.0.0 開発方針
-
-**削除対象**:
-- `src/adapters/primary/task_command_parser.py`
-- `src/adapters/primary/handoff_command_parser.py`
-- `src/adapters/primary/task_response_formatter.py`
-- `src/adapters/primary/handoff_response_formatter.py`
-
-**新規追加**:
-- `src/domain/services/conversation_manager.py`
-- `src/domain/services/claude_agent_service.py`
-- `src/adapters/primary/tools/` (Tool実装)
-- `src/adapters/secondary/repositories/conversation_repository.py`
+**詳細**: [`docs/ARCHITECTURE_V4.md`](docs/ARCHITECTURE_V4.md)
 
 ---
 
-## 📚 ドキュメント
+## 📚 詳細ドキュメント（`claudedocs/`配下）
 
-### プロジェクトルート
+実装計画・テスト戦略などの詳細は以下を参照：
 
-- `README.md`: プロジェクト概要・起動方法
-- `CLAUDE.md`: このファイル（開発指針）
-
-### docs/
-
-- `ARCHITECTURE_V4.md`: v4.0.0アーキテクチャ詳細
-- `DEPLOYMENT_GUIDE.md`: デプロイ手順
-
-### claudedocs/
-
-- `v5-migration-plan.md`: v5.0.0移行計画（詳細設計）
+| ドキュメント | 内容 |
+|-------------|------|
+| **`PROJECT_STATUS.md`** | **Phase 1-4の進捗状況（最重要）** |
+| `claudedocs/IMPLEMENTATION_PLAN_PHASE1-4.md` | Phase 1-4全体計画・実装チェックリスト |
+| `claudedocs/testing-strategy.md` | TDD戦略・AAA Pattern・カバレッジ目標 |
+| `docs/ARCHITECTURE_V4.md` | Hexagonal Architecture詳細 |
 
 ---
 
@@ -236,6 +179,8 @@ curl -X POST http://localhost:10000/api/tasks \
 ```
 
 **詳細**: [`claudedocs/testing-strategy.md`](claudedocs/testing-strategy.md)
+
+**現在のカバレッジ**: Domain 100%, Application 100%, Tools 100% ✅
 
 ---
 
@@ -305,20 +250,4 @@ grep PYTHONUNBUFFERED nixos-config/modules/services/registry/nakamura-misaki-api
 
 ---
 
-## 📖 参考資料
-
-### 外部リンク
-
-- [FastAPI Docs](https://fastapi.tiangolo.com/)
-- [SQLAlchemy 2.0](https://docs.sqlalchemy.org/en/20/)
-- [Anthropic API](https://docs.anthropic.com/)
-- [Slack Events API](https://api.slack.com/events-api)
-
-### 内部ドキュメント
-
-- v5.0.0移行計画: [`claudedocs/v5-migration-plan.md`](claudedocs/v5-migration-plan.md)
-- アーキテクチャ詳細: [`docs/ARCHITECTURE_V4.md`](docs/ARCHITECTURE_V4.md)
-
----
-
-最終更新: 2025-10-15（v5.0.0移行計画策定）
+最終更新: 2025-10-26（Phase 1テスト実装中、ドキュメント構造整理）
