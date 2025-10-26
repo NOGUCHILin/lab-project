@@ -282,7 +282,7 @@ class TeamMetricTable(Base):
     date = Column(Date, nullable=False)
     metric_type = Column(String(50), nullable=False)
     metric_value = Column(Float, nullable=False)
-    metadata = Column(JSON, nullable=True)
+    metric_metadata = Column("metadata", JSON, nullable=True)  # 'metadata' is reserved in SQLAlchemy
     created_at = Column(DateTime, nullable=False, default=datetime.now)
 
     __table_args__ = (

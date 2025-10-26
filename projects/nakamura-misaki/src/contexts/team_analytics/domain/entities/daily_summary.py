@@ -20,7 +20,7 @@ class DailySummary:
     @classmethod
     def create(
         cls,
-        date: date,
+        summary_date: date,
         user_id: str | None,
         tasks_completed: int,
         tasks_pending: int,
@@ -29,7 +29,7 @@ class DailySummary:
         """Create a new daily summary
 
         Args:
-            date: Date of the summary
+            summary_date: Date of the summary
             user_id: User ID (None for team-wide summary)
             tasks_completed: Number of tasks completed
             tasks_pending: Number of tasks pending
@@ -48,7 +48,7 @@ class DailySummary:
 
         return cls(
             id=uuid4(),
-            date=date,
+            date=summary_date,
             user_id=user_id,
             tasks_completed=tasks_completed,
             tasks_pending=tasks_pending,

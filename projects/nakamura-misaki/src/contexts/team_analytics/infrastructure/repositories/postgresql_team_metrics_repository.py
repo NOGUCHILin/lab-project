@@ -25,7 +25,7 @@ class PostgreSQLTeamMetricsRepository(TeamMetricsRepository):
             date=team_metric.date,
             metric_type=team_metric.metric_type.value,
             metric_value=team_metric.metric_value,
-            metadata=team_metric.metadata,
+            metric_metadata=team_metric.metadata,
             created_at=team_metric.created_at,
         )
         self._session.add(table_obj)
@@ -98,6 +98,6 @@ class PostgreSQLTeamMetricsRepository(TeamMetricsRepository):
             date=table_obj.date,
             metric_type=MetricType.from_string(table_obj.metric_type),
             metric_value=table_obj.metric_value,
-            metadata=table_obj.metadata,
+            metadata=table_obj.metric_metadata,
             created_at=table_obj.created_at,
         )

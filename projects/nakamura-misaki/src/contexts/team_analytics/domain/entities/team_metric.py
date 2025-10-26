@@ -22,7 +22,7 @@ class TeamMetric:
     @classmethod
     def create(
         cls,
-        date: date,
+        metric_date: date,
         metric_type: MetricType,
         metric_value: float,
         metadata: dict[str, Any] | None = None,
@@ -30,7 +30,7 @@ class TeamMetric:
         """Create a new team metric
 
         Args:
-            date: Date of the metric
+            metric_date: Date of the metric
             metric_type: Type of metric
             metric_value: Numeric value of the metric
             metadata: Optional additional metadata
@@ -52,7 +52,7 @@ class TeamMetric:
 
         return cls(
             id=uuid4(),
-            date=date,
+            date=metric_date,
             metric_type=metric_type,
             metric_value=metric_value,
             metadata=metadata or {},
