@@ -91,10 +91,13 @@ nixos-config/
 ```nix
 # modules/core/port-management.nix
 {
-  ports = {
-    dashboard = 3000;
-    nakamura-misaki-admin = 3002;
-    new-service = 3006;  # 追加
+  defaultPorts = {
+    unifiedDashboard = 3000;
+    nakamuraMisaki = {
+      api = 10000;
+      adminUi = 3002;
+    };
+    newService = 3006;  # 追加
   };
 }
 ```
@@ -428,4 +431,4 @@ tailscale serve status
 
 ---
 
-最終更新: 2025-10-12
+最終更新: 2025-10-26（port-management.nix例を実装に合わせて修正）

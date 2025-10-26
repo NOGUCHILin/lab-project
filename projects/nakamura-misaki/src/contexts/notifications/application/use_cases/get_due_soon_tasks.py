@@ -39,7 +39,7 @@ class GetDueSoonTasksUseCase:
             raise ValueError("hours must be positive")
 
         # Get all tasks for user
-        all_tasks = await self._task_repo.find_by_user_id(user_id)
+        all_tasks = await self._task_repo.list_by_user(user_id)
 
         # Filter for tasks due within specified hours
         now = datetime.now()
@@ -48,17 +48,17 @@ class GetDueSoonTasksUseCase:
 
         for task in all_tasks:
             if (
-                task.deadline
-                and now <= task.deadline <= cutoff_time
-                and task.status != "completed"
+                task.due_at
+                and now <= task.due_at <= cutoff_time
+                and task.status.value != "completed"
             ):
-                hours_until_due = (task.deadline - now).total_seconds() / 3600
+                hours_until_due = (task.due_at - now).total_seconds() / 3600
                 due_soon_dtos.append(
                     DueSoonTaskDTO(
                         task_id=task.id,
                         title=task.title,
-                        user_id=task.user_id,
-                        deadline=task.deadline,
+                        user_id=task.assignee_user_id,
+                        deadline=task.due_at,
                         hours_until_due=hours_until_due,
                     )
                 )

@@ -1,0 +1,1 @@
+"""Notifications Value Objects Tests"""

@@ -189,9 +189,9 @@ lab-project/                     # リポジトリルート
 |---------|------|
 | `service-registry.md` | Service Registryパターンの完全実装ガイド（7ステップ、トラブルシューティング等） |
 | `nextjs-nix-best-practices.md` | **重要** Next.js+Nix統合のベストプラクティス（NEXT_PUBLIC_*変数、ビルド時注入、ローカルテスト戦略） |
-| `deployment.md` | デプロイワークフローの詳細 |
-| `troubleshooting.md` | 一般的なトラブルシューティング |
+| `technical-debt-cicd.md` | CI/CD改善とGitHub Actions最適化 |
+| `webui-real-data-implementation.md` | Web UI実データ実装ガイド |
 
 ---
 
-最終更新: 2025-10-23（Next.js+Nixベストプラクティス追加）
+最終更新: 2025-10-26（ドキュメント整合性改善、nakamura-misaki-admin削除）

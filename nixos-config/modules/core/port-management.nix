@@ -69,7 +69,7 @@ in
           ++ optional (config.services.unified-dashboard.enable or false) cfg.ports.unifiedDashboard
           ++ optional (config.services.openai-realtime.enable or false) cfg.ports.openaiRealtime
           ++ optional (config.services.nakamura-misaki-api.enable or false) cfg.ports.nakamuraMisaki.api
-          ++ optional (config.services.nakamura-misaki-admin.enable or false) cfg.ports.nakamuraMisaki.adminUi
+          ++ optional (config.services.nakamura-misaki-web-ui.enable or false) cfg.ports.nakamuraMisaki.adminUi
           ++ optionals config.services.syncthing.enable [
           cfg.ports.syncthing.sync
           cfg.ports.syncthing.discovery
@@ -90,7 +90,7 @@ in
               ++ optional (config.services.unified-dashboard.enable or false) cfg.ports.unifiedDashboard
               ++ optional (config.services.openai-realtime.enable or false) cfg.ports.openaiRealtime
               ++ optional (config.services.nakamura-misaki-api.enable or false) cfg.ports.nakamuraMisaki.api
-              ++ optional (config.services.nakamura-misaki-admin.enable or false) cfg.ports.nakamuraMisaki.adminUi;
+              ++ optional (config.services.nakamura-misaki-web-ui.enable or false) cfg.ports.nakamuraMisaki.adminUi;
           };
         };
       })
@@ -125,7 +125,7 @@ in
             add_network_rules ${toString cfg.ports.nakamuraMisaki.api} tcp
           ''}
 
-          ${optionalString (config.services.nakamura-misaki-admin.enable or false) ''
+          ${optionalString (config.services.nakamura-misaki-web-ui.enable or false) ''
             add_network_rules ${toString cfg.ports.nakamuraMisaki.adminUi} tcp
           ''}
         '';
@@ -170,8 +170,8 @@ in
             echo "nakamura-misaki API: ${toString cfg.ports.nakamuraMisaki.api}" | ${pkgs.systemd}/bin/systemd-cat -t port-registry
           ''}
 
-          ${optionalString (config.services.nakamura-misaki-admin.enable or false) ''
-            echo "nakamura-misaki Admin UI: ${toString cfg.ports.nakamuraMisaki.adminUi}" | ${pkgs.systemd}/bin/systemd-cat -t port-registry
+          ${optionalString (config.services.nakamura-misaki-web-ui.enable or false) ''
+            echo "nakamura-misaki Web UI: ${toString cfg.ports.nakamuraMisaki.adminUi}" | ${pkgs.systemd}/bin/systemd-cat -t port-registry
           ''}
         '';
       };

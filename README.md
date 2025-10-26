@@ -36,7 +36,9 @@ lab-project/                     # リポジトリルート
 │
 ├── claudedocs/                  # Claude Code用詳細ドキュメント
 │   ├── service-registry.md     # Service Registry実装ガイド
-│   └── applebuyers-deploy-workflow-request.md
+│   ├── nextjs-nix-best-practices.md  # Next.js+Nix統合ベストプラクティス
+│   ├── technical-debt-cicd.md  # CI/CD改善ガイド
+│   └── webui-real-data-implementation.md  # Web UI実装ガイド
 │
 ├── .github/workflows/           # CI/CD（自動デプロイ）
 ├── .serena/                     # Serena MCP設定

@@ -63,58 +63,7 @@ in
     };
 
     # Note: nakamura-misaki-api service is defined in nakamura-misaki-api.nix
-
-    # Admin UI Service
-    systemd.services.nakamura-misaki-admin = {
-      description = "Nakamura-Misaki Admin UI";
-      wantedBy = [ "multi-user.target" ];
-      after = [ "network.target" "nakamura-misaki-api.service" ];
-
-      environment = {
-        PORT = toString cfg.ports.adminUI;
-        HOSTNAME = "127.0.0.1";
-        NODE_ENV = "production";
-        NEXT_PUBLIC_API_URL = "https://${config.networking.hostName}.${config.networking.domain}:${toString cfg.ports.api}";
-      };
-
-      path = with pkgs; [ nodejs_22 bash coreutils ];
-
-      serviceConfig = {
-        Type = "simple";
-        User = "noguchilin";
-        Group = "users";
-        WorkingDirectory = "${projectDir}/admin-ui";
-
-        ExecStartPre = pkgs.writeShellScript "nakamura-admin-build" ''
-          export PATH=${pkgs.nodejs_22}/bin:$PATH
-          export NODE_ENV=production
-          export HUSKY=0
-
-          # ビルド済み.nextディレクトリがなければビルド
-          if [ ! -d .next ]; then
-            echo "📦 Building Admin UI..."
-            npm ci --ignore-scripts
-            npm run build
-          fi
-        '';
-
-        ExecStart = pkgs.writeShellScript "nakamura-admin-start" ''
-          export PATH=${pkgs.nodejs_22}/bin:$PATH
-          exec npm start -- -H 127.0.0.1
-        '';
-
-        Restart = "always";
-        RestartSec = 10;
-        PrivateTmp = true;
-        ProtectHome = false;
-        ReadWritePaths = [ "${projectDir}/admin-ui" ];
-      };
-
-      unitConfig = lib.mkIf cfg.enforceDeclarative {
-        RefuseManualStop = true;
-        RefuseManualStart = true;
-      };
-    };
+    # Note: nakamura-misaki-web-ui (Admin UI) is now provided by web-ui/flake.nix
 
     # RQ Worker Service for Claude Agent processing
     systemd.services.nakamura-misaki-worker = {

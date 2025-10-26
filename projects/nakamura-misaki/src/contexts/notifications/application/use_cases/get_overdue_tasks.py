@@ -30,21 +30,21 @@ class GetOverdueTasksUseCase:
             List of OverdueTaskDTO for tasks past their deadline
         """
         # Get all tasks for user
-        all_tasks = await self._task_repo.find_by_user_id(user_id)
+        all_tasks = await self._task_repo.list_by_user(user_id)
 
         # Filter for overdue tasks (deadline in past and not completed)
         now = datetime.now()
         overdue_dtos = []
 
         for task in all_tasks:
-            if task.deadline and task.deadline < now and task.status != "completed":
-                days_overdue = (now - task.deadline).days
+            if task.due_at and task.due_at < now and task.status.value != "completed":
+                days_overdue = (now - task.due_at).days
                 overdue_dtos.append(
                     OverdueTaskDTO(
                         task_id=task.id,
                         title=task.title,
-                        user_id=task.user_id,
-                        deadline=task.deadline,
+                        user_id=task.assignee_user_id,
+                        deadline=task.due_at,
                         days_overdue=days_overdue,
                     )
                 )

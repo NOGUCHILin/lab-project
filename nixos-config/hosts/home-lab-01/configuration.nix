@@ -299,7 +299,7 @@
         options = [ "NOPASSWD" ];
       }
       {
-        command = "/run/current-system/sw/bin/systemctl * nakamura-misaki-admin.service";
+        command = "/run/current-system/sw/bin/systemctl * nakamura-misaki-web-ui.service";
         options = [ "NOPASSWD" ];
       }
       {
