@@ -49,6 +49,9 @@ class TaskTable(Base):
         index=True,
     )
     due_at = Column(DateTime, nullable=True, index=True)
+    priority = Column(Integer, nullable=False, default=5, index=True)  # Phase 4: Priority (1-10)
+    progress_percent = Column(Integer, nullable=False, default=0)  # Phase 4: Progress (0-100)
+    estimated_hours = Column(Float, nullable=True)  # Phase 4: Estimated hours
     created_at = Column(DateTime, nullable=False, default=datetime.now)
     updated_at = Column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
     completed_at = Column(DateTime, nullable=True)
@@ -56,6 +59,7 @@ class TaskTable(Base):
     __table_args__ = (
         Index("idx_tasks_assignee_status", "assignee_user_id", "status"),
         Index("idx_tasks_assignee_due", "assignee_user_id", "due_at"),
+        Index("idx_tasks_priority", "priority"),
     )
 
 
@@ -284,4 +288,35 @@ class TeamMetricTable(Base):
     __table_args__ = (
         Index("idx_team_metrics_date", "date"),
         Index("idx_team_metrics_type", "metric_type"),
+    )
+
+
+class NotificationTable(Base):
+    """Notifications table for user notifications"""
+
+    __tablename__ = "notifications"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    user_id = Column(String(100), nullable=True)
+    notification_type = Column(String(50), nullable=False)
+    task_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("tasks.id", ondelete="CASCADE"),
+        nullable=True,
+    )
+    content = Column(Text, nullable=False)
+    sent_at = Column(DateTime, nullable=True)
+    read_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.now)
+
+    __table_args__ = (
+        Index("idx_notifications_user", "user_id"),
+        Index("idx_notifications_sent", "sent_at"),
+        # Partial index for unread notifications (PostgreSQL-specific)
+        Index(
+            "idx_notifications_unread",
+            "user_id",
+            "read_at",
+            postgresql_where="read_at IS NULL",
+        ),
     )

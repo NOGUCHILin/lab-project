@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import DateTime, Enum, String, select
+from sqlalchemy import DateTime, Enum, Float, Integer, String, select
 from sqlalchemy import delete as sql_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -33,6 +33,9 @@ class TaskModel(Base):
         Enum("pending", "in_progress", "completed", "cancelled", name="task_status", create_type=False)
     )
     due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    priority: Mapped[int] = mapped_column(Integer, default=5)  # Phase 4
+    progress_percent: Mapped[int] = mapped_column(Integer, default=0)  # Phase 4
+    estimated_hours: Mapped[float | None] = mapped_column(Float, nullable=True)  # Phase 4
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
@@ -68,6 +71,9 @@ class PostgreSQLTaskRepository(TaskRepository):
             existing.creator_user_id = task.creator_user_id
             existing.status = task.status.value
             existing.due_at = task.due_at
+            existing.priority = task.priority
+            existing.progress_percent = task.progress_percent
+            existing.estimated_hours = task.estimated_hours
             existing.completed_at = task.completed_at
             existing.updated_at = task.updated_at
         else:
@@ -80,6 +86,9 @@ class PostgreSQLTaskRepository(TaskRepository):
                 creator_user_id=task.creator_user_id,
                 status=task.status.value,
                 due_at=task.due_at,
+                priority=task.priority,
+                progress_percent=task.progress_percent,
+                estimated_hours=task.estimated_hours,
                 completed_at=task.completed_at,
                 created_at=task.created_at,
                 updated_at=task.updated_at,
@@ -207,6 +216,9 @@ class PostgreSQLTaskRepository(TaskRepository):
             creator_user_id=model.creator_user_id,
             status=TaskStatus(model.status),
             due_at=model.due_at,
+            priority=model.priority,
+            progress_percent=model.progress_percent,
+            estimated_hours=model.estimated_hours,
             completed_at=model.completed_at,
             created_at=model.created_at,
             updated_at=model.updated_at,

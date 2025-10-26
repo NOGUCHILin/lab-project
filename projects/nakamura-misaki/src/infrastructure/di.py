@@ -125,6 +125,23 @@ from src.contexts.team_analytics.infrastructure.repositories.postgresql_team_met
     PostgreSQLTeamMetricsRepository,
 )
 
+# Notifications context (Phase 4)
+from src.contexts.notifications.application.use_cases.get_due_soon_tasks import (
+    GetDueSoonTasksUseCase,
+)
+from src.contexts.notifications.application.use_cases.get_overdue_tasks import (
+    GetOverdueTasksUseCase,
+)
+from src.contexts.notifications.application.use_cases.mark_notification_read import (
+    MarkNotificationReadUseCase,
+)
+from src.contexts.notifications.application.use_cases.send_reminder import (
+    SendReminderUseCase,
+)
+from src.contexts.notifications.infrastructure.repositories.postgresql_notification_repository import (
+    PostgreSQLNotificationRepository,
+)
+
 # Workforce Management context
 from src.contexts.workforce_management.application.use_cases.suggest_assignees import (
     SuggestAssigneesUseCase,
@@ -161,6 +178,7 @@ class DIContainer:
         self._dependency_repository = None  # Task Dependencies (Phase 2)
         self._daily_summary_repository = None  # Team Analytics (Phase 3)
         self._team_metrics_repository = None  # Team Analytics (Phase 3)
+        self._notification_repository = None  # Notifications (Phase 4)
 
     # Repository Getters
 
@@ -233,6 +251,13 @@ class DIContainer:
         if self._team_metrics_repository is None:
             self._team_metrics_repository = PostgreSQLTeamMetricsRepository(self._session)
         return self._team_metrics_repository
+
+    @property
+    def notification_repository(self):
+        """Get NotificationRepository (Notifications context - Phase 4)"""
+        if self._notification_repository is None:
+            self._notification_repository = PostgreSQLNotificationRepository(self._session)
+        return self._notification_repository
 
     # Use Case Builders - Task
 
@@ -382,6 +407,24 @@ class DIContainer:
     def build_get_user_statistics_use_case(self) -> GetUserStatisticsUseCase:
         """Build GetUserStatisticsUseCase"""
         return GetUserStatisticsUseCase(self.daily_summary_repository)
+
+    # Use Case Builders - Notifications (Phase 4)
+
+    def build_send_reminder_use_case(self) -> SendReminderUseCase:
+        """Build SendReminderUseCase"""
+        return SendReminderUseCase(self.notification_repository)
+
+    def build_get_overdue_tasks_use_case(self) -> GetOverdueTasksUseCase:
+        """Build GetOverdueTasksUseCase"""
+        return GetOverdueTasksUseCase(self.task_repository)
+
+    def build_get_due_soon_tasks_use_case(self) -> GetDueSoonTasksUseCase:
+        """Build GetDueSoonTasksUseCase"""
+        return GetDueSoonTasksUseCase(self.task_repository)
+
+    def build_mark_notification_read_use_case(self) -> MarkNotificationReadUseCase:
+        """Build MarkNotificationReadUseCase"""
+        return MarkNotificationReadUseCase(self.notification_repository)
 
     # SlackEventHandler v5.0.0
 
