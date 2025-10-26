@@ -102,6 +102,29 @@ from src.contexts.task_dependencies.infrastructure.repositories.postgresql_depen
     PostgreSQLDependencyRepository,
 )
 
+# Team Analytics context (Phase 3)
+from src.contexts.team_analytics.application.use_cases.calculate_completion_rate import (
+    CalculateCompletionRateUseCase,
+)
+from src.contexts.team_analytics.application.use_cases.detect_bottleneck import (
+    DetectBottleneckUseCase,
+)
+from src.contexts.team_analytics.application.use_cases.generate_daily_report import (
+    GenerateDailyReportUseCase,
+)
+from src.contexts.team_analytics.application.use_cases.get_team_workload import (
+    GetTeamWorkloadUseCase,
+)
+from src.contexts.team_analytics.application.use_cases.get_user_statistics import (
+    GetUserStatisticsUseCase,
+)
+from src.contexts.team_analytics.infrastructure.repositories.postgresql_daily_summary_repository import (
+    PostgreSQLDailySummaryRepository,
+)
+from src.contexts.team_analytics.infrastructure.repositories.postgresql_team_metrics_repository import (
+    PostgreSQLTeamMetricsRepository,
+)
+
 # Workforce Management context
 from src.contexts.workforce_management.application.use_cases.suggest_assignees import (
     SuggestAssigneesUseCase,
@@ -136,6 +159,8 @@ class DIContainer:
         self._skill_repository = None  # Workforce Management
         self._project_repository = None  # Project Management (Phase 1)
         self._dependency_repository = None  # Task Dependencies (Phase 2)
+        self._daily_summary_repository = None  # Team Analytics (Phase 3)
+        self._team_metrics_repository = None  # Team Analytics (Phase 3)
 
     # Repository Getters
 
@@ -194,6 +219,20 @@ class DIContainer:
         if self._dependency_repository is None:
             self._dependency_repository = PostgreSQLDependencyRepository(self._session)
         return self._dependency_repository
+
+    @property
+    def daily_summary_repository(self):
+        """Get DailySummaryRepository (Team Analytics context - Phase 3)"""
+        if self._daily_summary_repository is None:
+            self._daily_summary_repository = PostgreSQLDailySummaryRepository(self._session)
+        return self._daily_summary_repository
+
+    @property
+    def team_metrics_repository(self):
+        """Get TeamMetricsRepository (Team Analytics context - Phase 3)"""
+        if self._team_metrics_repository is None:
+            self._team_metrics_repository = PostgreSQLTeamMetricsRepository(self._session)
+        return self._team_metrics_repository
 
     # Use Case Builders - Task
 
@@ -321,6 +360,28 @@ class DIContainer:
     def build_get_dependency_chain_use_case(self) -> GetDependencyChainUseCase:
         """Build GetDependencyChainUseCase"""
         return GetDependencyChainUseCase(self.dependency_repository)
+
+    # Use Case Builders - Team Analytics (Phase 3)
+
+    def build_calculate_completion_rate_use_case(self) -> CalculateCompletionRateUseCase:
+        """Build CalculateCompletionRateUseCase"""
+        return CalculateCompletionRateUseCase(self.daily_summary_repository)
+
+    def build_detect_bottleneck_use_case(self) -> DetectBottleneckUseCase:
+        """Build DetectBottleneckUseCase"""
+        return DetectBottleneckUseCase(self.daily_summary_repository)
+
+    def build_generate_daily_report_use_case(self) -> GenerateDailyReportUseCase:
+        """Build GenerateDailyReportUseCase"""
+        return GenerateDailyReportUseCase(self.daily_summary_repository)
+
+    def build_get_team_workload_use_case(self) -> GetTeamWorkloadUseCase:
+        """Build GetTeamWorkloadUseCase"""
+        return GetTeamWorkloadUseCase(self.daily_summary_repository)
+
+    def build_get_user_statistics_use_case(self) -> GetUserStatisticsUseCase:
+        """Build GetUserStatisticsUseCase"""
+        return GetUserStatisticsUseCase(self.daily_summary_repository)
 
     # SlackEventHandler v5.0.0
 

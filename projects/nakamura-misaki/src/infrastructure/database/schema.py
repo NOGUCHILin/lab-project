@@ -7,8 +7,10 @@ from sqlalchemy import (
     JSON,
     Boolean,
     Column,
+    Date,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -244,4 +246,42 @@ class TaskDependencyTable(Base):
         UniqueConstraint("blocking_task_id", "blocked_task_id", name="uq_task_dependency"),
         Index("idx_dependencies_blocking", "blocking_task_id"),
         Index("idx_dependencies_blocked", "blocked_task_id"),
+    )
+
+
+class DailySummaryTable(Base):
+    """Daily Summaries table for team analytics"""
+
+    __tablename__ = "daily_summaries"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    date = Column(Date, nullable=False)
+    user_id = Column(String(100), nullable=True)
+    tasks_completed = Column(Integer, nullable=False, default=0)
+    tasks_pending = Column(Integer, nullable=False, default=0)
+    summary_text = Column(Text, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.now)
+
+    __table_args__ = (
+        UniqueConstraint("date", "user_id", name="uq_daily_summaries_date_user"),
+        Index("idx_daily_summaries_date", "date"),
+        Index("idx_daily_summaries_user", "user_id"),
+    )
+
+
+class TeamMetricTable(Base):
+    """Team Metrics table for team analytics"""
+
+    __tablename__ = "team_metrics"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    date = Column(Date, nullable=False)
+    metric_type = Column(String(50), nullable=False)
+    metric_value = Column(Float, nullable=False)
+    metadata = Column(JSON, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.now)
+
+    __table_args__ = (
+        Index("idx_team_metrics_date", "date"),
+        Index("idx_team_metrics_type", "metric_type"),
     )
