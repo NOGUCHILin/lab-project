@@ -9,9 +9,7 @@
 
 ## 🎯 新規セッション開始時のガイド
 
-> ⚠️ **必読**: まず [`PROJECT_STATUS.md`](PROJECT_STATUS.md) で現在の進捗状況を確認してください
-
-**現在**: Phase 1 - Project Management Context（テスト実装中、99テスト完了）
+> ⚠️ **必読**: [`PROJECT_STATUS.md`](PROJECT_STATUS.md) で現在の進捗を確認してください
 
 ---
 
@@ -21,17 +19,17 @@
 nakamura-misaki/
 ├── src/contexts/          # Bounded Contexts（Hexagonal Architecture）
 │   ├── personal_tasks/
-│   ├── project_management/  # Phase 1実装中
+│   ├── project_management/
 │   ├── conversations/
 │   ├── workforce_management/
 │   └── handoffs/
 ├── tests/
-│   ├── unit/              # ユニットテスト（外部依存なし）
-│   ├── integration/       # インテグレーションテスト（DB使用）
+│   ├── unit/              # ユニットテスト
+│   ├── integration/       # インテグレーションテスト
 │   └── e2e/              # E2Eテスト
 ├── claudedocs/           # 詳細ドキュメント（実装計画、テスト戦略等）
 ├── docs/                 # アーキテクチャ・デプロイ手順
-├── PROJECT_STATUS.md     # Phase 1-4の進捗状況
+├── PROJECT_STATUS.md     # Phase 1-4の進捗状況（進捗はここで確認）
 ├── CLAUDE.md            # このファイル（開発ガイド）
 └── README.md            # プロジェクト概要・起動方法
 ```
