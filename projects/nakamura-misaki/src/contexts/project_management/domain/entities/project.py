@@ -42,7 +42,18 @@ class Project:
 
         Returns:
             New Project instance
+
+        Raises:
+            ValueError: If name or owner_user_id is empty
         """
+        # Validate name
+        if not name or not name.strip():
+            raise ValueError("name cannot be empty")
+
+        # Validate owner_user_id
+        if not owner_user_id or not owner_user_id.strip():
+            raise ValueError("owner_user_id cannot be empty")
+
         now = datetime.now()
         return cls(
             project_id=uuid4(),
@@ -108,8 +119,13 @@ class Project:
             name: New project name (if provided)
             description: New description (if provided)
             deadline: New deadline (if provided)
+
+        Raises:
+            ValueError: If name is empty
         """
         if name is not None:
+            if not name or not name.strip():
+                raise ValueError("name cannot be empty")
             self.name = name
         if description is not None:
             self.description = description
