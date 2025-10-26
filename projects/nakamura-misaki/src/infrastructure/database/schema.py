@@ -219,3 +219,29 @@ class ProjectTaskTable(Base):
         Index("idx_project_tasks_project", "project_id"),
         Index("idx_project_tasks_task", "task_id"),
     )
+
+
+class TaskDependencyTable(Base):
+    """Task Dependencies table for managing task dependency relationships"""
+
+    __tablename__ = "task_dependencies"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    blocking_task_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("tasks.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    blocked_task_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("tasks.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    dependency_type = Column(String(20), nullable=False, default="blocks")
+    created_at = Column(DateTime, nullable=False, default=datetime.now)
+
+    __table_args__ = (
+        UniqueConstraint("blocking_task_id", "blocked_task_id", name="uq_task_dependency"),
+        Index("idx_dependencies_blocking", "blocking_task_id"),
+        Index("idx_dependencies_blocked", "blocked_task_id"),
+    )

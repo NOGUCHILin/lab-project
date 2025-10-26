@@ -82,6 +82,26 @@ from src.contexts.project_management.infrastructure.repositories.postgresql_proj
     PostgreSQLProjectRepository,
 )
 
+# Task Dependencies context (Phase 2)
+from src.contexts.task_dependencies.application.use_cases.add_task_dependency import (
+    AddTaskDependencyUseCase,
+)
+from src.contexts.task_dependencies.application.use_cases.can_start_task import (
+    CanStartTaskUseCase,
+)
+from src.contexts.task_dependencies.application.use_cases.check_task_blockers import (
+    CheckTaskBlockersUseCase,
+)
+from src.contexts.task_dependencies.application.use_cases.get_dependency_chain import (
+    GetDependencyChainUseCase,
+)
+from src.contexts.task_dependencies.application.use_cases.remove_task_dependency import (
+    RemoveTaskDependencyUseCase,
+)
+from src.contexts.task_dependencies.infrastructure.repositories.postgresql_dependency_repository import (
+    PostgreSQLDependencyRepository,
+)
+
 # Workforce Management context
 from src.contexts.workforce_management.application.use_cases.suggest_assignees import (
     SuggestAssigneesUseCase,
@@ -115,6 +135,7 @@ class DIContainer:
         self._employee_repository = None  # Workforce Management
         self._skill_repository = None  # Workforce Management
         self._project_repository = None  # Project Management (Phase 1)
+        self._dependency_repository = None  # Task Dependencies (Phase 2)
 
     # Repository Getters
 
@@ -166,6 +187,13 @@ class DIContainer:
         if self._project_repository is None:
             self._project_repository = PostgreSQLProjectRepository(self._session)
         return self._project_repository
+
+    @property
+    def dependency_repository(self):
+        """Get DependencyRepository (Task Dependencies context - Phase 2)"""
+        if self._dependency_repository is None:
+            self._dependency_repository = PostgreSQLDependencyRepository(self._session)
+        return self._dependency_repository
 
     # Use Case Builders - Task
 
@@ -268,6 +296,31 @@ class DIContainer:
     def build_archive_project_use_case(self) -> ArchiveProjectUseCase:
         """Build ArchiveProjectUseCase"""
         return ArchiveProjectUseCase(self.project_repository)
+
+    # Use Case Builders - Task Dependencies (Phase 2)
+
+    def build_add_task_dependency_use_case(self) -> AddTaskDependencyUseCase:
+        """Build AddTaskDependencyUseCase"""
+        return AddTaskDependencyUseCase(
+            dependency_repository=self.dependency_repository,
+            task_repository=self.task_repository,
+        )
+
+    def build_remove_task_dependency_use_case(self) -> RemoveTaskDependencyUseCase:
+        """Build RemoveTaskDependencyUseCase"""
+        return RemoveTaskDependencyUseCase(self.dependency_repository)
+
+    def build_check_task_blockers_use_case(self) -> CheckTaskBlockersUseCase:
+        """Build CheckTaskBlockersUseCase"""
+        return CheckTaskBlockersUseCase(self.dependency_repository)
+
+    def build_can_start_task_use_case(self) -> CanStartTaskUseCase:
+        """Build CanStartTaskUseCase"""
+        return CanStartTaskUseCase(self.dependency_repository)
+
+    def build_get_dependency_chain_use_case(self) -> GetDependencyChainUseCase:
+        """Build GetDependencyChainUseCase"""
+        return GetDependencyChainUseCase(self.dependency_repository)
 
     # SlackEventHandler v5.0.0
 
