@@ -59,6 +59,29 @@ from src.contexts.personal_tasks.infrastructure.repositories.postgresql_task_rep
     PostgreSQLTaskRepository as NewPostgreSQLTaskRepository,
 )
 
+# Project Management context (Phase 1)
+from src.contexts.project_management.application.use_cases.add_task_to_project import (
+    AddTaskToProjectUseCase,
+)
+from src.contexts.project_management.application.use_cases.archive_project import (
+    ArchiveProjectUseCase,
+)
+from src.contexts.project_management.application.use_cases.create_project import (
+    CreateProjectUseCase,
+)
+from src.contexts.project_management.application.use_cases.get_project_progress import (
+    GetProjectProgressUseCase,
+)
+from src.contexts.project_management.application.use_cases.list_projects import (
+    ListProjectsUseCase,
+)
+from src.contexts.project_management.application.use_cases.remove_task_from_project import (
+    RemoveTaskFromProjectUseCase,
+)
+from src.contexts.project_management.infrastructure.repositories.postgresql_project_repository import (
+    PostgreSQLProjectRepository,
+)
+
 # Workforce Management context
 from src.contexts.workforce_management.application.use_cases.suggest_assignees import (
     SuggestAssigneesUseCase,
@@ -91,6 +114,7 @@ class DIContainer:
         self._handoff_repository = None
         self._employee_repository = None  # Workforce Management
         self._skill_repository = None  # Workforce Management
+        self._project_repository = None  # Project Management (Phase 1)
 
     # Repository Getters
 
@@ -135,6 +159,13 @@ class DIContainer:
         if self._skill_repository is None:
             self._skill_repository = PostgreSQLSkillRepository(self._session)
         return self._skill_repository
+
+    @property
+    def project_repository(self):
+        """Get ProjectRepository (Project Management context - Phase 1)"""
+        if self._project_repository is None:
+            self._project_repository = PostgreSQLProjectRepository(self._session)
+        return self._project_repository
 
     # Use Case Builders - Task
 
@@ -206,6 +237,38 @@ class DIContainer:
         """Build SuggestAssigneesUseCase"""
         return SuggestAssigneesUseCase(self.skill_repository)
 
+    # Use Case Builders - Project Management (Phase 1)
+
+    def build_create_project_use_case(self) -> CreateProjectUseCase:
+        """Build CreateProjectUseCase"""
+        return CreateProjectUseCase(self.project_repository)
+
+    def build_add_task_to_project_use_case(self) -> AddTaskToProjectUseCase:
+        """Build AddTaskToProjectUseCase"""
+        return AddTaskToProjectUseCase(
+            project_repository=self.project_repository,
+            task_repository=self.task_repository,
+        )
+
+    def build_remove_task_from_project_use_case(self) -> RemoveTaskFromProjectUseCase:
+        """Build RemoveTaskFromProjectUseCase"""
+        return RemoveTaskFromProjectUseCase(self.project_repository)
+
+    def build_get_project_progress_use_case(self) -> GetProjectProgressUseCase:
+        """Build GetProjectProgressUseCase"""
+        return GetProjectProgressUseCase(
+            project_repository=self.project_repository,
+            task_repository=self.task_repository,
+        )
+
+    def build_list_projects_use_case(self) -> ListProjectsUseCase:
+        """Build ListProjectsUseCase"""
+        return ListProjectsUseCase(self.project_repository)
+
+    def build_archive_project_use_case(self) -> ArchiveProjectUseCase:
+        """Build ArchiveProjectUseCase"""
+        return ArchiveProjectUseCase(self.project_repository)
+
     # SlackEventHandler v5.0.0
 
     def build_slack_event_handler(
@@ -227,12 +290,21 @@ class DIContainer:
             anthropic_client=anthropic_client,
             slack_client=self._slack_client,
             conversation_repository=self.conversation_repository,
+            # Personal Tasks use cases
             register_task_use_case=self.build_register_task_use_case(),
             query_user_tasks_use_case=self.build_query_user_tasks_use_case(),
             complete_task_use_case=self.build_complete_task_use_case(),
             update_task_use_case=self.build_update_task_use_case(),
+            # Workforce Management
             skill_repository=self.skill_repository,
             suggest_assignees_use_case=self.build_suggest_assignees_use_case(),
+            # Project Management (Phase 1)
+            create_project_use_case=self.build_create_project_use_case(),
+            add_task_to_project_use_case=self.build_add_task_to_project_use_case(),
+            remove_task_from_project_use_case=self.build_remove_task_from_project_use_case(),
+            get_project_progress_use_case=self.build_get_project_progress_use_case(),
+            list_projects_use_case=self.build_list_projects_use_case(),
+            archive_project_use_case=self.build_archive_project_use_case(),
             conversation_ttl_hours=conversation_ttl_hours,
         )
 
@@ -251,10 +323,7 @@ def get_di_container() -> DIContainer:
         RuntimeError: If DI container has not been initialized
     """
     if _di_container_instance is None:
-        raise RuntimeError(
-            "DI container has not been initialized. "
-            "Call initialize_di_container() first."
-        )
+        raise RuntimeError("DI container has not been initialized. " "Call initialize_di_container() first.")
     return _di_container_instance
 
 

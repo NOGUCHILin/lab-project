@@ -4,6 +4,8 @@ Manages conversation sessions with TTL-based expiration.
 Handles conversation lifecycle: creation, message addition, history retrieval.
 """
 
+from datetime import datetime
+
 from ...contexts.personal_tasks.domain.models.conversation import Conversation, Message, MessageRole
 from ...contexts.personal_tasks.domain.repositories.conversation_repository import ConversationRepository
 
@@ -28,9 +30,7 @@ class ConversationManager:
         self._repository = repository
         self._ttl_hours = ttl_hours
 
-    async def get_or_create(
-        self, user_id: str, channel_id: str, initial_message: str | None = None
-    ) -> Conversation:
+    async def get_or_create(self, user_id: str, channel_id: str, initial_message: str | None = None) -> Conversation:
         """会話を取得または新規作成.
 
         既存の会話が期限内であればそれを返し、
@@ -53,7 +53,7 @@ class ConversationManager:
         # Create new conversation
         messages = []
         if initial_message:
-            messages = [Message(role=MessageRole.USER, content=initial_message)]
+            messages = [Message(role=MessageRole.USER, content=initial_message, timestamp=datetime.now())]
 
         conversation = Conversation.create(
             user_id=user_id,
@@ -65,9 +65,7 @@ class ConversationManager:
         await self._repository.save(conversation)
         return conversation
 
-    async def add_user_message(
-        self, user_id: str, channel_id: str, message: str
-    ) -> None:
+    async def add_user_message(self, user_id: str, channel_id: str, message: str) -> None:
         """ユーザーメッセージを追加.
 
         Args:
@@ -75,21 +73,15 @@ class ConversationManager:
             channel_id: チャンネルID
             message: メッセージ内容
         """
-        conversation = await self._repository.get_by_user_and_channel(
-            user_id, channel_id
-        )
+        conversation = await self._repository.get_by_user_and_channel(user_id, channel_id)
 
         if not conversation:
-            raise ValueError(
-                f"No conversation found for user_id={user_id}, channel_id={channel_id}"
-            )
+            raise ValueError(f"No conversation found for user_id={user_id}, channel_id={channel_id}")
 
-        conversation.add_message(Message(role=MessageRole.USER, content=message))
+        conversation.add_message(Message(role=MessageRole.USER, content=message, timestamp=datetime.now()))
         await self._repository.save(conversation)
 
-    async def add_assistant_message(
-        self, user_id: str, channel_id: str, message: str
-    ) -> None:
+    async def add_assistant_message(self, user_id: str, channel_id: str, message: str) -> None:
         """アシスタントメッセージを追加.
 
         Args:
@@ -97,21 +89,15 @@ class ConversationManager:
             channel_id: チャンネルID
             message: メッセージ内容
         """
-        conversation = await self._repository.get_by_user_and_channel(
-            user_id, channel_id
-        )
+        conversation = await self._repository.get_by_user_and_channel(user_id, channel_id)
 
         if not conversation:
-            raise ValueError(
-                f"No conversation found for user_id={user_id}, channel_id={channel_id}"
-            )
+            raise ValueError(f"No conversation found for user_id={user_id}, channel_id={channel_id}")
 
-        conversation.add_message(Message(role=MessageRole.ASSISTANT, content=message))
+        conversation.add_message(Message(role=MessageRole.ASSISTANT, content=message, timestamp=datetime.now()))
         await self._repository.save(conversation)
 
-    async def get_conversation_history(
-        self, user_id: str, channel_id: str
-    ) -> list[dict[str, str]]:
+    async def get_conversation_history(self, user_id: str, channel_id: str) -> list[dict[str, str]]:
         """会話履歴を取得（Claude API形式）.
 
         Args:
@@ -122,25 +108,20 @@ class ConversationManager:
             list[dict]: Claude Messages API形式のメッセージ一覧
                 [{"role": "user"|"assistant", "content": "..."}]
         """
-        conversation = await self._repository.get_by_user_and_channel(
-            user_id, channel_id
-        )
+        conversation = await self._repository.get_by_user_and_channel(user_id, channel_id)
 
         if not conversation:
             return []
 
-        return conversation.get_messages_for_claude_api()
+        return conversation.get_messages_for_api()
 
-    async def save(self, conversation: Conversation) -> Conversation:
+    async def save(self, conversation: Conversation) -> None:
         """会話を保存.
 
         Args:
             conversation: 保存する会話
-
-        Returns:
-            Conversation: 保存された会話
         """
-        return await self._repository.save(conversation)
+        await self._repository.save(conversation)
 
     async def cleanup_expired(self) -> int:
         """期限切れの会話を削除.
