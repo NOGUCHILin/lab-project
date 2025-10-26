@@ -3,6 +3,7 @@
 from uuid import UUID
 
 from ...domain.repositories.project_repository import ProjectRepository
+from ..dto.project_dto import ProjectDTO
 
 
 class ArchiveProjectUseCase:
@@ -16,11 +17,14 @@ class ArchiveProjectUseCase:
         """
         self._project_repo = project_repository
 
-    async def execute(self, project_id: UUID) -> None:
+    async def execute(self, project_id: UUID) -> ProjectDTO:
         """Execute use case
 
         Args:
             project_id: UUID of the project to archive
+
+        Returns:
+            ProjectDTO: Archived project data
 
         Raises:
             ValueError: If project not found
@@ -34,4 +38,18 @@ class ArchiveProjectUseCase:
         project.archive()
 
         # Persist changes
-        await self._project_repo.save(project)
+        saved_project = await self._project_repo.save(project)
+
+        # Convert to DTO
+        return ProjectDTO(
+            project_id=saved_project.project_id,
+            name=saved_project.name,
+            owner_user_id=saved_project.owner_user_id,
+            status=saved_project.status.value,
+            created_at=saved_project.created_at,
+            updated_at=saved_project.updated_at,
+            description=saved_project.description,
+            deadline=saved_project.deadline,
+            task_count=len(saved_project.task_ids),
+            completed_task_count=0,  # Will be calculated by GetProjectProgressUseCase if needed
+        )
