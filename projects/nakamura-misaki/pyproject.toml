@@ -1,7 +1,7 @@
 [project]
 name = "nakamura-misaki"
-version = "6.0.1"
-description = "nakamura-misaki v6.0.1 - DDD + Clean Architecture based task management AI assistant"
+version = "6.1.0"
+description = "nakamura-misaki v6.1.0 - DDD + Clean Architecture based task management AI assistant"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.0",

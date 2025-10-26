@@ -1,16 +1,21 @@
-"""Initial schema (tasks, handoffs, conversations, notes, sessions)
+"""Initial schema - All tables
 
 Revision ID: 001
 Revises:
-Create Date: 2025-10-16 12:23:00.000000
+Create Date: 2025-10-26
 
+Consolidated schema including:
+- tasks (Personal Tasks context)
+- conversations (Conversations context)
+- employees, business_skills, employee_skills (Workforce Management context)
+- handoffs (deprecated, will be removed in Phase 2)
+- slack_users (Infrastructure)
 """
 
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
-from pgvector.sqlalchemy import Vector
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
@@ -33,6 +38,15 @@ def upgrade() -> None:
         END $$;
     """)
 
+    # Create skill_category enum (idempotent)
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE skill_category AS ENUM ('顧客対応', '物流', '査定・修理', '販売', '管理', '店舗');
+        EXCEPTION
+            WHEN duplicate_object THEN null;
+        END $$;
+    """)
+
     # Create tasks table
     op.create_table(
         "tasks",
@@ -47,9 +61,9 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("due_at", sa.DateTime(), nullable=True),
+        sa.Column("completed_at", sa.DateTime(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
-        sa.Column("completed_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index("idx_tasks_assignee_due", "tasks", ["assignee_user_id", "due_at"])
@@ -57,27 +71,6 @@ def upgrade() -> None:
     op.create_index(op.f("ix_tasks_assignee_user_id"), "tasks", ["assignee_user_id"])
     op.create_index(op.f("ix_tasks_due_at"), "tasks", ["due_at"])
     op.create_index(op.f("ix_tasks_status"), "tasks", ["status"])
-
-    # Create handoffs table
-    op.create_table(
-        "handoffs",
-        sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("task_id", postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column("from_user_id", sa.String(length=100), nullable=False),
-        sa.Column("to_user_id", sa.String(length=100), nullable=False),
-        sa.Column("progress_note", sa.Text(), nullable=False),
-        sa.Column("next_steps", sa.Text(), nullable=False),
-        sa.Column("handoff_at", sa.DateTime(), nullable=False),
-        sa.Column("reminded_at", sa.DateTime(), nullable=True),
-        sa.Column("completed_at", sa.DateTime(), nullable=True),
-        sa.Column("created_at", sa.DateTime(), nullable=False),
-        sa.ForeignKeyConstraint(["task_id"], ["tasks.id"], ondelete="SET NULL"),
-        sa.PrimaryKeyConstraint("id"),
-    )
-    op.create_index("idx_handoffs_reminder", "handoffs", ["handoff_at", "reminded_at", "completed_at"])
-    op.create_index("idx_handoffs_to_user_pending", "handoffs", ["to_user_id", "completed_at"])
-    op.create_index(op.f("ix_handoffs_handoff_at"), "handoffs", ["handoff_at"])
-    op.create_index(op.f("ix_handoffs_to_user_id"), "handoffs", ["to_user_id"])
 
     # Create conversations table
     op.create_table(
@@ -90,82 +83,109 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("last_message_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("conversation_id"),
+        sa.UniqueConstraint("user_id", "channel_id", name="uq_conversations_user_channel"),
     )
     op.create_index("idx_conversations_last_message", "conversations", ["last_message_at"])
     op.create_index("idx_conversations_user_channel", "conversations", ["user_id", "channel_id"])
     op.create_index(op.f("ix_conversations_channel_id"), "conversations", ["channel_id"])
-    op.create_index(op.f("ix_conversations_last_message_at"), "conversations", ["last_message_at"])
     op.create_index(op.f("ix_conversations_user_id"), "conversations", ["user_id"])
 
-    # Create notes table
+    # Create employees table
     op.create_table(
-        "notes",
-        sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("session_id", sa.String(length=100), nullable=False),
-        sa.Column("user_id", sa.String(length=100), nullable=False),
-        sa.Column("content", sa.Text(), nullable=False),
-        sa.Column("category", sa.String(length=50), nullable=False),
-        sa.Column("embedding", Vector(1024), nullable=True),
+        "employees",
+        sa.Column("employee_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("name", sa.String(length=100), nullable=False),
+        sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
+        sa.Column("updated_at", sa.DateTime(), nullable=False),
+        sa.PrimaryKeyConstraint("employee_id"),
+        sa.UniqueConstraint("name"),
     )
-    op.create_index("idx_notes_user_created", "notes", ["user_id", "created_at"])
-    op.create_index(op.f("ix_notes_session_id"), "notes", ["session_id"])
-    op.create_index(op.f("ix_notes_user_id"), "notes", ["user_id"])
-    # Vector index (ivfflat for cosine similarity)
-    op.execute(
-        "CREATE INDEX idx_notes_embedding ON notes USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)"
-    )
+    op.create_index("idx_employees_active", "employees", ["is_active"])
 
-    # Create sessions table
+    # Create business_skills table
     op.create_table(
-        "sessions",
-        sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("session_id", sa.String(length=100), nullable=False),
-        sa.Column("user_id", sa.String(length=100), nullable=False),
-        sa.Column("title", sa.String(length=200), nullable=False),
-        sa.Column("workspace_path", sa.String(length=500), nullable=False),
-        sa.Column("message_count", sa.Text(), nullable=False),
-        sa.Column("is_active", sa.Text(), nullable=False),
+        "business_skills",
+        sa.Column("skill_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("skill_name", sa.String(length=100), nullable=False),
+        sa.Column(
+            "category",
+            sa.Enum("顧客対応", "物流", "査定・修理", "販売", "管理", "店舗", name="skill_category", create_type=False),
+            nullable=False,
+        ),
+        sa.Column("display_order", sa.Integer(), nullable=False),
+        sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
-        sa.Column("last_active", sa.DateTime(), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("session_id"),
+        sa.Column("updated_at", sa.DateTime(), nullable=False),
+        sa.PrimaryKeyConstraint("skill_id"),
+        sa.UniqueConstraint("skill_name"),
     )
-    op.create_index(op.f("ix_sessions_session_id"), "sessions", ["session_id"], unique=True)
-    op.create_index(op.f("ix_sessions_user_id"), "sessions", ["user_id"])
+    op.create_index("idx_skills_active", "business_skills", ["is_active"])
+    op.create_index("idx_skills_category", "business_skills", ["category"])
+
+    # Create employee_skills association table
+    op.create_table(
+        "employee_skills",
+        sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("employee_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("skill_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("acquired_at", sa.DateTime(), nullable=False),
+        sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), nullable=False),
+        sa.ForeignKeyConstraint(["employee_id"], ["employees.employee_id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["skill_id"], ["business_skills.skill_id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("employee_id", "skill_id", name="uq_employee_skill"),
+    )
+    op.create_index("idx_employee_skills_employee", "employee_skills", ["employee_id"])
+    op.create_index("idx_employee_skills_skill", "employee_skills", ["skill_id"])
+
+    # Create handoffs table (deprecated, will be removed in Phase 2)
+    op.create_table(
+        "handoffs",
+        sa.Column("handoff_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("task_id", postgresql.UUID(as_uuid=True), nullable=True),
+        sa.Column("from_user_id", sa.String(length=100), nullable=False),
+        sa.Column("to_user_id", sa.String(length=100), nullable=False),
+        sa.Column("progress_note", sa.Text(), nullable=False),
+        sa.Column("next_steps", sa.Text(), nullable=False),
+        sa.Column("status", sa.String(length=20), nullable=False),
+        sa.Column("handoff_at", sa.DateTime(), nullable=False),
+        sa.Column("accepted_at", sa.DateTime(), nullable=True),
+        sa.Column("completed_at", sa.DateTime(), nullable=True),
+        sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.PrimaryKeyConstraint("handoff_id"),
+    )
+    op.create_index("idx_handoffs_from_user", "handoffs", ["from_user_id"])
+    op.create_index("idx_handoffs_status", "handoffs", ["status"])
+    op.create_index("idx_handoffs_to_user", "handoffs", ["to_user_id"])
+
+    # Create slack_users table
+    op.create_table(
+        "slack_users",
+        sa.Column("user_id", sa.String(length=50), nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
+        sa.Column("real_name", sa.String(length=255), nullable=True),
+        sa.Column("display_name", sa.String(length=255), nullable=True),
+        sa.Column("email", sa.String(length=255), nullable=True),
+        sa.Column("is_admin", sa.Boolean(), nullable=False),
+        sa.Column("is_bot", sa.Boolean(), nullable=False),
+        sa.Column("deleted", sa.Boolean(), nullable=False),
+        sa.Column("slack_created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("synced_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
+        sa.PrimaryKeyConstraint("user_id"),
+    )
 
 
 def downgrade() -> None:
-    # Drop tables in reverse order
-    op.drop_index(op.f("ix_sessions_user_id"), table_name="sessions")
-    op.drop_index(op.f("ix_sessions_session_id"), table_name="sessions")
-    op.drop_table("sessions")
-
-    op.execute("DROP INDEX IF EXISTS idx_notes_embedding")
-    op.drop_index(op.f("ix_notes_user_id"), table_name="notes")
-    op.drop_index(op.f("ix_notes_session_id"), table_name="notes")
-    op.drop_index("idx_notes_user_created", table_name="notes")
-    op.drop_table("notes")
-
-    op.drop_index(op.f("ix_conversations_user_id"), table_name="conversations")
-    op.drop_index(op.f("ix_conversations_last_message_at"), table_name="conversations")
-    op.drop_index(op.f("ix_conversations_channel_id"), table_name="conversations")
-    op.drop_index("idx_conversations_user_channel", table_name="conversations")
-    op.drop_index("idx_conversations_last_message", table_name="conversations")
-    op.drop_table("conversations")
-
-    op.drop_index(op.f("ix_handoffs_to_user_id"), table_name="handoffs")
-    op.drop_index(op.f("ix_handoffs_handoff_at"), table_name="handoffs")
-    op.drop_index("idx_handoffs_to_user_pending", table_name="handoffs")
-    op.drop_index("idx_handoffs_reminder", table_name="handoffs")
+    op.drop_table("slack_users")
     op.drop_table("handoffs")
-
-    op.drop_index(op.f("ix_tasks_status"), table_name="tasks")
-    op.drop_index(op.f("ix_tasks_due_at"), table_name="tasks")
-    op.drop_index(op.f("ix_tasks_assignee_user_id"), table_name="tasks")
-    op.drop_index("idx_tasks_assignee_status", table_name="tasks")
-    op.drop_index("idx_tasks_assignee_due", table_name="tasks")
+    op.drop_table("employee_skills")
+    op.drop_table("business_skills")
+    op.drop_table("employees")
+    op.drop_table("conversations")
     op.drop_table("tasks")
-
-    op.execute("DROP TYPE task_status")
+    op.execute("DROP TYPE IF EXISTS skill_category")
+    op.execute("DROP TYPE IF EXISTS task_status")
