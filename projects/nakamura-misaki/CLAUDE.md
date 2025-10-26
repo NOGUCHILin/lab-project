@@ -106,6 +106,42 @@ uv run alembic downgrade -1
 
 ---
 
+## 📝 ドキュメント更新ルール（必須）
+
+**重要**: タスク完了時、Phase移行時には**必ず** `PROJECT_STATUS.md` を更新すること
+
+### 更新タイミング
+
+1. **Phaseのタスクを1つ完了したとき**
+2. **Phase全体が完了したとき** ← 最重要
+3. **新しいテストを追加したとき**
+4. **カバレッジが変化したとき**
+5. **アーキテクチャに重要な変更を加えたとき**
+
+### 更新対象ファイル
+
+| ファイル | 内容 | 更新頻度 |
+|---------|------|---------|
+| **`PROJECT_STATUS.md`** | Phase進捗、テスト結果、次のアクション | **高**（タスク完了毎） |
+| **`CLAUDE.md`** | コマンド、制約、ルール | **低**（設計変更時のみ） |
+| **`claudedocs/`** | 詳細実装計画 | 中（Phase開始時） |
+
+### 禁止事項
+
+- ❌ **CLAUDE.mdに進捗情報を書く**（「Phase 1完了」「99テスト passing」等）
+- ❌ **ドキュメント更新を忘れてコミットする**
+- ❌ **古いステータスを放置する**（「実装中」のまま完了しているなど）
+
+### なぜ重要か
+
+ドキュメントが古いと**新規セッションで誤認識**される：
+- Phase 1完了 → 「実装中」のまま → 「Phase 2からスタート」と誤解
+- テスト完了 → 「残りテストのみ」のまま → 二重実装のリスク
+
+**ドキュメント更新はコード実装と同じくらい重要です。**
+
+---
+
 ## 🏗️ アーキテクチャ原則（厳守）
 
 1. **Hexagonal Architecture**: Domain層は外部依存なし
@@ -113,6 +149,7 @@ uv run alembic downgrade -1
 3. **新機能 = 新Bounded Context**: 既存Contextを肥大化させない
 4. **Repository Pattern**: データアクセスは抽象化
 5. **DI Container**: 依存性注入で疎結合を維持
+6. **ドキュメント更新必須**: タスク完了時に PROJECT_STATUS.md を必ず更新
 
 **詳細**: [`docs/ARCHITECTURE_V4.md`](docs/ARCHITECTURE_V4.md)
 
@@ -177,8 +214,6 @@ curl -X POST http://localhost:10000/api/tasks \
 ```
 
 **詳細**: [`claudedocs/testing-strategy.md`](claudedocs/testing-strategy.md)
-
-**現在のカバレッジ**: Domain 100%, Application 100%, Tools 100% ✅
 
 ---
 
@@ -248,4 +283,4 @@ grep PYTHONUNBUFFERED nixos-config/modules/services/registry/nakamura-misaki-api
 
 ---
 
-最終更新: 2025-10-26（Phase 1テスト実装中、ドキュメント構造整理）
+最終更新: 2025-10-26（ドキュメント更新ルール追加）
