@@ -51,34 +51,6 @@ in
         # ログ設定
         LOG_LEVEL = "INFO";
         HEADLESS = "true";
-
-        # Chromium shared libraries for Playwright
-        LD_LIBRARY_PATH = lib.makeLibraryPath (with pkgs; [
-          glib
-          gtk3
-          nss
-          nspr
-          alsa-lib
-          cups
-          expat
-          libdrm
-          libxkbcommon
-          mesa
-          pango
-          cairo
-          dbus
-          atk
-          at-spi2-atk
-          at-spi2-core
-          xorg.libX11
-          xorg.libXcomposite
-          xorg.libXdamage
-          xorg.libXext
-          xorg.libXfixes
-          xorg.libXrandr
-          libgbm
-          xorg.libxcb
-        ]);
       };
 
       serviceConfig = {
@@ -93,6 +65,13 @@ in
         # uvで実行（venv自動作成・依存インストール）
         ExecStart = pkgs.writeShellScript "musubi-run" ''
           set -e
+
+          # Export LD_LIBRARY_PATH for subprocesses (Chromium)
+          export LD_LIBRARY_PATH="${lib.makeLibraryPath (with pkgs; [
+            glib gtk3 nss nspr alsa-lib cups expat libdrm libxkbcommon mesa pango cairo dbus
+            atk at-spi2-atk at-spi2-core xorg.libX11 xorg.libXcomposite xorg.libXdamage
+            xorg.libXext xorg.libXfixes xorg.libXrandr libgbm xorg.libxcb
+          ])}"
 
           echo "🤖 Starting Musubi Auto Price Adjuster..."
           echo "📁 Working directory: ${projectDir}"
