@@ -128,6 +128,7 @@ in
     # SOPS secretsの定義
     sops.secrets.musubi-env = {
       sopsFile = ../../../secrets/musubi.yaml;
+      format = "yaml";
       owner = "noguchilin";
       group = "users";
       mode = "0400";
