@@ -70,14 +70,14 @@ in
           atk
           at-spi2-atk
           at-spi2-core
-          libX11
-          libXcomposite
-          libXdamage
-          libXext
-          libXfixes
-          libXrandr
+          xorg.libX11
+          xorg.libXcomposite
+          xorg.libXdamage
+          xorg.libXext
+          xorg.libXfixes
+          xorg.libXrandr
           libgbm
-          libxcb
+          xorg.libxcb
         ]);
       };
 
