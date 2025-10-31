@@ -28,7 +28,7 @@ in
     environment.systemPackages = with pkgs; [
       python311
       uv
-      playwright-driver.browsers.chromium
+      # Playwright will be installed via uv in the virtual environment
     ];
 
     # Systemd service (oneshot execution)
@@ -41,14 +41,9 @@ in
         PATH = lib.makeBinPath (with pkgs; [
           python311
           uv
-          playwright-driver.browsers.chromium
           coreutils
           bash
         ]);
-
-        # Playwright設定
-        PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
-        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
 
         # 実行モード設定
         DRY_RUN = if cfg.dryRun then "true" else "false";
@@ -84,9 +79,13 @@ in
           echo "📦 Syncing dependencies..."
           ${pkgs.uv}/bin/uv sync --frozen
 
-          # Playwright browserインストール確認
-          echo "🎭 Checking Playwright browsers..."
-          export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+          # Playwright browserインストール（初回のみ）
+          if [ ! -d ".venv/ms-playwright" ]; then
+            echo "🎭 Installing Playwright browsers..."
+            ${pkgs.uv}/bin/uv run playwright install chromium
+          else
+            echo "✅ Playwright browsers already installed"
+          fi
 
           # 実行
           echo "🚀 Running price adjuster..."
