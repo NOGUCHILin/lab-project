@@ -36,15 +36,15 @@ in
       description = "Musubi Auto Price Adjuster";
       after = [ "network.target" ];
 
-      environment = {
-        # Python/uv環境
-        PATH = lib.makeBinPath (with pkgs; [
-          python311
-          uv
-          coreutils
-          bash
-        ]);
+      # PATH設定（serviceConfig.pathを使用）
+      path = with pkgs; [
+        python311
+        uv
+        coreutils
+        bash
+      ];
 
+      environment = {
         # 実行モード設定
         DRY_RUN = if cfg.dryRun then "true" else "false";
 
