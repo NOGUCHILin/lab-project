@@ -51,6 +51,34 @@ in
         # ログ設定
         LOG_LEVEL = "INFO";
         HEADLESS = "true";
+
+        # Chromium shared libraries for Playwright
+        LD_LIBRARY_PATH = lib.makeLibraryPath (with pkgs; [
+          glib
+          gtk3
+          nss
+          nspr
+          alsa-lib
+          cups
+          expat
+          libdrm
+          libxkbcommon
+          mesa
+          pango
+          cairo
+          dbus
+          atk
+          at-spi2-atk
+          at-spi2-core
+          libX11
+          libXcomposite
+          libXdamage
+          libXext
+          libXfixes
+          libXrandr
+          libgbm
+          libxcb
+        ]);
       };
 
       serviceConfig = {
