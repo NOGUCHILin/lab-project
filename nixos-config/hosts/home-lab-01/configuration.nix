@@ -40,7 +40,7 @@
       # nakamura-misaki-web-uiもflakeのNixOSモジュールから提供（flake.nixで自動import）
       # nakamura-misaki-db.nixもflake.nixでspecialArgs経由でimport（venv依存のため）
       ../../modules/services/registry/applebuyers-site.nix # AppleBuyers Public Site (dev server)
-      ../../modules/services/registry/musubi-adjuster.nix # Musubi Auto Price Adjuster (30分ごとに価格調整)
+      ../../modules/services/registry/musubi-adjuster.nix # Musubi Auto Price Adjuster (9-21時、1時間ごとに価格調整)
       ../../modules/services/registry/code-server-applebuyers.nix # Code Server for AppleBuyers (Writers)
       ../../modules/services/registry/code-server-applebuyers-dev.nix # Code Server for AppleBuyers (Engineers)
     ];
@@ -154,7 +154,7 @@
   # Musubi Auto Price Adjuster Configuration
   services.musubi-adjuster = {
     enable = true;
-    interval = "*:0/30"; # 30分ごとに実行
+    interval = "09..21:00"; # 9時から21時まで、1時間ごと（日中のみ）
     dryRun = false; # 本番モード（実際にアップロード）
   };
 
