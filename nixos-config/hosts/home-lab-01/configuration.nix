@@ -40,6 +40,7 @@
       # nakamura-misaki-web-uiもflakeのNixOSモジュールから提供（flake.nixで自動import）
       # nakamura-misaki-db.nixもflake.nixでspecialArgs経由でimport（venv依存のため）
       ../../modules/services/registry/applebuyers-site.nix # AppleBuyers Public Site (dev server)
+      ../../modules/services/registry/musubi-adjuster.nix # Musubi Auto Price Adjuster (30分ごとに価格調整)
       ../../modules/services/registry/code-server-applebuyers.nix # Code Server for AppleBuyers (Writers)
       ../../modules/services/registry/code-server-applebuyers-dev.nix # Code Server for AppleBuyers (Engineers)
     ];
@@ -148,6 +149,13 @@
     enable = true;
     port = 13006;
     memoryLimit = 768; # 768MB memory limit
+  };
+
+  # Musubi Auto Price Adjuster Configuration
+  services.musubi-adjuster = {
+    enable = true;
+    interval = "*:0/30"; # 30分ごとに実行
+    dryRun = false; # 本番モード（実際にアップロード）
   };
 
   # Code Server for AppleBuyers Writers
@@ -288,6 +296,14 @@
       }
       {
         command = "/run/current-system/sw/bin/systemctl * applebuyers-site.service";
+        options = [ "NOPASSWD" ];
+      }
+      {
+        command = "/run/current-system/sw/bin/systemctl * musubi-adjuster.service";
+        options = [ "NOPASSWD" ];
+      }
+      {
+        command = "/run/current-system/sw/bin/systemctl * musubi-adjuster.timer";
         options = [ "NOPASSWD" ];
       }
       {
